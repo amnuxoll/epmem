@@ -13,6 +13,7 @@ public class Sequence extends DecisionElement
 
     /** accessor methods */
     public Vector<Action> getActions() { return this.actions; }
+    public Action getActionAtIndex(int i) { return this.actions.elementAt(i); }
     public int length() { return this.actions.size(); }
     
     /**
