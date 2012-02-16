@@ -1,6 +1,13 @@
+package UnitTest;
+
 import org.junit.* ;
 import static org.junit.Assert.* ;
 import java.util.*;
+
+import Ziggurat.Episode;
+import Ziggurat.ElementalEpisode;
+import Ziggurat.SequenceEpisode;
+import Ziggurat.WME;
 
 /**
  * class EpisodeTest

@@ -1,5 +1,9 @@
+package UnitTest;
+
 import org.junit.* ;
 import static org.junit.Assert.* ;
+import Ziggurat.WME;
+//import Ziggurat.WME.Type;
 
 /**
  * class WMETest

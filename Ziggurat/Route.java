@@ -2,7 +2,12 @@ package Ziggurat;
 
 import java.util.*;
 
-
+/*
+ * Route
+ * 
+ * This will be a route class.
+ * 
+ */
 public class Route
 {
 	private Vector<Sequence> sequences;
