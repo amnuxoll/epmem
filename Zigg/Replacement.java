@@ -1,4 +1,7 @@
+package Ziggurat;
+
 import java.util.*;
+
 /**
  * class Replacement
  *

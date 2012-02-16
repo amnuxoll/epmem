@@ -1,3 +1,5 @@
+package Ziggurat;
+
 import java.util.*;
 
 /**
@@ -12,7 +14,7 @@ import java.util.*;
  * the utility it associates with that experience (which may change post hoc).
  *
  */
-class ElementalEpisode extends Episode 
+public class ElementalEpisode extends Episode 
 {
 	protected int id;  //a unique identifier, assigned sequentially
 	protected Hashtable<String,WME> sensors;
