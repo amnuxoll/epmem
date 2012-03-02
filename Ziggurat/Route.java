@@ -5,8 +5,16 @@ import java.util.*;
 /*
  * Route
  * 
- * This will be a route class.
+ * Author: Zachary Paul Faltersack
+ * Last Edit: February 22, 2012
  * 
+ * This class defines a Route. A Route is primarily comprised of
+ * a vector of Sequences.
+ * 
+ * 
+ * NOTES:
+ * When is applyReplacement() called? Must be at minimum .between. sequences 
+ * 	else nextAction() is incorrect
  */
 public class Route
 {
@@ -23,13 +31,12 @@ public class Route
         currActIndex = -1;
 	}
 
-	public void Route(Vector<Sequence> initSeq) 
+	public Route(Vector<Sequence> initSeq)
     {
         sequences = initSeq == null ? new Vector<Sequence>() : initSeq;
         replSeq = null;
-        currSeqIndex = -1;
-        currActIndex = -1;
-		
+        currSeqIndex = 0;
+        currActIndex = 0;
 	}
 
 	public String toString() 
@@ -42,35 +49,54 @@ public class Route
 		return "";
 	}
 
-	/** auto increments tthe currAction/currSequence pointers	 */
+	/** auto increments the currAction/currSequence pointers	 */
 	public Action nextAction() 
     {
 		currActIndex++;
-        if(currActIndex >= sequences.elementAt(currSeqIndex).length())
+		if(replSeq != null)
+		{
+			if(currActIndex >= replSeq.length())
+			{
+				replSeq = null;
+				currActIndex = 0;
+				currSeqIndex++;
+			}
+			else
+			{
+				return replSeq.getActionAtIndex(currActIndex);
+			}
+		}
+		else if(currActIndex >= sequences.elementAt(currSeqIndex).length())
         {
             currActIndex = 0;
             currSeqIndex++;
-            if(currSeqIndex >= sequences.size())
-            {
-                return null;
-            }
         }
-        return sequences.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
+		
+        if(currSeqIndex >= sequences.size())
+        {
+            return null;
+        }
+        else
+        {
+        	return sequences.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
+        }
 	}
 
 	public Action getCurrAction() 
     {
-        return sequences.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
+		if(replSeq != null) return replSeq.getActionAtIndex(currActIndex);
+		else 				return sequences.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
 	}
 
 	public Sequence getCurrSequence() 
     {
-        return sequences.elementAt(currSeqIndex);
+		if(replSeq != null) return replSeq;
+		else 				return sequences.elementAt(currSeqIndex);
 	}
 
 	public void applyReplacement(Replacement repl) 
     {
-		
+		replSeq = repl.apply(sequences.elementAt(currSeqIndex));
 	}
 
 	public int numElementalEpisodes() 
