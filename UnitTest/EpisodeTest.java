@@ -24,6 +24,8 @@ public class EpisodeTest
     public static Episode ep1;
     public static Episode ep2;
     public static Episode ep3;
+    public static Episode ep4;
+    public static Episode ep5;
 
     /**
      * creates a sensor hashtable from an array of String.  The string is
@@ -51,17 +53,38 @@ public class EpisodeTest
         //Create some sensor readings
     	Hashtable<String,WME> sensors11 = makeSensors(fozzy);
     	Hashtable<String,WME> sensors12 = makeSensors(fozzy);
-        Hashtable<String,WME> sensors2 = makeSensors(pi);
+        Hashtable<String,WME> sensors21 = makeSensors(pi);
         
         ep1 = new ElementalEpisode(44, sensors11, 1, 1.0);
         ep2 = new ElementalEpisode(45, sensors12, 1, 1.0);
         ep3 = new ElementalEpisode(46, sensors12, 2, 0.5);
+        ep4 = new ElementalEpisode(46, sensors21, 2, 0.5);
+        ep5 = new ElementalEpisode(46, sensors21, 2, 0.5);
     }
 
     @Test
     public void test_equals()
     {
         assertTrue(ep1.equals(ep2));
+        assertTrue(ep4.equals(ep5));
+        assertFalse(ep1.equals(ep3));
+    }
+    
+    @Test
+    public void test_equalSenses()
+    {
+    	ElementalEpisode ee1 = (ElementalEpisode)ep1;
+    	ElementalEpisode ee2 = (ElementalEpisode)ep3;
+    	ElementalEpisode ee3 = (ElementalEpisode)ep4;
+    	assertTrue(ee1.equalSensors(ee2));
+    	assertFalse(ee1.equalSensors(ee3));
+    }
+    
+    @Test
+    public void test_containsAttr()
+    {
+    	ElementalEpisode ee1 = (ElementalEpisode)ep1;
+    	assertTrue(ee1.containsAttr("fozzy"));
     }
 
     // /** ctor initializes instance variables */
