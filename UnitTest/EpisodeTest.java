@@ -49,18 +49,19 @@ public class EpisodeTest
     public static void oneTimeSetUp()
     {
         //Create some sensor readings
-        Hashtable<String,WME> sensors1 = makeSensors(fozzy);
+    	Hashtable<String,WME> sensors11 = makeSensors(fozzy);
+    	Hashtable<String,WME> sensors12 = makeSensors(fozzy);
         Hashtable<String,WME> sensors2 = makeSensors(pi);
         
-        ep1 = new ElementalEpisode(44, sensors1, 1, 1.0);
-        ep2 = new ElementalEpisode(45, sensors1);
-        ep2 = new ElementalEpisode(45, sensors2, 2, 0.5);
+        ep1 = new ElementalEpisode(44, sensors11, 1, 1.0);
+        ep2 = new ElementalEpisode(45, sensors12, 1, 1.0);
+        ep3 = new ElementalEpisode(46, sensors12, 2, 0.5);
     }
 
     @Test
     public void test_equals()
     {
-        assertTrue(ep1.equals(ep1));
+        assertTrue(ep1.equals(ep2));
     }
 
     // /** ctor initializes instance variables */

@@ -17,7 +17,7 @@ import java.util.*;
 public class ElementalEpisode extends Episode 
 {
 	protected int id;  //a unique identifier, assigned sequentially
-	protected Hashtable<String,WME> sensors;
+	protected WMESet sensors;
 	protected int cmd;
 
     /** ctor initializes instance variables */
@@ -26,7 +26,7 @@ public class ElementalEpisode extends Episode
         super(utility);
         
 		this.id      = id;
-        this.sensors = sensors == null ? new Hashtable<String,WME>() : sensors;
+        this.sensors = new WMESet(sensors);
         this.cmd     = cmd;
 	}//ctor
 
@@ -34,7 +34,7 @@ public class ElementalEpisode extends Episode
 	public ElementalEpisode(int id, Hashtable<String,WME> sensors) 
     {
 		this.id      = id;
-        this.sensors = sensors == null ? new Hashtable<String,WME>() : sensors;
+        this.sensors = new WMESet(sensors);
         this.cmd     = 0;
 	}
 
@@ -66,7 +66,7 @@ public class ElementalEpisode extends Episode
 	}
 
     /**
-     * @return a string reprsentation of this episode's sensors
+     * @return a string representation of this episode's sensors
      */
     public String sensorsToString()
     {
@@ -76,7 +76,7 @@ public class ElementalEpisode extends Episode
 	/** returns the WME */
 	public boolean containsAttr(String attr) 
     {
-        return sensors.containsKey(attr);
+        return sensors.hasAttr(attr);
 	}
 
 }//class ElementalEpisode
