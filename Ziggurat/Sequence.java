@@ -16,7 +16,7 @@ public class Sequence extends DecisionElement
 
     /** accessor methods */
     public Vector<Action> getActions() { return this.actions; }
-    public Action getActionAtIndex(int i) { return this.actions.elementAt(i); }
+    public Action getActionAtIndex(int i) { return (this.actions.size() > i ? this.actions.elementAt(i) : null); }
     public int length() { return this.actions.size(); }
     
     /**
@@ -104,12 +104,16 @@ public class Sequence extends DecisionElement
         //Extract the episodes from each action in the sequence
         for(Action a : actions)
         {
-            for (Episode ep : a.getEpisodes())
+        	Episode[] eps = a.getEpisodes();
+            for (Episode ep : eps)
             {
                 //Count them if elemental, otherwise, recurse
                 if (ep instanceof ElementalEpisode)
                 {
                     count++;
+                    // Add 2 for final action
+                    if(a == actions.lastElement()) count++;
+                    break;	// Remember that Actions overlap...
                 }
                 else //SequenceEpisode
                 {

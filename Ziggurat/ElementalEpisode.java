@@ -7,7 +7,7 @@ import java.util.*;
  *
  * This class contains information about an atomic episode from the agent's
  * experience.  In essence, it is a snapshot of an instant in time from the
- * agent's pespective.
+ * agent's perspective.
  *
  * Currently, it consists of an sequences of WMEs representing the agent's
  * sensing at that instant in time paired with the command that it issued and

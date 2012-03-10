@@ -20,9 +20,9 @@ public class WMESetTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		set1 = new WMESet(EpisodeTest.makeSensors(sensors1));
-		set2 = new WMESet(EpisodeTest.makeSensors(sensors1));
-		set3 = new WMESet(EpisodeTest.makeSensors(sensors2));
+		set1 = new WMESet(ElementalEpisodeTest.makeSensors(sensors1));
+		set2 = new WMESet(ElementalEpisodeTest.makeSensors(sensors1));
+		set3 = new WMESet(ElementalEpisodeTest.makeSensors(sensors2));
 	}
 
 	@Test
