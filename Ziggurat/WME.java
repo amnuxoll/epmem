@@ -116,4 +116,9 @@ public class WME
         return result;
 	}//toString
 
+	public WME clone()
+	{
+		return new WME(this.attr, this.value, this.type);
+	}
+	
 }//class WME

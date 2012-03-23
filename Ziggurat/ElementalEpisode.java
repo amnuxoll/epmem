@@ -29,12 +29,28 @@ public class ElementalEpisode extends Episode
         this.sensors = new WMESet(sensors);
         this.cmd     = cmd;
 	}//ctor
+	
+	public ElementalEpisode(int id, WMESet sensors, int cmd, double utility) 
+    {
+        super(utility);
+        
+		this.id      = id;
+        this.sensors = sensors;
+        this.cmd     = cmd;
+	}//ctor
 
     /** partial ctor leaves some items set to default values */
 	public ElementalEpisode(int id, Hashtable<String,WME> sensors) 
     {
 		this.id      = id;
         this.sensors = new WMESet(sensors);
+        this.cmd     = 0;
+	}
+	
+	public ElementalEpisode(int id, WMESet sensors) 
+    {
+		this.id      = id;
+        this.sensors = sensors;
         this.cmd     = 0;
 	}
 
@@ -77,6 +93,11 @@ public class ElementalEpisode extends Episode
 	public boolean containsAttr(String attr) 
     {
         return sensors.hasAttr(attr);
+	}
+	
+	public ElementalEpisode clone()
+	{
+		return new ElementalEpisode(this.id, this.sensors.clone(), this.cmd, 0.0);
 	}
 
 }//class ElementalEpisode

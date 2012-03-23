@@ -6,7 +6,6 @@ import java.util.*;
 
 import Ziggurat.Episode;
 import Ziggurat.ElementalEpisode;
-import Ziggurat.SequenceEpisode;
 import Ziggurat.WME;
 
 /**
@@ -14,52 +13,27 @@ import Ziggurat.WME;
  *
  * junit test for Episode, ElementalEpisode and SequenceEpisode
  */
-public class EpisodeTest 
+public class ElementalEpisodeTest 
 {
-    public static String[] fozzy = {"fozzy", "bear",
-                                    "sex", "m",
-                                    "age", "16",
-                                    "cash", "0.0"};
-    public static String[] pi = {"pi", "3.14159"};
-    public static Episode ep1;
-    public static Episode ep2;
-    public static Episode ep3;
-    public static Episode ep4;
-    public static Episode ep5;
+    public static ElementalEpisode ep1 = new ElementalEpisode(44, WMESetTest.set1.clone(), 1, 1.0);
+    public static ElementalEpisode ep2 = new ElementalEpisode(45, WMESetTest.set1.clone(), 1, 1.0);
+    public static ElementalEpisode ep3 = new ElementalEpisode(46, WMESetTest.set1.clone(), 2, 0.5);
+    public static ElementalEpisode ep4 = new ElementalEpisode(46, WMESetTest.set2.clone(), 2, 0.5);
+    public static ElementalEpisode ep5 = new ElementalEpisode(46, WMESetTest.set2.clone(), 2, 0.5);
 
-    /**
-     * creates a sensor hashtable from an array of String.  The string is
-     * considered to be a sequence of attribute,value,attribute,value,...
-     * These are passed to WMETest#makeWME.
-     * 
-     */
-    public static Hashtable<String,WME> makeSensors(String[] data)
-    {
-        Hashtable<String,WME> result = new Hashtable<String,WME>();
-        
-        for(int i = 1; i < data.length; i += 2)
-        {
-            WME w = WMETest.makeWME(data[i-1], data[i]);
-            result.put(data[i-1], w);
-        }
-
-        return result;
-    }//makeSensors
-
-    
     @BeforeClass
     public static void oneTimeSetUp()
     {
         //Create some sensor readings
-    	Hashtable<String,WME> sensors11 = makeSensors(fozzy);
-    	Hashtable<String,WME> sensors12 = makeSensors(fozzy);
-        Hashtable<String,WME> sensors21 = makeSensors(pi);
+    	//Hashtable<String,WME> sensors11 = WMESetTest.makeSensors(fozzy);
+    	//Hashtable<String,WME> sensors12 = WMESetTest.makeSensors(fozzy);
+        //Hashtable<String,WME> sensors21 = WMESetTest.makeSensors(pi);
         
-        ep1 = new ElementalEpisode(44, sensors11, 1, 1.0);
-        ep2 = new ElementalEpisode(45, sensors12, 1, 1.0);
-        ep3 = new ElementalEpisode(46, sensors12, 2, 0.5);
-        ep4 = new ElementalEpisode(46, sensors21, 2, 0.5);
-        ep5 = new ElementalEpisode(46, sensors21, 2, 0.5);
+        //ep1 = new ElementalEpisode(44, sensors11, 1, 1.0);
+        //ep2 = new ElementalEpisode(45, sensors12, 1, 1.0);
+        //ep3 = new ElementalEpisode(46, sensors12, 2, 0.5);
+        //ep4 = new ElementalEpisode(46, sensors21, 2, 0.5);
+        //ep5 = new ElementalEpisode(46, sensors21, 2, 0.5);
     }
 
     @Test
@@ -73,18 +47,22 @@ public class EpisodeTest
     @Test
     public void test_equalSenses()
     {
-    	ElementalEpisode ee1 = (ElementalEpisode)ep1;
-    	ElementalEpisode ee2 = (ElementalEpisode)ep3;
-    	ElementalEpisode ee3 = (ElementalEpisode)ep4;
-    	assertTrue(ee1.equalSensors(ee2));
-    	assertFalse(ee1.equalSensors(ee3));
+    	assertTrue(ep1.equalSensors(ep2));
+    	assertFalse(ep1.equalSensors(ep4));
     }
     
     @Test
     public void test_containsAttr()
     {
-    	ElementalEpisode ee1 = (ElementalEpisode)ep1;
-    	assertTrue(ee1.containsAttr("fozzy"));
+    	assertTrue(ep1.containsAttr("attr11"));
+    }
+    
+    @Test
+    public void test_clone()
+    {
+    	ElementalEpisode ee = ep1.clone();
+    	assertTrue(ee.equals(ep1));
+    	assertFalse(ee == ep1);
     }
 
     // /** ctor initializes instance variables */

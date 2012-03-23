@@ -3,7 +3,7 @@ package Ziggurat;
 import java.util.*;
 
 public class WMESet {
-	protected Hashtable<String,WME> sensors;
+	private Hashtable<String,WME> sensors;
 	
 	public WMESet(Hashtable<String, WME> sensors)
 	{
@@ -49,5 +49,21 @@ public class WMESet {
 		}
 		rtnVal += "}";
 		return rtnVal;
+	}
+	
+	public WMESet clone()
+	{
+		Hashtable<String, WME> newSenses = new Hashtable<String,WME>();
+		Set<String> ss = sensors.keySet();
+		for(String s : ss)
+		{
+			newSenses.put(s, sensors.get(s).clone());
+		}
+		return new WMESet(newSenses);
+	}
+	
+	public Set<String> getSensorKeys()
+	{
+		return sensors.keySet();
 	}
 }
