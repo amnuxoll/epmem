@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# a little script to run all the junit tests.  To add a new test just
+# add a new entry to the 'tests' array
+#
+# @author Andrew Nuxoll
+
+CP=".:..:./junit:./junit/junit-4.10.jar:junit-4.10.jar"
+
+tests=( WMETest EpisodeTest )
+
+#We may be one folder below the junit folder
+if [ -e "junit" ];
+then
+    cd junit
+fi
+
+#Compile the JUnit tests
+javac -cp ${CP} *.java
+if [ "$?" -ne "0" ];
+then
+  echo "COMPILE FAILED.  STOPPING"
+  exit 1
+fi
+
+#Run the JUnit tests
+for test in ${tests[@]}
+do
+    echo BEGIN TEST: $test
+    java -cp ${CP} org.junit.runner.JUnitCore $test
+    if [ "$?" -ne "0" ];
+    then
+        java -cp ${CP} org.junit.runner.JUnitCore $test 2>&1 | grep "$test.java"
+        exit 1
+    fi
+done
+
+
+
+
