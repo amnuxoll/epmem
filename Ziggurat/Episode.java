@@ -22,4 +22,6 @@ public abstract class Episode extends DecisionElement
     {
         super(utility);
     }
+    
+    public abstract Episode clone();
 }//class Episode

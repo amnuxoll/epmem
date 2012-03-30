@@ -113,6 +113,13 @@ public class Action extends DecisionElement
     {
         return (lhsFreq > freq);
     }
+    
+    public Action clone()
+    {
+    	Action rtn = new Action(this.lhs.clone(), this.rhs.clone());
+    	rtn.cousins.addAll(this.cousins);
+    	return rtn;
+    }
 
 }//class Action
 

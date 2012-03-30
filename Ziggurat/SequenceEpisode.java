@@ -38,5 +38,10 @@ public class SequenceEpisode extends Episode
     {
         return this.sequence.toString();
     }
+    
+    public SequenceEpisode clone()
+    {
+    	return new SequenceEpisode(this.sequence.clone());
+    }
 
 }//class SequenceEpisode

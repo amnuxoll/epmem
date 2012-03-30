@@ -10,10 +10,20 @@ import java.util.*;
  */
 public class Sequence extends DecisionElement
 {
-    protected Vector<Action> actions = new Vector<Action>();
+    protected Vector<Action> actions;
 //%%%AMN: Still necessary?:     protected double utility;
 //%%%AMN: Forgot what this is for:  protected boolean valid; 
 
+    public Sequence()
+    {
+    	actions = new Vector<Action>();
+    }
+    
+    public Sequence(Vector<Action> acts)
+    {
+    	this.actions = acts;
+    }
+    
     /** accessor methods */
     public Vector<Action> getActions() { return this.actions; }
     public Action getActionAtIndex(int i) { return (this.actions.size() > i ? this.actions.elementAt(i) : null); }
@@ -52,7 +62,10 @@ public class Sequence extends DecisionElement
     {
         Sequence seq = new Sequence();
 
-        seq.actions = (Vector<Action>)this.actions.clone();
+        for(Action a : this.actions)
+        {
+        	seq.addEntry(a.clone());
+        }
 
         return seq;
     }//clone
