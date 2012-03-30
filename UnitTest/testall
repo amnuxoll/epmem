@@ -7,7 +7,7 @@
 
 CP=".:..:./junit:./junit/junit-4.10.jar:junit-4.10.jar"
 
-tests=( WMETest EpisodeTest )
+tests=( WMETest WMESetTest ElementalEpisodeTest ActionTest )
 
 #We may be one folder below the junit folder
 if [ -e "junit" ];
@@ -27,10 +27,10 @@ fi
 for test in ${tests[@]}
 do
     echo BEGIN TEST: $test
-    java -cp ${CP} org.junit.runner.JUnitCore $test
+    java -cp ${CP} org.junit.runner.JUnitCore UnitTest.$test
     if [ "$?" -ne "0" ];
     then
-        java -cp ${CP} org.junit.runner.JUnitCore $test 2>&1 | grep "$test.java"
+        java -cp ${CP} org.junit.runner.JUnitCore UnitTest.$test 2>&1 | grep "$test.java"
         exit 1
     fi
 done
