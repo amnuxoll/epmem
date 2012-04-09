@@ -16,20 +16,26 @@ import java.util.*;
  */
 public class ElementalEpisode extends Episode 
 {
-	protected int id;  //a unique identifier, assigned sequentially
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
+    /* %%%AMN:  Do we really need an ID? %%% */
+    /** used to assign a unique id to each episode (assigned sequentially) */
+    protected static int nextId = 0;
+    /** a unique identify for this episode */
+    protected int id;
+    /** the agents sensors in this episode */
 	protected WMESet sensors;
+    /** the command the agent selected */
 	protected int cmd;
 
-    /** ctor initializes instance variables */
-	public ElementalEpisode(int id, Hashtable<String,WME> sensors, int cmd, double utility) 
-    {
-        super(utility);
-        
-		this.id      = id;
-        this.sensors = new WMESet(sensors);
-        this.cmd     = cmd;
-	}//ctor
-	
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
+
+    /** this ctor initializes all instance variables */
 	public ElementalEpisode(int id, WMESet sensors, int cmd, double utility) 
     {
         super(utility);
@@ -39,21 +45,28 @@ public class ElementalEpisode extends Episode
         this.cmd     = cmd;
 	}//ctor
 
-    /** partial ctor leaves some items set to default values */
-	public ElementalEpisode(int id, Hashtable<String,WME> sensors) 
-    {
-		this.id      = id;
-        this.sensors = new WMESet(sensors);
-        this.cmd     = 0;
-	}
-	
+    /** partial ctor leaves the command set to a default value */
 	public ElementalEpisode(int id, WMESet sensors) 
     {
 		this.id      = id;
         this.sensors = sensors;
         this.cmd     = 0;
-	}
+	}//ctor
 
+    /** partial ctor leaves command as a default value and sets the id as the
+     * next one iteratively (using #nextId) */
+	public ElementalEpisode(WMESet sensors) 
+    {
+		this.id      = nextId;
+        nextId++;
+        this.sensors = sensors;
+        this.cmd     = 0;
+	}//ctor
+
+    /*======================================================================
+     * Methods
+     *----------------------------------------------------------------------
+     */
 	/** episodes are equal if they contain the same knowlege */
 	public boolean equals(Episode other) 
     {
@@ -94,11 +107,18 @@ public class ElementalEpisode extends Episode
     {
         return sensors.hasAttr(attr);
 	}
-	
+
+    /** create a close of this episode */
 	public ElementalEpisode clone()
 	{
 		return new ElementalEpisode(this.id, this.sensors.clone(), this.cmd, 0.0);
 	}
+
+    /** set the value of cmd */
+    public void setCommand(int cmd)
+    {
+        this.cmd = cmd;
+    }
 
 }//class ElementalEpisode
 
