@@ -9,23 +9,21 @@ import Ziggurat.ElementalEpisode;
 import Ziggurat.WME;
 
 /**
- * class ElementalEpisodeTest
+ * ElementalEpisodeTest
  *
- * junit test for ElementalEpisode
+ * This JUnit test case ensures ElementalEpisode is working.
  */
-public class ElementalEpisodeTest 
-{
+public class ElementalEpisodeTest {
+
+	// Create some ElementalEpisodes we can use here, and access in other test files if necessary
     public static ElementalEpisode ep1 = new ElementalEpisode(44, WMESetTest.set1.clone(), 1, 1.0);
     public static ElementalEpisode ep2 = new ElementalEpisode(45, WMESetTest.set1.clone(), 1, 1.0);
     public static ElementalEpisode ep3 = new ElementalEpisode(46, WMESetTest.set1.clone(), 2, 0.5);
     public static ElementalEpisode ep4 = new ElementalEpisode(46, WMESetTest.set2.clone(), 2, 0.5);
     public static ElementalEpisode ep5 = new ElementalEpisode(46, WMESetTest.set2.clone(), 2, 0.5);
 
-    @BeforeClass
-    public static void oneTimeSetUp()
-    {
-    }
-
+	// BEGIN Test cases --------------------------------------
+    
     @Test
     public void test_equals()
     {
@@ -54,6 +52,4 @@ public class ElementalEpisodeTest
     	assertTrue(ee.equals(ep1));
     	assertFalse(ee == ep1);
     }
-
-
-}//class EpisodeTest
+}//class ElementalEpisodeTest
