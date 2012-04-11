@@ -117,6 +117,7 @@ public class Sequence extends DecisionElement
         //Extract the episodes from each action in the sequence
         for(Action a : actions)
         {
+        	/*
         	Episode[] eps = a.getEpisodes();
             for (Episode ep : eps)
             {
@@ -134,6 +135,27 @@ public class Sequence extends DecisionElement
                     count += seq.numElementalEpisodes();  //recurse
                 }
             }//for
+            */
+        	Episode ep = a.getLHS();
+        	if(ep instanceof ElementalEpisode)
+        	{
+        		count++;
+        		if(a == actions.lastElement())
+        		{
+        			count++;
+        		}
+        	}
+        	else
+    		{
+    			Sequence seq =  ((SequenceEpisode)ep).getSequence();
+                count += seq.numElementalEpisodes();  //recurse
+                if(a == actions.lastElement())
+                {
+                	ep = a.getRHS();
+                	seq = ((SequenceEpisode)ep).getSequence();
+                	count += seq.numElementalEpisodes();  //recurse
+                }
+    		}
         }//for
 
         return count;

@@ -7,11 +7,11 @@ import Ziggurat.WME;
 /**
  * class WMETest
  *
- * junit test for Episode, ElementalEpisode and SequenceEpisode
+ * This JUnit test case ensures that WME is working.
  */
-public class WMETest
-{
-    //Some variables for testing
+public class WMETest {
+	
+	// Create some WMESet we can use here, and access in other test files if necessary
     public static WME wme1;
     public static WME wme2;
     public static WME wme3;
@@ -60,6 +60,8 @@ public class WMETest
         wme4 = makeWME("hi", "5.0");
     }
 
+	// BEGIN Test cases --------------------------------------
+    
     @Test
     public void test_equals()
     {

@@ -9,7 +9,13 @@ import static org.junit.Assert.* ;
 import Ziggurat.WME;
 import Ziggurat.WMESet;
 
+/**
+ * WMESetTest
+ * 
+ * This JUnit test case ensures WMESet is working.
+ */
 public class WMESetTest {
+	// Set up some sensor arrays to help initialize WMESets
 	public static String[] sensors1 = {"attr11", "val11",
 		"attr12", "val12",
 		"attr13", "val13"};
@@ -22,6 +28,7 @@ public class WMESetTest {
 		"attr32", "val32",
 		"attr33", "val33"};
 	
+	// Create some WMESet we can use here, and access in other test files if necessary
 	public static WMESet set1 = new WMESet(makeSensors(sensors1));
 	public static WMESet set2 = new WMESet(makeSensors(sensors2));
 	public static WMESet set3 = new WMESet(makeSensors(sensors3));
@@ -44,13 +51,8 @@ public class WMESetTest {
 
         return result;
     }//makeSensors
-	
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		//set1 = new WMESet(makeSensors(sensors1));
-		//set2 = new WMESet(makeSensors(sensors1));
-		//set3 = new WMESet(makeSensors(sensors2));
-	}
+
+	// BEGIN Test cases --------------------------------------
 
 	@Test
 	public void test_equals()
@@ -97,4 +99,4 @@ public class WMESetTest {
 			assertFalse(newSet.getAttr(s) == set1.getAttr(s));
 		}
 	}
-}
+}//class WMESetTest
