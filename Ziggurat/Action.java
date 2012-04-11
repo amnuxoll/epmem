@@ -119,7 +119,7 @@ public class Action extends DecisionElement
     	Action rtn = new Action(this.lhs.clone(), this.rhs.clone());
     	rtn.cousins.addAll(this.cousins);
     	return rtn;
-    }
+    }//clone
 
 }//class Action
 

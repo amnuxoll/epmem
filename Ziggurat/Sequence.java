@@ -117,33 +117,11 @@ public class Sequence extends DecisionElement
         //Extract the episodes from each action in the sequence
         for(Action a : actions)
         {
-        	/*
-        	Episode[] eps = a.getEpisodes();
-            for (Episode ep : eps)
-            {
-                //Count them if elemental, otherwise, recurse
-                if (ep instanceof ElementalEpisode)
-                {
-                    count++;
-                    // Add 2 for final action
-                    if(a == actions.lastElement()) count++;
-                    break;	// Remember that Actions overlap...
-                }
-                else //SequenceEpisode
-                {
-                    Sequence seq =  ((SequenceEpisode)ep).getSequence();
-                    count += seq.numElementalEpisodes();  //recurse
-                }
-            }//for
-            */
         	Episode ep = a.getLHS();
         	if(ep instanceof ElementalEpisode)
         	{
         		count++;
-        		if(a == actions.lastElement())
-        		{
-        			count++;
-        		}
+        		if(a == actions.lastElement()) count++;
         	}
         	else
     		{
@@ -151,8 +129,7 @@ public class Sequence extends DecisionElement
                 count += seq.numElementalEpisodes();  //recurse
                 if(a == actions.lastElement())
                 {
-                	ep = a.getRHS();
-                	seq = ((SequenceEpisode)ep).getSequence();
+                	seq = ((SequenceEpisode)a.getRHS()).getSequence();
                 	count += seq.numElementalEpisodes();  //recurse
                 }
     		}
