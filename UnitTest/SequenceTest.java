@@ -64,8 +64,8 @@ public class SequenceTest {
 	@Test
 	public void test_numElementalEpisodes()
 	{
+		assertTrue(sEE1.numElementalEpisodes() == 4);
+		sEE1.add(ActionTest.aEE2);
 		assertTrue(sEE1.numElementalEpisodes() == 5);
-		sEE1.addEntry(ActionTest.aEE2);
-		assertTrue(sEE1.numElementalEpisodes() == 6);
 	}
 }//class SequenceTest

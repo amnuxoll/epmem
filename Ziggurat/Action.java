@@ -14,8 +14,6 @@ public class Action extends DecisionElement
 	protected Episode lhs;  //left-hand side episode
 	protected Episode rhs;  //right-hand side episode
 	protected int freq;     //how many times the agent has experienced this action
-	protected Integer lhsFreq;          //how many times the agent has
-                                        //experienced this LHS
 	protected Vector<Action> cousins;   //other rules with same lhs, different LHS
 	protected double utility;           //utility of this action
 
@@ -25,8 +23,7 @@ public class Action extends DecisionElement
     {
 		this.lhs = lhs;
         this.rhs = rhs;
-        this.freq = 1;
-        this.lhsFreq = 1;
+        this.freq = 0;
         cousins = new Vector<Action>();
         utility = 0.0;
 	}//ctor
@@ -36,6 +33,9 @@ public class Action extends DecisionElement
     public Episode getLHS() { return lhs; }
     public Episode getRHS() { return rhs; }
     public Episode[] getEpisodes() { return new Episode[] {lhs,rhs}; }
+    public Vector<Action> getCousins() { return cousins; }
+    public void incrementFreq() { this.freq++; }
+    public void setCousins(Vector<Action> newList) { this.cousins = newList; }
     
     
     /**
@@ -81,7 +81,7 @@ public class Action extends DecisionElement
        //an indication of the percent
        if (this.isIndeterminate())
        {
-           int pct = this.freq * 100 / this.lhsFreq;
+           int pct = this.freq * 100 / this.cousins.size();
            pct = Math.min(99, pct);
            pct = Math.max(00, pct);
            retVal += pct;
@@ -111,7 +111,7 @@ public class Action extends DecisionElement
     /** @return true if this is an indeterminate action. */
     public boolean isIndeterminate()
     {
-        return (lhsFreq > freq);
+        return (this.cousins.size() > 0);
     }
     
     public Action clone()

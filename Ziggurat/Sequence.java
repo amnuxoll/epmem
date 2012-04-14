@@ -6,7 +6,10 @@ import java.util.*;
 /**
  * class Sequence
  *
- * Each instance of this class models a temporal sequence of #Action.
+ * Each instance of this class models a temporal sequence of #Action.  Sequences
+ * are divided by indeterminate actions.  Whenever an indeterminate action
+ * occurs, it becomes the last action in the sequence and a new sequence begins
+ * with the next action.
  */
 public class Sequence extends DecisionElement
 {
@@ -64,7 +67,7 @@ public class Sequence extends DecisionElement
 
         for(Action a : this.actions)
         {
-        	seq.addEntry(a.clone());
+        	seq.add(a.clone());
         }
 
         return seq;
@@ -97,7 +100,7 @@ public class Sequence extends DecisionElement
     }//toString
 
     /** appends a given action to the end of the sequence */
-    public void addEntry(Action act) 
+    public void add(Action act) 
     {
         actions.add(act);
     }
@@ -121,22 +124,46 @@ public class Sequence extends DecisionElement
         	if(ep instanceof ElementalEpisode)
         	{
         		count++;
-        		if(a == actions.lastElement()) count++;
         	}
         	else
     		{
     			Sequence seq =  ((SequenceEpisode)ep).getSequence();
                 count += seq.numElementalEpisodes();  //recurse
-                if(a == actions.lastElement())
-                {
-                	seq = ((SequenceEpisode)a.getRHS()).getSequence();
-                	count += seq.numElementalEpisodes();  //recurse
-                }
     		}
         }//for
 
         return count;
     }//numElementalEpisodes
+
+    /**
+     * findEquivalent
+     *
+     * determines whether a given Vector<Sequence> contains a Sequence that is
+     * equivalent to this one.
+     *
+     * @param vec  the vector to search
+     *
+     * @return the equivalent sequence if found, null otherwise
+     */
+    public Sequence findEquivalent(Vector<Sequence> vec)
+    {
+        Sequence found = null;
+        for(Sequence seq : vec)
+        {
+            //don't compare it to itself
+            if (seq == this) continue;
+
+            //See if they are equivalent
+            if (seq.equals(this))
+            {
+                found = seq;
+                break;
+            }
+        }
+
+        return found;
+        
+    }//findEquivalent
 
 }//class Sequence
 

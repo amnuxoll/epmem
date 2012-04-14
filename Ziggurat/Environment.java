@@ -17,16 +17,24 @@ public abstract class Environment
      */
     public abstract int getNumCommands();
 
-
     /** the current agent reward can be retrieved via the environment.
      * Currently only positive rewards are supported.
      */
     public abstract double currReward();
 
     /**
-     * convert the given episode to a string
+     * convert a given episode to a string
      */
     public abstract String stringify(Episode ep);
         
+    /**
+     * convert a given action to a string
+     */
+    public abstract String stringify(Action act);
+    
+    /**
+     * convert a given sequence to a string
+     */
+    public abstract String stringify(Sequence seq);
     
 }//class Environment

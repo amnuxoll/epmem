@@ -1,6 +1,7 @@
 package Ziggurat;
  
 import java.util.*;
+import Ziggurat.Episode;
 
 /**
  * class Monitor
@@ -27,18 +28,25 @@ public class Monitor
      *----------------------------------------------------------------------
      */
     /** this specifies how far to indent messages. */
-    private int m_indent = 0;
+    private int indent = 0;
 
     /** keeps track of the current stack of method calls as best as it is able */
-    private Vector<String> m_stack = new Vector<String>();
+    private Vector<String> stack = new Vector<String>();
 
     /** keeps count of how many rewards have been received so far */
-    private int m_rewardCount = 0;
+    private int rewardCount = 0;
 
     /** monitor can use an environment to create environment-specific,
      * pretty-printed versions of key objects.
      */
     private Environment env = null;
+
+    /**
+     * a user can temporarily increase the indent level.  This variable tracks
+     * that temporary indent amount.
+     */
+    private int tempIndent = 0;
+     
 
     /*======================================================================
      * Constructors
@@ -66,9 +74,23 @@ public class Monitor
      */
     public static String padLeft(String s, int n)
     {
+        String pad = String.format("%1$-#" + (n+1) + "s", "\n");
+        s = s.replace("\n", pad);
+        n = n + s.length();
         return String.format("%1$#" + n + "s", s);
     }
-        
+
+    /**
+     * addTempIndent
+     *
+     * allows the user to increase the indent level for the next item that's
+     * printed to the log
+     */
+    public void addTempIndent()
+    {
+        this.tempIndent += INDENT_SIZE;
+    }//addTempIndent
+     
     
     /**
      * logs a single generic event
@@ -77,9 +99,56 @@ public class Monitor
      */
    public void log(String s)
     {
-        s = padLeft(s, m_indent);
+        s = padLeft(s, this.indent + this.tempIndent);
         System.out.println(s);
+
+        //if there is a temporary indent in place, remove it now
+        if (this.tempIndent != 0)
+        {
+            this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
+        }
     }//log
+
+    /**
+     * logs a single generic event but also supports printf-style string formatting
+     *
+     * @param s     the format of the message to log
+     * @param args  the arguments for printf
+     */
+   public void log(String s, Object... args)
+    {
+        //Construct the output message
+        Formatter f = new Formatter();
+        f.format(s, args);
+        s = f.toString();
+
+        //Send it to the log
+        log(s);
+    }//log
+
+    /**
+     * logs a string with a single int argument that requires formatting
+     *
+     * @param s     the format of the message to log
+     * @param arg1  the int argument for printf
+     */
+   public void log(String s, int arg1)
+    {
+        this.log(s, new Integer(arg1));
+    }//log
+
+    /**
+     * logs a string with two int arguments that require formatting
+     *
+     * @param s     the format of the message to log
+     * @param arg1  the first int argument for printf
+     * @param arg2  the second int argument for printf
+     */
+   public void log(String s, int arg1, int arg2)
+    {
+        this.log(s, new Integer(arg1), new Integer(arg2));
+    }//log
+
 
     /**
      * logs entering a method
@@ -89,8 +158,8 @@ public class Monitor
     public void enter(String name)
     {
         log("Enter: " + name);
-        m_indent += INDENT_SIZE;
-        m_stack.add(name);
+        this.indent += INDENT_SIZE;
+        this.stack.add(name);
     }//enter
 
     /** 
@@ -102,9 +171,9 @@ public class Monitor
     {
         //Find this method in the stack
         int pos = -1;
-        for(int i = m_stack.size() - 1; i >= 0; i--)
+        for(int i = this.stack.size() - 1; i >= 0; i--)
         {
-            String next = m_stack.elementAt(i);
+            String next = this.stack.elementAt(i);
             if (next.equalsIgnoreCase(name))
             {
                 pos = i;
@@ -115,11 +184,11 @@ public class Monitor
         //if found, adjust indent and pop it off the stack
         if (pos >= 0)
         {
-            m_indent = Math.max(0, m_indent - (m_stack.size() - pos) * INDENT_SIZE);
+            this.indent = Math.max(0, this.indent - (this.stack.size() - pos) * INDENT_SIZE);
 
-            while(pos < m_stack.size())
+            while(pos < this.stack.size())
             {
-                m_stack.remove(pos);
+                this.stack.remove(pos);
             }
         }//if
         
@@ -135,14 +204,14 @@ public class Monitor
      */
     public void reward(double amt)
     {
-        m_rewardCount++;
-        log("REWARD #" + m_rewardCount);
+        this.rewardCount++;
+        log("REWARD #" + this.rewardCount);
     }//reward
 
     /**
      * log
      *
-     * this version prints an episode to the log
+     * prints an episode to the log
      *
      * @param ep   the episode to print
      */
@@ -162,5 +231,85 @@ public class Monitor
         log(output);
     }//log
     
+    /**
+     * log
+     *
+     * prints an action to the log
+     *
+     * @param act   the action to print
+     */
+    public void log(Action act)
+    {
+        String output = "";
+        
+        if (env != null)
+        {
+            output = env.stringify(act);
+        }
+        else
+        {
+            output = act.toString();
+        }
 
+        log(output);
+    }//log
+    
+    /**
+     * log
+     *
+     * prints an sequence to the log
+     *
+     * @param seq   the sequence to print
+     */
+    public void log(Sequence seq)
+    {
+        String output = "";
+        
+        if (env != null)
+        {
+            output = env.stringify(seq);
+        }
+        else
+        {
+            output = seq.toString();
+        }
+
+        log(output);
+    }//log
+    
+    /**
+     * log
+     *
+     * prints a Vector of objects to the log.
+     *
+     * Presumably the objects in this vector are of a type that can be handled
+     * by one of the other log methods.  If it isn't, .  Java won't
+     * let you create overloaded methods that handle generics so it has to be
+     * done like this.
+     *
+     * @param vec   the vector to print
+     */
+    public void log(Vector vec) 
+    {
+        for(Object obj : vec)
+        {
+            if (obj instanceof Episode)
+            {
+                log((Episode)obj);
+            }
+            else if (obj instanceof Action)
+            {
+                log((Action)obj);
+            }
+            else if (obj instanceof Sequence)
+            {
+                log((Sequence)obj);
+            }
+            else
+            {
+                log(obj.toString());
+            }
+        }//for
+    }//log
+    
 }//class Monitor
