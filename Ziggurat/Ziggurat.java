@@ -53,15 +53,22 @@ public class Ziggurat
     /** All replacement rules that the agent has tried */
     private Vector<Vector<Replacement>> repls = new Vector<Vector<Replacement>>();
     /** high confidence means the agent will try new things.  Value range [0..1] */
-    private double selfCOnfidence = INIT_SELF_CONFIDENCE;
+    private double selfConfidence = INIT_SELF_CONFIDENCE;
     /** the current environment provides the agent with a limited amount of
         information about itself */
     private Environment env = null;
-    /** the monitor that is currently logging events in Zigg */
-    private Monitor mon = null;
+    /** the monitor that is currently logging events in Zigg.  I'm making this
+     * static so that other entities can log events to the monitor.  Maybe a
+     * mistake?  But at the moment I can't think of a better approach. */
+    private static Monitor mon = null;
     /** this is the highest level in the hierarchy that contains data */
     /* %%% Do we still need this? */
     private int lastUpdateLevel = 0;
+    /** this vector contains all @link{DecisionElement}s that have recently been
+     * used to make a decision.  When the outcome of decision(s) is known these
+     * active elements' utlities are adjusted based upon that outcome.
+     */
+    private Vector<DecisionElement> activeDecEls = new Vector<DecisionElement>();
 
 
     /*======================================================================
@@ -85,11 +92,18 @@ public class Ziggurat
 
         //record input parameters
         this.env = env;
-        this.mon = new Monitor(env);
+        if (this.mon == null)
+        {
+            this.mon = new Monitor(env);
+        }
         
     }//ctor
 
 
+    /*======================================================================
+     * Public Methods
+     *----------------------------------------------------------------------
+     */
     /**
      * tick
      *
@@ -108,7 +122,7 @@ public class Ziggurat
         // Create new Episode and update the hierarchy with it
         ElementalEpisode ep = new ElementalEpisode(sensors);
         this.epmems.elementAt(0).add(ep);
-        //%%%TBD: update(0);
+        update(0);
 
         
         // If we receive a reward, update the memory to reflect this
@@ -120,8 +134,8 @@ public class Ziggurat
             //If a a plan is in place, reward the agent and any outstanding replacements
             if (this.currPlan != null)
             {
-                //%%%TBD: rewardReplacements();
-                //%%%TBD: rewardAgent();
+                rewardDecEls();
+                rewardAgent();
             }
        
             //The current, presumably successful, plan is no longer needed
@@ -143,6 +157,13 @@ public class Ziggurat
 
     }//tick
 
+    /** accessor for the monitor */
+    public static Monitor getMonitor() { return Ziggurat.mon; }
+
+    /*======================================================================
+     * Private Methods
+     *----------------------------------------------------------------------
+     */
     /**
      * update                    *RECURSIVE*
      *
@@ -328,6 +349,78 @@ public class Ziggurat
 
     }//update
 
+   /**
+    * rewardAgent
+    *
+    * This method increases the agent's overall confidence so that its distance
+    * from 1.0 is half of what it was.  Math:
+    *                conf = conf + (1.0 - conf) / 2
+    */
+    void rewardAgent()
+    {
+        this.mon.log("Overall confidence increased from %g", this.selfConfidence);
+   
+        this.selfConfidence += (1.0 - this.selfConfidence) / 2.0;
+   
+        this.mon.log("to %g\n", this.selfConfidence);
+    }//rewardAgent   
+
+    /**
+     * penalizeAgent
+     *
+     * This method halves the agent's overall confidence.
+     */
+    void penalizeAgent()
+    {
+        this.mon.log("Overall confidence decreased from %g", this.selfConfidence);
+   
+        this.selfConfidence /= 2.0;
+   
+        this.mon.log("to %g\n", this.selfConfidence);
+    }//penalizeAgent   
+
+    /**
+     * rewardDecEls
+     *
+     * increases the confidence of all active decision elements.
+     *
+     * @see DecisionElement.reward
+     *
+     */
+    void rewardDecEls()
+    {
+        for(DecisionElement de : this.activeDecEls)
+        {
+            de.reward();
+        }
+
+        //Reset the active replacements list
+        activeDecEls.clear();
+   
+    }//rewardDecEls
+
+    /**
+     * penalizeDecEls
+     *
+     * decreases the confidences of all active decision elements
+     *
+     * @see DecisionElement.penalize
+     *
+     */
+    void penalizeDecEls()
+    {
+        for(DecisionElement de : this.activeDecEls)
+        {
+            de.penalize();
+        }
+
+        //Reset the active replacements list
+        activeDecEls.clear();
+   
+    }//penalizeDecEls
+
+
+    
 }//class Ziggurat
 
 

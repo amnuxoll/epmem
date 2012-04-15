@@ -37,4 +37,9 @@ public abstract class Environment
      */
     public abstract String stringify(Sequence seq);
     
+    /**
+     * convert a given replacement to a string
+     */
+    public abstract String stringify(Replacement repl);
+    
 }//class Environment
