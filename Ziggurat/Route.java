@@ -63,16 +63,12 @@ public class Route
     /** creates a route from a given sequence */
 	public Route(Vector<Sequence> initSeq)
     {
-        if ((initSeq == null) || initSeq.size() == 0)
-        {
-            this();
-        }
-        else
-        {
-            this.sequences = initSeq;
-            currSeqIndex = 0;
-            currActIndex = 0;
-        }
+        this();
+        if ((initSeq == null) || initSeq.size() == 0) return;
+
+        this.sequences = initSeq;
+        currSeqIndex = 0;
+        currActIndex = 0;
 	}//ctor
 
     /*======================================================================
@@ -152,7 +148,7 @@ public class Route
      */
 	public void applyReplacement(Replacement repl) 
     {
-		replSeq = repl.apply(this.getCurrentSequence());
+		replSeq = repl.apply(this.getCurrSequence());
 	}
 
     /**
