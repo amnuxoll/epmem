@@ -97,7 +97,7 @@ public class Replacement extends DecisionElement
      */
     public Sequence apply(Sequence orig)
     {
-        //Start with a copy of hte original
+        //Start with a copy of the original
         Sequence result = orig.clone();
         Vector<Action> vec = result.getActions();
 
