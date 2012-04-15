@@ -1,0 +1,9 @@
+#these are files that should not be part of the repository and not
+#"noticed" by hg status
+
+# use glob syntax.
+syntax: glob
+
+
+*.class
+\#*\#
