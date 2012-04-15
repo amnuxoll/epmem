@@ -115,4 +115,40 @@ public class Replacement extends DecisionElement
         return result;
     }//apply
 
+    /**
+     * extending this method to report the outcome to Ziggurat's monitor if it's
+     * available
+     */
+    public void reward () 
+    {
+        super.reward();
+
+        //Record this event for posterity
+        Monitor mon = Ziggurat.getMonitor();
+        if (mon != null)
+        {
+            mon.log("Replacement succeeded:  ");
+            mon.addTempIndent();
+            mon.log(this);
+        }        
+    }//reward
+
+    /**
+     * extending this method to report the outcome to Ziggurat's monitor if it's
+     * available
+     */
+    public void penalize () 
+    {
+        super.penalize();
+        
+        //Record this event for posterity
+        Monitor mon = Ziggurat.getMonitor();
+        if (mon != null)
+        {
+            mon.log("Replacement failed:  ");
+            mon.addTempIndent();
+            mon.log(this);
+        }
+    }//penalize
+    
 }//class Replacement

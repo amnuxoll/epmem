@@ -151,7 +151,21 @@ public class Monitor
 
 
     /**
-     * logs entering a method
+     * logs a string with a single double argument that requires formatting
+     *
+     * @param s     the format of the message to log
+     * @param arg1  the double argument for printf
+     */
+   public void log(String s, double arg1)
+    {
+        this.log(s, new Double(arg1));
+    }//log
+
+    /**
+     * enter
+     * 
+     * logs entering a method.  Only call this when entering a major function as
+     * it increases the indent level of the log.
      *
      * @param name the name of the method 
      */
@@ -162,8 +176,10 @@ public class Monitor
         this.stack.add(name);
     }//enter
 
-    /** 
-     * logs exiting a method
+    /**
+     * exit
+     * 
+     * logs exiting a method.  Only call this when exiting a major method.
      * 
      * @param name the name of the method 
      */
@@ -257,7 +273,7 @@ public class Monitor
     /**
      * log
      *
-     * prints an sequence to the log
+     * prints a Sequence to the log
      *
      * @param seq   the sequence to print
      */
@@ -272,6 +288,29 @@ public class Monitor
         else
         {
             output = seq.toString();
+        }
+
+        log(output);
+    }//log
+    
+    /**
+     * log
+     *
+     * prints a Replacement to the log
+     *
+     * @param repl  the Replacement to print
+     */
+    public void log(Replacement repl)
+    {
+        String output = "";
+        
+        if (env != null)
+        {
+            output = env.stringify(repl);
+        }
+        else
+        {
+            output = repl.toString();
         }
 
         log(output);

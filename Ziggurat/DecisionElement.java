@@ -4,17 +4,19 @@ package Ziggurat;
  * class DecisionElement
  * 
  * as the agent makes decisions, it bases them on information that may not be
- * 100% reliable.  Over time, Ziggurat tries to learn how reliable they are by.
- * This reliability or utility is adjusted whenever the decision leads to a
- * reward outcome.  Many other classes in Zigg inherit from this one.
+ * 100% reliable.  Over time, Ziggurat tries to learn how reliable they are by
+ * observing the outcome of decisons it makes based upon that element.  This
+ * reliability or utility is adjusted whenever the decision leads to a reward
+ * outcome.  Many other classes in Zigg inherit from this one.
  */
 public class DecisionElement
 {
     /** constants */
     public static final double INIT_UTILITY = 1.0;
 
-    /** instance variables */
+    /** the overall effectiveness  */
     protected double utility;
+    
 //%%%AMN: do we need this?:     protected int level;
 
     /** default starts with a default utility */
