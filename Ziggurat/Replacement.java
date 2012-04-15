@@ -89,8 +89,9 @@ public class Replacement extends DecisionElement
     /**
      * apply
      *
-     * applies this replacement to a given sequence.  The replacement is applied
-     * successively to all valid places where it matches the sequence.
+     * applies this replacement to a copy of the given sequence.  The
+     * replacement is applied successively to all valid places where it matches
+     * the sequence.  The given sequence is not modified.
      *
      * @return the resulting sequence
      */
