@@ -90,6 +90,15 @@ public class Route extends Vector<Sequence>
         return new Route(vec);
     }
 
+    /** creates a new route that contains a given sequence and starts at a
+     * given offset into that sequence*/
+    public static Route newRouteFromSequence(Sequence seq, int offset)
+    {
+        Route result = newRouteFromSequence(seq);
+        result.currActIndex = offset;
+        return result;
+    }
+
     /*======================================================================
      * Public Methods
      *----------------------------------------------------------------------

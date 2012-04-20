@@ -114,6 +114,12 @@ public class Monitor
             this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
         }
     }
+
+    /**
+     * prints a single dot ('.') to the screen.  Multiple calls to this method
+     * indicate "thinking".
+     */
+    public void think() { logPart("."); }
     
     /**
      * logs a single generic event
