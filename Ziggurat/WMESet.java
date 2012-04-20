@@ -10,9 +10,9 @@ import java.util.*;
  * deliberately test a set of WMEs for equality.
  *
  */
-public class WMESet {
-	
-	// This hashtable saves the WMEs indexed by their name
+public class WMESet
+{
+    // This hashtable saves the WMEs indexed by their name
 	private Hashtable<String,WME> sensors;
 	
 	/*

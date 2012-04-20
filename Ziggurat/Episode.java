@@ -24,6 +24,11 @@ public abstract class Episode extends DecisionElement
     {
         super(utility);
     }
-    
+
     public abstract Episode clone();
+
+    /**
+     * @return true if this episode contains a reward
+     */
+    public abstract boolean containsReward();
 }//class Episode

@@ -16,7 +16,7 @@ import java.util.*;
  * @author Zachary Paul Faltersack
  * 
  */
-public class Route
+public class Route extends Vector<Sequence>
 {
     /*======================================================================
      * Constants
@@ -30,58 +30,77 @@ public class Route
      *----------------------------------------------------------------------
      */
     
-    /** the route consists of these sequences in order.  All sequences must be
-        at the same level. */
-	private Vector<Sequence> sequences;
-
     /** if a @link{Replacement} has been applied to the sequence the agent is
         currently executing, this the modified version is stored here. */
-	private Sequence replSeq;
+	protected Sequence replSeq;
 
     /** if the agent is currently executing a sequence in this route, then this variable
-        contains the index of that sequence in @link{Route#sequences} */
-	private int currSeqIndex;
+        contains the index of that sequence in this vector */
+	protected int currSeqIndex;
 
     /** this is the index of the next action in the current sequence that is to
 	be executed */
-	private int currActIndex;
+	protected int currActIndex;
 
     /*======================================================================
      * Constructors
      *----------------------------------------------------------------------
      */
 
-    /** creates an empty route by default */
-	public Route() 
+    /** shared initialization routine */
+    protected void defaultInit()
     {
-        sequences = new Vector<Sequence>();
         replSeq = null;
         currSeqIndex = Route.NONE;
         currActIndex = Route.NONE;
+    }
+    
+    /** creates an empty route by default */
+	public Route() 
+    {
+        defaultInit();
 	}//ctor
 
-    /** creates a route from a given sequence */
+    /** creates a route from a given vector of sequence */
 	public Route(Vector<Sequence> initSeq)
     {
-        this();
+        super(initSeq);
+        
+        defaultInit();
         if ((initSeq == null) || initSeq.size() == 0) return;
 
-        this.sequences = initSeq;
         currSeqIndex = 0;
         currActIndex = 0;
 	}//ctor
+
+    /** copy ctor */
+    public Route(Route orig)
+    {
+        super(orig);
+        replSeq = orig.replSeq;
+        currSeqIndex = orig.currSeqIndex;
+        currActIndex = currActIndex;
+    }
+
+    /** creates a new route that contains a given sequence */
+    public static Route newRouteFromSequence(Sequence seq)
+    {
+        Vector<Sequence> vec = new Vector<Sequence>();
+        vec.add(seq);
+        return new Route(vec);
+    }
 
     /*======================================================================
      * Public Methods
      *----------------------------------------------------------------------
      */
 
-    /** %%%TBD */
-	public String toString() 
+    /** copy me! */
+    public Object clone()
     {
-		return "";
-	}
-
+        return new Route(this);
+    }
+    
 	/** auto increments the currAction/currSequence pointers	 */
 	public Action nextAction() 
     {
@@ -99,19 +118,19 @@ public class Route
 				return replSeq.getActionAtIndex(currActIndex);
 			}
 		}
-		else if(currActIndex >= sequences.elementAt(currSeqIndex).length())
+		else if(currActIndex >= this.elementAt(currSeqIndex).length())
         {
             currActIndex = 0;
             currSeqIndex++;
         }
 		
-        if(currSeqIndex >= sequences.size())
+        if(currSeqIndex >= this.size())
         {
             return null;
         }
         else
         {
-        	return sequences.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
+        	return this.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
         }
 	}//nextAction
 
@@ -125,7 +144,7 @@ public class Route
 	public Action getCurrAction() 
     {
 		if(replSeq != null) return replSeq.getActionAtIndex(currActIndex);
-        else                return sequences.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
+        else                return this.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
 	}//getCurrAction
 
     /**
@@ -138,7 +157,7 @@ public class Route
 	public Sequence getCurrSequence() 
     {
 		if(replSeq != null) return replSeq;
-		else 				return sequences.elementAt(currSeqIndex);
+		else 				return this.elementAt(currSeqIndex);
 	}
 
     /**
@@ -160,7 +179,7 @@ public class Route
 	public int numElementalEpisodes() 
     {
         int count = 0;
-        for(Sequence s : sequences)
+        for(Sequence s : this)
         {
             count += s.numElementalEpisodes();
         }
@@ -175,10 +194,13 @@ public class Route
 	public int remainingElementalEpisodes() 
     {
         int count = 0;
-        for(int i = currSeqIndex; i < sequences.size(); ++i)
+        for(int i = currSeqIndex; i < this.size(); ++i)
         {
-            count += sequences.elementAt(i).numElementalEpisodes();
+            count += this.elementAt(i).numElementalEpisodes();
         }
 		return count - currActIndex;
 	}
+
+    /** @return true if this route contains a given sequence */
+    
 }//class Route

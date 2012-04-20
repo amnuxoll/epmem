@@ -13,9 +13,9 @@ import java.util.*;
  */
 public class Sequence extends DecisionElement
 {
+    /** these are the acitons that comprise the sequence (order matters) */
     protected Vector<Action> actions;
-//%%%AMN: Still necessary?:     protected double utility;
-//%%%AMN: Forgot what this is for:  protected boolean valid; 
+//%%%AMN: Still needed? Forgot what this is for:  protected boolean valid; 
 
     public Sequence()
     {
@@ -25,6 +25,12 @@ public class Sequence extends DecisionElement
     public Sequence(Vector<Action> acts)
     {
     	this.actions = acts;
+
+        //inherit level from actions
+        if (acts.size() > 0)
+        {
+            this.level = acts.elementAt(0).getLevel();
+        }
     }
     
     /** accessor methods */
@@ -39,9 +45,14 @@ public class Sequence extends DecisionElement
      */
     public boolean equals(Sequence other) 
     {
+        //Catch the obvious case
+        if (other == this) return true;
+
+        //must be same length or don't bother
         int len = this.length();
         if (other.length() != len) return false;
 
+        //compare the constituent actions
         for(int i = 0; i < len; i++)
         {
             Action a1 = this.actions.elementAt(i);
@@ -165,5 +176,22 @@ public class Sequence extends DecisionElement
         
     }//findEquivalent
 
+    /**
+     * containsReward
+     *
+     * @return true if one of its constituent episodes contains a reward
+     */
+    public boolean containsReward()
+    {
+        for(Action act : this.actions)
+        {
+            if (act.containsReward()) return true;
+        }
+
+        return false;
+    }
+                
+    
+    
 }//class Sequence
 
