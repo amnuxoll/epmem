@@ -35,6 +35,14 @@ public class ElementalEpisode extends Episode
      *----------------------------------------------------------------------
      */
 
+    /** default ctor sets default values*/
+    private ElementalEpisode()
+    {
+        this.cmd     = 0;
+        this.level   = 0;
+    }
+        
+    
     /** this ctor initializes all instance variables */
 	public ElementalEpisode(int id, WMESet sensors, int cmd, double utility) 
     {
@@ -43,24 +51,25 @@ public class ElementalEpisode extends Episode
 		this.id      = id;
         this.sensors = sensors;
         this.cmd     = cmd;
+        this.level   = 0;
 	}//ctor
 
     /** partial ctor leaves the command set to a default value */
 	public ElementalEpisode(int id, WMESet sensors) 
     {
+        this();
 		this.id      = id;
         this.sensors = sensors;
-        this.cmd     = 0;
 	}//ctor
 
     /** partial ctor leaves command as a default value and sets the id as the
      * next one iteratively (using #nextId) */
 	public ElementalEpisode(WMESet sensors) 
     {
+        this();
 		this.id      = nextId;
         nextId++;
         this.sensors = sensors;
-        this.cmd     = 0;
 	}//ctor
 
     /*======================================================================
@@ -72,6 +81,9 @@ public class ElementalEpisode extends Episode
     {
         //must both be ElementalEpisode
         if (! (other instanceof ElementalEpisode)) return false;
+
+        //Catch the obvious case
+        if (other == this) return true;
 
         //verify that all relevant instance variables match
         ElementalEpisode ee = (ElementalEpisode)other;
@@ -120,5 +132,13 @@ public class ElementalEpisode extends Episode
         this.cmd = cmd;
     }
 
+    /**
+     * @return true if this episode contains a reward
+     */
+    public boolean containsReward()
+    {
+        return this.sensors.hasAttr(WME.REWARD_STRING);
+    }
+                
 }//class ElementalEpisode
 

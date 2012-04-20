@@ -14,6 +14,10 @@ package Ziggurat;
  */
 public class WME 
 {
+	/** this is the attribute string associated with rewards */
+    public static final String REWARD_STRING = "reward";
+
+
     /*
      * a WME's value can be a string, integer, double or char.  Internally, it
 	 * is always stored as a String and converted to other types as necessary.

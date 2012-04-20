@@ -18,6 +18,7 @@ public class Replacement extends DecisionElement
     /** ctor just inits instance vars */
     public Replacement(Vector<Action> original, Action replacement) 
     {
+        this.level = original.elementAt(0).getLevel(); //inherit from constituents
         this.original = original;
         this.replacement = replacement;
     }//ctor

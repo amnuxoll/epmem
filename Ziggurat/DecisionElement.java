@@ -9,15 +9,16 @@ package Ziggurat;
  * reliability or utility is adjusted whenever the decision leads to a reward
  * outcome.  Many other classes in Zigg inherit from this one.
  */
-public class DecisionElement
+public abstract class DecisionElement
 {
     /** constants */
     public static final double INIT_UTILITY = 1.0;
 
     /** the overall effectiveness  */
     protected double utility;
-    
-//%%%AMN: do we need this?:     protected int level;
+
+    /** the level of the hierarchy associated with this element */
+    protected int level = -1;
 
     /** default starts with a default utility */
     public DecisionElement()
@@ -50,5 +51,14 @@ public class DecisionElement
     {
         utility /= 2;
     }
+
+    /**
+     * @return the level of this decision element in the hierarchy
+     */
+    public int getLevel()
+    {
+        return level;
+    }
+        
     
 }//class DecisionElement

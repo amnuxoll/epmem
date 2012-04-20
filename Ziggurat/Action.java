@@ -21,6 +21,7 @@ public class Action extends DecisionElement
      * initializes the other variables with default starting values. */
 	public Action(Episode lhs, Episode rhs) 
     {
+        this.level = lhs.getLevel();  //inherit level from constituent episodes
 		this.lhs = lhs;
         this.rhs = rhs;
         this.freq = 0;
@@ -44,27 +45,31 @@ public class Action extends DecisionElement
      */
 	public boolean equals(Action other) 
     {
-       if (!this.lhs.equals(other.lhs))
-       {
-           return false;
-       }
+        //Catch the obvious case
+        if (other == this) return true;
 
-       if (this.rhs instanceof ElementalEpisode)
-       {
-           if (other.rhs instanceof ElementalEpisode)
-           {
-               ElementalEpisode ee1 = (ElementalEpisode)this.rhs;
-               ElementalEpisode ee2 = (ElementalEpisode)other.rhs;
+        //compare left-hand-sides
+        if (!this.lhs.equals(other.lhs))
+        {
+            return false;
+        }
 
-               return ee1.equalSensors(ee2);
-           }
-       }
-       else if (! (other.rhs instanceof ElementalEpisode) )
-       {
-           return this.rhs.equals(other.rhs);
-       }
+        //compare right-hand-side (non-ElementalEpisode)
+        if (! (other.rhs instanceof ElementalEpisode) )
+        {
+            return this.rhs.equals(other.rhs);
+        }
 
-       return false;
+        //When comparing Elemental RHS, only the sensors matter 
+        if (other.rhs instanceof ElementalEpisode)
+        {
+            ElementalEpisode ee1 = (ElementalEpisode)this.rhs;
+            ElementalEpisode ee2 = (ElementalEpisode)other.rhs;
+            
+            return ee1.equalSensors(ee2);
+        }
+        
+        return false;
            
 	}//equals
 
@@ -121,6 +126,14 @@ public class Action extends DecisionElement
     	return rtn;
     }//clone
 
+    /**
+     * @return true if its rhs contains a reward
+     */
+    public boolean containsReward()
+    {
+        return this.rhs.containsReward();
+    }
+                
 }//class Action
 
 

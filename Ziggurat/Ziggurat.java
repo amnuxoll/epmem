@@ -36,6 +36,10 @@ public class Ziggurat
     /** minimum confidence value */
     public static double MIN_CONFIDENCE = 0.0;
 
+    /** crank this number down as a way to speed up findRoute().
+        %%%is this really necessary?%%% */
+    private final static int MAX_ROUTE_CANDS = 20;
+
     /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
@@ -275,6 +279,11 @@ public class Ziggurat
             this.mon.log("Adding new action to level %i action list: ", level);
             this.mon.log(newAction);
             actionList.add(newAction);
+
+            //Add itself to its own cousins list to init that list
+            Vector<Action> cousins = new Vector<Action>();
+            cousins.add(newAction);
+            newAction.setCousins(cousins);
             
             // set this flag so that we recursively update the next level
             // with this action
@@ -419,6 +428,245 @@ public class Ziggurat
    
     }//penalizeDecEls
 
+    /**
+     * findShortestRoute
+     *
+     * searches a given Vector<Route> to find the one that has the shortest
+     * number of elemental episodes
+     *
+     * @param searchMe  the vector to search
+     * @param startPos  start searching at this index
+     *
+     * @return index of shortest route (or -1 if given an empty vector)
+     */
+    private int findShortestRoute(Vector<Route> searchMe, int startPos)
+    {
+        if (searchMe.size() == 0) return -1;
+        
+        Route cand = searchMe.elementAt(startPos);
+        int candLen = cand.numElementalEpisodes();
+        int candPos = startPos;
+        for(int i = startPos; i < searchMe.size(); i++)
+        {
+            Route possiblyShorter = searchMe.elementAt(i);
+            int psLen = possiblyShorter.numElementalEpisodes();
+
+            //If a shorter one is found, update cand, candLen and candPos
+            if (psLen < candLen)
+            {
+                cand = possiblyShorter;
+                candLen = psLen;
+                candPos = i;
+            }//if
+        }//for
+
+        return candPos;
+
+        
+    }//findShortestRoute
+
+    /** this version of findShortestRoute doesn't require a start position */
+    private int findShortestRoute(Vector<Route> searchMe)
+    {
+        return findShortestRoute(searchMe, 0);
+    }
+
+    /**
+     * findContainingEpisode
+     *
+     * finds an episode in a given vector that contains a given sequence
+     *
+     * @param seq  the sequence to search with
+     * @param vec  the vector to search
+     * @return the Episode that contains the given sequence (or null if not
+     *         found)
+     */
+    private Episode findContainingEpisode(Sequence seq, Vector<Episode> vec)
+    {
+        for(Episode ep : vec)
+        {
+            if (! (ep instanceof SequenceEpisode)) break;
+
+            SequenceEpisode seqEp = (SequenceEpisode)ep;
+            if (seqEp.getSequence().equals(seq)) return seqEp;
+        }
+
+        return null;
+    }//findContainingEpisode
+
+    /** This version assumes you wish to search all episodes at the level above
+     *  the given sequence.
+     */
+    private Episode findContainingEpisode(Sequence seq)
+    {
+        int level = seq.getLevel();
+        Vector<Episode> parentEps = this.epmems.elementAt(level + 1);
+
+        return findContainingEpisode(seq, parentEps);
+        
+    }//findContainingEpisode
+
+    
+
+
+    /**
+     * findCousinList
+     *
+     * locates the cousins lists containing all actions that begin with a given
+     * left-hand-side.  It is presumed that the action's level is the same level
+     * as the given episode.
+     *
+     * @param lhs   the Episode that is the lhs of the cousins
+     * @return a Vector<Action> or null if none found
+     */
+    public Vector<Action> findCousinList(Episode lhs)
+    {
+        //Extract the vector of all the actions on this level
+        int level = lhs.getLevel();
+        Vector<Action> actionList = this.actions.elementAt(level);
+
+        //Search that list until a matching action is found
+        Action foundAct = null;
+        for(Action act : actionList)
+        {
+            if (lhs.equals(act.getLHS()))
+            {
+                foundAct = act;
+                break;
+            }
+        }//for
+
+        //If none was found, return null
+        if (foundAct == null) return null;
+
+        //return the cousins list
+        return foundAct.getCousins();
+        
+    }//findCousinList
+
+    /**
+     * findRoute
+     *
+     * This method uses a breadth-first search to find a shortest path from a
+     * given start state to a goal state at a given level.  
+     *
+     * CAVEAT:  initRoute does not verify that the given sequence and route are
+     *          valid/allocated
+     *
+     * @arg startSeq  must be the first sequence in the route
+     *
+     * @return a Route object
+     */
+    Route findRoute(Sequence startSeq)
+    {
+        this.mon.enter("findRoute");
+        
+        Route result = null;   // return value
+
+        //candidate Route structs to return to caller
+        Vector<Route> candRoutes = new Vector<Route>();
+        
+        // can't build plan without level+1 actions
+        int level = startSeq.getLevel();
+        assert(level + 1 < MAX_LEVEL_DEPTH);
+
+        //Create an initial, incomplete candidate route using the given start sequence
+        candRoutes.add(Route.newRouteFromSequence(startSeq));
+
+        /*--------------------------------------------------------------------------
+         * Iterate over the candidate routes expanding them until the shortest
+         * route to the goal is found (breadth-first search)
+         */
+        //(Note: the size of the candRoutes vector will grow as the search
+        //continues.  Each candidate is a partial route.)
+        for(int i = 0; i < candRoutes.size(); i++)
+        {
+            mon.logPart(".");  //to track "thinking time"
+
+            //To avoid long delays, give up on planning after examining N candidate routes
+            if (i > MAX_ROUTE_CANDS)
+            {
+                break;
+            }
+        
+            //Find the shortest route that hasn't been examined yet and swap it
+            //to the i-th position in the array
+            int candPos = findShortestRoute(candRoutes, i);
+            Route cand = candRoutes.elementAt(candPos);
+            if (candPos != i)
+            {
+                Route tmp = candRoutes.elementAt(i);
+                candRoutes.set(i, cand);
+                candRoutes.set(candPos, tmp);
+            }
+
+            //log the current shortest candidate
+            this.mon.log("examining next shortest unexamined candidate %d at %ld of size %d:",
+                         new Integer(i), cand.toString(), new Integer(cand.numElementalEpisodes()));
+       
+            //SUCCESS! If the last sequence in this route contains the goal
+            //state, we're done.  Copy the details of this route to the newRoute
+            //struct we were given and exit the loop.
+            Sequence lastSeq = cand.lastElement();
+            if (lastSeq.containsReward())
+            {
+                return cand;
+            }//if
+
+            /*----------------------------------------------------------------------
+             * Search for sequences to find any that meet both these criteria:
+             * 1.  The sequence is the right-hand-side of an action at
+             *     level+1 such that the left-hand-side sequence is the
+             *     one most recently added to the candidate route
+             * 2.  the sequence is not already in the candidate route
+             *
+             * Then build new candidate routes by adding all sequences to the
+             * current candidate route that meet these criteria .
+             *
+             * TODO:  convert this to a subroutine
+             */
+
+            //Find all actions whose LHS matches the current candidates' RHS
+            Episode lastSeqEp = findContainingEpisode(lastSeq);
+            Vector<Action> extensions = findCousinList(lastSeqEp);
+            if (extensions == null) continue;
+            
+            //Create a new candidate route by extending the current candidate
+            //with each action in the extensions list
+            for(Action act : extensions)
+            {
+                //Extract the sequence associated with the rhs of this matching
+                //action
+                Episode rhs = act.getRHS();
+                Sequence rhsSeq = ((SequenceEpisode)rhs).getSequence();
+
+                //Verify this sequence isn't already in the route
+                if (cand.contains(rhsSeq)) continue;
+
+                //log the new candidate
+                this.mon.log(""); //to reset after the dots (see above)
+                this.mon.log("extending candidate with action: ");
+                this.mon.addTempIndent();
+                this.mon.log(rhsSeq);
+       
+                //If we've reached this point, then we can create a new candidate
+                //route that is an extension of the current one
+                Route newCand = (Route)cand.clone();
+                newCand.add(rhsSeq);
+       
+                //Add this new candidate route to the candRoutes array
+                candRoutes.add(newCand);
+            }//for
+
+            this.mon.log("done searching for ways to extend from sequence: ");
+            this.mon.addTempIndent();
+            this.mon.log(lastSeq);
+       
+        }//for
+
+        //If we reach this point, we failed to find a route
+        return null;
+    }//findRoute
 
     
 }//class Ziggurat

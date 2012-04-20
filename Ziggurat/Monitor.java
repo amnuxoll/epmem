@@ -46,7 +46,12 @@ public class Monitor
      * that temporary indent amount.
      */
     private int tempIndent = 0;
-     
+
+    /**
+     * a user can log a line in parts using @link{#logPart}.  This boolean
+     * tracks whether a partial log has been added yet.
+     */
+    private boolean inPart = false;
 
     /*======================================================================
      * Constructors
@@ -90,7 +95,25 @@ public class Monitor
     {
         this.tempIndent += INDENT_SIZE;
     }//addTempIndent
-     
+
+    /**
+     * logPart
+     *
+     * prints a partial log entry.  NOTE:  There is a lot of copy/paste here
+     * from log().  I don't know how to avoid that
+     */
+    public void logPart(String s)
+    {
+        if (!inPart) padLeft(s, this.indent + this.tempIndent);
+        inPart = true;
+        System.out.print(s);
+        
+        //if there is a temporary indent in place, remove it now
+        if (this.tempIndent != 0)
+        {
+            this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
+        }
+    }
     
     /**
      * logs a single generic event
@@ -107,6 +130,9 @@ public class Monitor
         {
             this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
         }
+
+        //end any partial entry
+        inPart = false;
     }//log
 
     /**
