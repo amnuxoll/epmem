@@ -300,7 +300,8 @@ public class Ziggurat
         //Bump the frequency for this new (or re-used) action
         updateExistingAction.incrementFreq();
         
-        //Log that an update was completed at this level
+        //Log that an update was completed at this level.  This is needed by
+        //findInterimStart()
         this.lastUpdateLevel = level;
 
         // add most recently seen action to current sequence
@@ -581,7 +582,7 @@ public class Ziggurat
         //continues.  Each candidate is a partial route.)
         for(int i = 0; i < candRoutes.size(); i++)
         {
-            mon.logPart(".");  //to track "thinking time"
+            this.mon.think();  //to track "thinking time"
 
             //To avoid long delays, give up on planning after examining N candidate routes
             if (i > MAX_ROUTE_CANDS)
@@ -601,6 +602,7 @@ public class Ziggurat
             }
 
             //log the current shortest candidate
+            this.mon.log(""); //to reset after the dots (see above)
             this.mon.log("examining next shortest unexamined candidate %d at %ld of size %d:",
                          new Integer(i), cand.toString(), new Integer(cand.numElementalEpisodes()));
        
@@ -610,6 +612,7 @@ public class Ziggurat
             Sequence lastSeq = cand.lastElement();
             if (lastSeq.containsReward())
             {
+                this.mon.exit("findRoute");
                 return cand;
             }//if
 
@@ -644,7 +647,6 @@ public class Ziggurat
                 if (cand.contains(rhsSeq)) continue;
 
                 //log the new candidate
-                this.mon.log(""); //to reset after the dots (see above)
                 this.mon.log("extending candidate with action: ");
                 this.mon.addTempIndent();
                 this.mon.log(rhsSeq);
@@ -665,8 +667,191 @@ public class Ziggurat
         }//for
 
         //If we reach this point, we failed to find a route
+        this.mon.exit("findRoute");
         return null;
     }//findRoute
+
+    /**
+     * findInterimStart
+     *
+     * This method locates a past sequence that is a best match for the agent's
+     * current "location". This is an episode that follows the longest series of
+     * episodes that match the ones most recently created by the agent. The
+     * returned sequence is returned as a "seed" route that findRoute can use to
+     * build a full path to a reward.
+     *
+     * @see #initPlan
+     *
+     * NOTE:  This method does not search level 0 episodes.
+     *        @see #findInterimStartPartialMatch()
+     *
+     * @return the "seed" route containing the sequence that was found or null
+     *         if the most recently completed sequence is unique at every level.
+     */
+    Route findInterimStart()
+    {
+        Vector<Episode> currLevelEpMem = null;  //list of epmems currently being searched
+        int bestMatchIndex = 0;       // position of best match so far
+        int bestMatchLen = 0;         // length of best match so far
+        int level = -1;               // the current level being searched
+
+        this.mon.enter("findInterimStart");
+   
+        //Iterate over all levels that are not the very top or bottom
+        for(level = this.lastUpdateLevel; level >= 1; level--)
+        {
+            this.mon.log("searching Level %d", level);
+   
+            //Set the current episode list and its size for this iteration
+            currLevelEpMem = this.epmems.elementAt(level);
+            int lastIndex = currLevelEpMem.size() - 1;
+
+            //starting with the penultimate level iterate backwards looking for a
+            //subsequence that matches the current position
+            for(int i = lastIndex - 1; i >= 0; i--)
+            {
+                //Count the length of the match at this point
+                int matchLen = 0;
+                while(currLevelEpMem.elementAt(i-matchLen).equals(
+                          currLevelEpMem.elementAt(lastIndex - matchLen)))
+                {
+                    matchLen++;
+
+                    //don't fall off the edge
+                    if (i - matchLen < 0) break;
+                }
+
+                //See if we've found a new best match
+                if (matchLen > bestMatchLen)
+                {
+                    bestMatchLen = matchLen;
+                    bestMatchIndex = i;
+                }
+            }//for
+
+            //If any match was found at this level, then stop searching
+            if (bestMatchLen > 0) break;
+        }//for
+
+        //Check for no match found
+        if (bestMatchLen == 0)
+        {
+            this.mon.log("findInterimStart failed: the current sequence is unique.");
+            this.mon.exit("findInterimStart");
+            return null;
+        }
+
+        //***If we reach this point, we've found a match.
+        Sequence bestMatch = ((SequenceEpisode)currLevelEpMem.elementAt(bestMatchIndex + 1)).getSequence();
+        this.mon.log("Search Result of length %d at index %d in level %d:  ",
+                     bestMatchLen, bestMatchIndex + 1, level);
+        this.mon.addTempIndent();
+        this.mon.log(bestMatch);
+        this.mon.log(" which comes after: ");
+        this.mon.addTempIndent();
+        this.mon.log(((SequenceEpisode)currLevelEpMem.elementAt(bestMatchIndex)).getSequence());
+        this.mon.log(" and which matches: ");
+        this.mon.addTempIndent();
+        this.mon.log(((SequenceEpisode)currLevelEpMem.lastElement()).getSequence());
+
+
+        //done!
+        this.mon.exit("findInterimStart");
+        return Route.newRouteFromSequence(bestMatch);
+   
+    }//findInterimStart
+
+    /**
+     * findInterimStartPartialMatch
+     *
+     * Like findInterimStart(), this method searches episodes for the best match
+     * to the present.  However, it only searches level 0 and since the planning
+     * routines need a sequences to build plans, it takes its best match and
+     * returns the level 0 sequence that contains it and an offset into that
+     * sequence that corresponds to the end of the match.  The route is built
+     * from the sequence but begins where the match left off
+     *
+     * @arg offset is the index of the action in the returned sequence that a new
+     * plan should start with
+     *
+     * @return the "start" sequence that was found or NULL if there was no partial
+     *         match
+     */
+    Route findInterimStartPartialMatch()
+    {
+        Vector<Episode> level0Eps = this.epmems.elementAt(0);
+        Vector<Episode> level1Eps = this.epmems.elementAt(1);
+        int lastIndex = level0Eps.size()-1; // where the match begins
+        int bestMatchLen = 0;         // length of the best match so far
+        int bestMatchIndex = -1;    // index of level 1 episode that is best match
+        int bestMatchOffset = -1;   // index of first matching action in best match
+        
+        //There must be at least two level 1 episodes to do a partial match
+        if (level1Eps.size() < 2) return null;
+        this.mon.enter("findInterimStartPartialMatch");
+
+        /*======================================================================
+         * Find the best match by comparing the level 0 episode sequence to
+         * itself.  We do this by iterating over the level 1 episodes so that
+         * when a match is found it is "oriented" in the level 1 episodes.
+         * ----------------------------------------------------------------------
+         */
+        int numLvl0Eps = level0Eps.size() - 1;
+        int lvl0Index = level0Eps.size() - 2;
+        for(int i = level1Eps.size() - 1; i >= 0; i--)
+        {
+            SequenceEpisode currLvl1Ep = (SequenceEpisode)level1Eps.elementAt(i);
+            Vector<Action> seqActs = currLvl1Ep.getSequence().getActions();
+            for(int j = seqActs.size() - 1; j >= 0; j--)
+            {
+                Episode currEp = seqActs.elementAt(j).getLHS();
+                //sanity check
+                assert(level0Eps.elementAt(lvl0Index) == currEp);
+
+                //Each matching episode extends the length of the overall match
+                int matchLen = 0;
+                while(level0Eps.elementAt(lvl0Index - matchLen).equals(
+                          level0Eps.elementAt(numLvl0Eps - matchLen)))
+                {
+                    matchLen++;
+
+                    //don't fall off the edge
+                    if (lvl0Index - matchLen < 0) break;
+                }
+
+                //See if we've found a new best match
+                if (matchLen > bestMatchLen)
+                {
+                    bestMatchLen = matchLen;
+                    bestMatchIndex = i;
+                    bestMatchOffset = j;
+                }
+
+                lvl0Index--;
+            }//for
+        }//for
+
+        //Check for no match found
+        if (bestMatchLen == 0)
+        {
+            this.mon.log("findInterimStartPartialMatch failed: the current sequence is unique.");
+            this.mon.exit("findInterimStartPartialMatch");
+            return null;
+        }
+
+        //***If we reach this point, we've found a match.
+        Sequence bestMatch = ((SequenceEpisode)level1Eps.elementAt(bestMatchIndex)).getSequence();
+        this.mon.log("Search Result of length %d at index %d and offset %d:  ",
+                     bestMatchLen, bestMatchIndex + 1, bestMatchOffset);
+        this.mon.addTempIndent();
+        this.mon.log(bestMatch);
+
+
+        //done!
+        this.mon.exit("findInterimStartPartialmatch");
+        return Route.newRouteFromSequence(bestMatch, bestMatchOffset);
+   
+    }//findInterimStartPartialMatch
 
     
 }//class Ziggurat
