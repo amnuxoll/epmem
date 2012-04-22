@@ -351,6 +351,29 @@ public class Monitor
     /**
      * log
      *
+     * prints a Plan to the log
+     *
+     * @param plan  the Plan to print
+     */
+    public void log(Plan plan)
+    {
+        String output = "";
+        
+        if (env != null)
+        {
+            output = env.stringify(plan);
+        }
+        else
+        {
+            output = plan.toString();
+        }
+
+        log(output);
+    }//log
+    
+    /**
+     * log
+     *
      * prints a Vector of objects to the log.
      *
      * Presumably the objects in this vector are of a type that can be handled
