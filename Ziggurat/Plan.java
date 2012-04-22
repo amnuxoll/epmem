@@ -42,10 +42,32 @@ public class Plan
         needsRecalc = false;
 	}
 
-    /** return the route at a given level */
-    public Route getRoute(int level) { return this.routes.elementAt(level); }
+    /** @return @link{#needsRecalc} */
+    public boolean needsRecalc() { return this.needsRecalc; }
+    
+    
+    /** @return the route at a given level */
+    public Route getRoute(int level)
+    {
+        while (this.routes.size() <= level)
+        {
+            this.routes.add(new Route());
+        }
+        
+        return this.routes.elementAt(level);
+    }
     /** set the route at a given level */
-    public void setRoute(int level, Route r) { this.routes.set(level, r); }
+    public void setRoute(int level, Route r)
+    {
+        while (this.routes.size() <= level)
+        {
+            this.routes.add(new Route());
+        }
+        
+        this.routes.set(level, r);
+    }
+    /** return the highest level route in the plan */
+    public Route getTopRoute(int level) { return this.routes.elementAt(level); }
     
     /** create an environment-inspecific String representation of this plan */
 	public String toString () 

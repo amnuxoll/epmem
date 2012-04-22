@@ -42,4 +42,9 @@ public abstract class Environment
      */
     public abstract String stringify(Replacement repl);
     
+    /**
+     * convert a given plan to a string
+     */
+    public abstract String stringify(Plan plan);
+    
 }//class Environment

@@ -44,8 +44,6 @@ public class Ziggurat
      * Instance Variables
      *----------------------------------------------------------------------
      */
-
-    
     /** All episodes learned so far */
     private Vector<Vector<Episode>> epmems = new Vector<Vector<Episode>>();
     /** All actions learned so far */
@@ -73,7 +71,12 @@ public class Ziggurat
      * active elements' utlities are adjusted based upon that outcome.
      */
     private Vector<DecisionElement> activeDecEls = new Vector<DecisionElement>();
-
+    /** count how many goals we've reached so far */
+    private int goalCount = 0;
+    /** count how many steps we've taken since the last goal */
+    private int stepsSoFar = 0;
+    /** for all your random number geneation needs! */
+    private Random randGen = new Random();
 
     /*======================================================================
      * Constructors
@@ -144,6 +147,13 @@ public class Ziggurat
        
             //The current, presumably successful, plan is no longer needed
             this.currPlan = null;
+
+            //Report this success
+            (this.goalCount)++;
+            this.mon.log("Goal %d found after %d steps.",
+                         this.goalCount, this.stepsSoFar);
+            this.stepsSoFar = 0;
+            
         }//if
 
         //Select the agent's next action
@@ -435,12 +445,9 @@ public class Ziggurat
      * this method creates a plan for reaching the goal state from the starting
      * state.  A plan is a vector of routes (one per level)
      *
-     *
-     * @arg isReplan Am I creating a new plan due to a previous plan failure?
-     *              
      * @return a pointer to the plan or null if no plan was found
      */
-    Plan initPlan(boolean isReplan)
+    Plan initPlan()
     {
         this.mon.enter("initPlan");
        
@@ -923,6 +930,144 @@ public class Ziggurat
    
     }//findInterimStartPartialMatch
 
+    /**
+     * chooseCommand
+     *
+     * This function decides what command to issue next.  Typically this
+     * selection will be the next step in a plan.  However, the agent may decide
+     * to modify the plan as part of the command selection process.  If no plan
+     * exists, a random command is selected.
+     *
+     * @return int the command that was chosen
+     */
+    int chooseCommand()
+    {
+        this.mon.enter("chooseCommand");
+
+        //Increment command counter for data gathering
+        (this.stepsSoFar)++;
+           
+        //If the agent has taken a wrong step, then it loses confidence in itself
+        //and in the recently applied replacements
+        if (this.currPlan != null)
+        {
+            this.mon.log("checking to see if plan is still valid\n");
+
+            //Check to see if the plan is still valid. :)
+            Vector<Episode> lvl0Eps = this.epmems.firstElement();
+            ElementalEpisode nowEp = (ElementalEpisode)lvl0Eps.lastElement();
+            if (! this.currPlan.nextStepIsValid(nowEp))
+            {
+                this.mon.log("Current plan invalid.  Replanning...:\n");
+
+                //"We now consecrate the bond of obedience."  The agent and all
+                //active replacements are now to be penalized for causing this
+                //failure.
+                penalizeDecEls();
+                penalizeAgent();
+           
+                //Since the plan has failed, create a new one
+                this.currPlan = initPlan();
+
+                //Log the new plan
+                if (this.currPlan != null)
+                {
+                 this.mon.log("Replan:");
+                 this.mon.tab();
+                 this.mon.log(this.currPlan);
+                }
+            }//if
+            else                // The plan is going swimmingly! 
+            {
+                this.mon.log("Plan successful so far.");
+
+
+                //%%%This functionality (commented out below) needs to be in the
+                //%%%Plan not in Zigg.  I'm leaving this here until that's done.
+                /*
+                //If a sequence has been completed then the active replacements need
+                //to be applied to the new current sequence
+                Route topRoute = this.currPlan.getTopRoute(this.currPlan);
+                for(i = topRoute.getLevel(); i >= 0; i--)
+                {
+                    //Has the route at this level just completed a sequence?
+                    Route currRoute = this.currPlan.getRoute(i);
+                    if ((currRoute.currSeqIndex() > 0) && (currRoute.currActIndex() == 0))
+                    {
+                        currRoute->replSeq = NULL;
+                   
+                        //Reapply all active replacements at this level
+                        for(j = 0; j < g_activeRepls->size; j++)
+                        {
+                            Replacement *currRepl = (Replacement *)g_activeRepls->array[j];
+                            if (currRepl->level == i)
+                            {
+                                applyReplacementToPlan(g_plan, currRepl);
+                            }
+                        }//for
+                    }//if
+                }//for
+                */
+
+
+                //If a level 0 sequence has just completed then the agent's
+                //confidence is increased due to the partial success
+                //(Note: Index 1 rather than 0 is used due to overlap between
+                //sequences.)
+                Route lvl0Route = this.currPlan.getRoute(0);
+                if ((lvl0Route.getCurrSeqIndex() > 0)
+                    && (lvl0Route.getCurrActIndex() == 0))
+                {
+                    rewardAgent();
+                }
+
+            }//else
+       
+        }//if
+
+        //If the current plan is invalid then we first need to make a new plan
+        if ( this.currPlan.needsRecalc() )
+        {
+            this.currPlan = initPlan();
+
+            //If there still is no plan at this point then that means the agent
+            //doesn't have enough experience yet.  Select a semi-random command
+            //that would create a new action.
+            if (this.currPlan == null)
+            {
+                this.mon.log("No valid plan available.  Taking a random action.");
+                this.mon.exit("chooseCommand");
+                return 42; //%%%TBD: chooseCommand_SemiRandom();
+            }//if
+
+            this.mon.log("New plan:");
+            this.mon.log(this.currPlan);
+        }//if
+
+        //%%%AMN:  I have ported this to Java in case we need it.  I sure hope
+        // we don't.
+        // //%%%TEMPORARY KLUDGE:  For Dustin and Ben.  
+        // {
+        //     //  adding a % chance of random action depending upon how long it's been
+        //     //  since we've reached the goal
+        //     int randDelay = 100;
+        //     if (stepsSoFar > randDelay)
+        //     {
+        //         int rNum = this.randGen(1000);
+        //         if (stepsSoFar - randDelay > rNum)
+        //         {
+        //             return chooseCommand_SemiRandom();
+        //             stepsSoFar = 0;
+        //         }
+        //     }
+        // }
+    
+
+        //If we've reached this point then there is a working plan so the agent
+        //should select the next step with that plan.
+        return 42; //%%%TBD: chooseCommand_WithPlan();
+
+    }//chooseCommand
     
 }//class Ziggurat
 

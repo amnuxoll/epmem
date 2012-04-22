@@ -109,18 +109,28 @@ public class Route extends Vector<Sequence>
     {
         return new Route(this);
     }
+
+    /** acessor */
+    public int getCurrActIndex() { return this.currActIndex; }
+    public int getCurrSeqIndex() { return this.currSeqIndex; }
     
-	/** auto increments the currAction/currSequence pointers	 */
+	/**
+     * auto increments the currAction/currSequence pointers
+     *
+     * %%% this method needs to auto-apply replacements when it advances
+     */
 	public Action nextAction() 
     {
 		currActIndex++;
+        //If a replacement is in place then 
 		if(replSeq != null)
 		{
+            //If we've run out of the current sequence, advance to the next one
 			if(currActIndex >= replSeq.length())
 			{
-				replSeq = null;
-				currActIndex = 0;
-				currSeqIndex++;
+				this.replSeq = null;
+				this.currActIndex = 0;
+				this.currSeqIndex++;
 			}
 			else
 			{
@@ -129,8 +139,9 @@ public class Route extends Vector<Sequence>
 		}
 		else if(currActIndex >= this.elementAt(currSeqIndex).length())
         {
-            currActIndex = 0;
-            currSeqIndex++;
+            this.replSeq = null;
+            this.currActIndex = 0;
+            this.currSeqIndex++;
         }
 		
         if(currSeqIndex >= this.size())
