@@ -17,11 +17,13 @@ public class Sequence extends DecisionElement
     protected Vector<Action> actions;
 //%%%AMN: Still needed? Forgot what this is for:  protected boolean valid; 
 
+    /** default ctor creates an empty sequence */
     public Sequence()
     {
     	actions = new Vector<Action>();
     }
-    
+
+    /** this ctor inits the new Sequence with the given actions */
     public Sequence(Vector<Action> acts)
     {
     	this.actions = acts;

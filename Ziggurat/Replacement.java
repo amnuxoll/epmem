@@ -130,7 +130,7 @@ public class Replacement extends DecisionElement
         if (mon != null)
         {
             mon.log("Replacement succeeded:  ");
-            mon.addTempIndent();
+            mon.tab();
             mon.log(this);
         }        
     }//reward
@@ -148,7 +148,7 @@ public class Replacement extends DecisionElement
         if (mon != null)
         {
             mon.log("Replacement failed:  ");
-            mon.addTempIndent();
+            mon.tab();
             mon.log(this);
         }
     }//penalize

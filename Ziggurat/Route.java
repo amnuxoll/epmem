@@ -210,6 +210,13 @@ public class Route extends Vector<Sequence>
 		return count - currActIndex;
 	}
 
-    /** @return true if this route contains a given sequence */
+    /**
+     * @return the level of the sequences in this route
+     */
+    public int getLevel()
+    {
+        Sequence seq = this.getCurrSequence();
+        return seq.getLevel();
+    }
     
 }//class Route
