@@ -86,15 +86,15 @@ public class Monitor
     }
 
     /**
-     * addTempIndent
+     * tab
      *
      * allows the user to increase the indent level for the next item that's
      * printed to the log
      */
-    public void addTempIndent()
+    public void tab()
     {
         this.tempIndent += INDENT_SIZE;
-    }//addTempIndent
+    }//tab
 
     /**
      * logPart

@@ -65,8 +65,8 @@ public class Ziggurat
      * static so that other entities can log events to the monitor.  Maybe a
      * mistake?  But at the moment I can't think of a better approach. */
     private static Monitor mon = null;
-    /** this is the highest level in the hierarchy that contains data */
-    /* %%% Do we still need this? */
+    /** this is the highest level in the hierarchy that contains data.  This is
+     * used by the findInterimStart methods */
     private int lastUpdateLevel = 0;
     /** this vector contains all @link{DecisionElement}s that have recently been
      * used to make a decision.  When the outcome of decision(s) is known these
@@ -300,7 +300,7 @@ public class Ziggurat
         //Bump the frequency for this new (or re-used) action
         updateExistingAction.incrementFreq();
         
-        //Log that an update was completed at this level.  This is needed by
+        //Log that an update was completed at this level.  This is used by
         //findInterimStart()
         this.lastUpdateLevel = level;
 
@@ -308,10 +308,10 @@ public class Ziggurat
         Sequence currSequence = sequenceList.elementAt(sequenceList.size() - 1);
         currSequence.add(updateExistingAction);
         this.mon.log("Adding action #%d: ", sequenceList.size() - 1);
-        this.mon.addTempIndent();
+        this.mon.tab();
         this.mon.log(updateExistingAction);
         this.mon.log(" to current sequence:");
-        this.mon.addTempIndent();
+        this.mon.tab();
         this.mon.log(currSequence);
 
         // if the action we just added is indeterminate then end the current
@@ -341,7 +341,7 @@ public class Ziggurat
             if (level + 1 < MAX_LEVEL_DEPTH)
             {
                 this.mon.log("Creating a new level %i episode with sequence: ", level + 1);
-                this.mon.addTempIndent();
+                this.mon.tab();
                 this.mon.log(currSequence);
 
                 Vector<Episode> parentEpList = epmems.elementAt(level + 1);
@@ -428,6 +428,80 @@ public class Ziggurat
         activeDecEls.clear();
    
     }//penalizeDecEls
+
+    /**
+     * initPlan
+     *
+     * this method creates a plan for reaching the goal state from the starting
+     * state.  A plan is a vector of routes (one per level)
+     *
+     *
+     * @arg isReplan Am I creating a new plan due to a previous plan failure?
+     *              
+     * @return a pointer to the plan or null if no plan was found
+     */
+    Plan initPlan(boolean isReplan)
+    {
+        this.mon.enter("initPlan");
+       
+        //Try to figure out where I am.  I can't make plan without this.
+        Route seedRoute = findInterimStart();
+        if (seedRoute == null)
+        {
+            //Try a partial match
+            seedRoute = findInterimStartPartialMatch();
+            if (seedRoute == null)
+            {
+                this.mon.exit("initPlan");
+                return null;        // I give up
+            }
+        }//if
+
+        //Figure out what level the route is at
+        int level = seedRoute.getLevel();
+   
+        //Try to initialize the route at the same level as the start sequence
+        Route currRoute = findRoute(seedRoute);
+        
+        //Give up if no route can be found
+        if (currRoute == null)
+        {
+            this.mon.log("findRoute failed");
+            this.mon.exit("initPlan");
+            
+            return null;
+        }//if
+
+        //Initialize an incomplete plan using the new route
+        Plan resultPlan = new Plan();
+        resultPlan.setRoute(level, currRoute);
+
+        //report
+        this.mon.log("Success: found route to goal at level: %d:", level);
+        this.mon.tab();
+        this.mon.log(currRoute);
+       
+        //Initialize the route at levels below the level of the currRoute.  Each
+        //route is based on the current sequence in the route at the previous
+        //level
+        /*%%%very important that this code is correct.  I'm not 100% sure that
+          we are initializing with the correct episode here!-:AMN: */
+        for(int i = level - 1; i >= 0; i--)
+        {
+            //Get the very first episode in the route (which must be a
+            //SequenceEpisode because level+1 can't be zero)
+            Route parentRoute = resultPlan.getRoute(i+1);
+            Action parentAct = parentRoute.getCurrAction();
+            SequenceEpisode parentEp = (SequenceEpisode)parentAct.getLHS();
+
+            //parentEp is the sequence that comprises the route one level below
+            Route newRoute = Route.newRouteFromSequence(parentEp.getSequence());
+            resultPlan.setRoute(i, newRoute);
+        }//for
+
+        this.mon.exit("initPlan");
+        return resultPlan;
+    }// initPlan
 
     /**
      * findShortestRoute
@@ -554,32 +628,28 @@ public class Ziggurat
      * CAVEAT:  initRoute does not verify that the given sequence and route are
      *          valid/allocated
      *
-     * @arg startSeq  must be the first sequence in the route
+     * @arg seedRoute  a starting Route containing just the first sequence
      *
      * @return a Route object
      */
-    Route findRoute(Sequence startSeq)
+    Route findRoute(Route seedRoute)
     {
         this.mon.enter("findRoute");
         
-        Route result = null;   // return value
-
-        //candidate Route structs to return to caller
-        Vector<Route> candRoutes = new Vector<Route>();
-        
         // can't build plan without level+1 actions
-        int level = startSeq.getLevel();
+        int level = seedRoute.getLevel();
         assert(level + 1 < MAX_LEVEL_DEPTH);
 
-        //Create an initial, incomplete candidate route using the given start sequence
-        candRoutes.add(Route.newRouteFromSequence(startSeq));
+        //This vector contains all the incomplete routes that have been or will
+        //be considered by this routine as it builds its route
+        Vector<Route> candRoutes = new Vector<Route>();
+        candRoutes.add(seedRoute);
 
         /*--------------------------------------------------------------------------
          * Iterate over the candidate routes expanding them until the shortest
-         * route to the goal is found (breadth-first search)
+         * route to the goal is found (breadth-first search).  (Note: the size
+         * of candRoutes will grow as the search continues.)
          */
-        //(Note: the size of the candRoutes vector will grow as the search
-        //continues.  Each candidate is a partial route.)
         for(int i = 0; i < candRoutes.size(); i++)
         {
             this.mon.think();  //to track "thinking time"
@@ -648,7 +718,7 @@ public class Ziggurat
 
                 //log the new candidate
                 this.mon.log("extending candidate with action: ");
-                this.mon.addTempIndent();
+                this.mon.tab();
                 this.mon.log(rhsSeq);
        
                 //If we've reached this point, then we can create a new candidate
@@ -661,7 +731,7 @@ public class Ziggurat
             }//for
 
             this.mon.log("done searching for ways to extend from sequence: ");
-            this.mon.addTempIndent();
+            this.mon.tab();
             this.mon.log(lastSeq);
        
         }//for
@@ -745,13 +815,13 @@ public class Ziggurat
         Sequence bestMatch = ((SequenceEpisode)currLevelEpMem.elementAt(bestMatchIndex + 1)).getSequence();
         this.mon.log("Search Result of length %d at index %d in level %d:  ",
                      bestMatchLen, bestMatchIndex + 1, level);
-        this.mon.addTempIndent();
+        this.mon.tab();
         this.mon.log(bestMatch);
         this.mon.log(" which comes after: ");
-        this.mon.addTempIndent();
+        this.mon.tab();
         this.mon.log(((SequenceEpisode)currLevelEpMem.elementAt(bestMatchIndex)).getSequence());
         this.mon.log(" and which matches: ");
-        this.mon.addTempIndent();
+        this.mon.tab();
         this.mon.log(((SequenceEpisode)currLevelEpMem.lastElement()).getSequence());
 
 
@@ -843,7 +913,7 @@ public class Ziggurat
         Sequence bestMatch = ((SequenceEpisode)level1Eps.elementAt(bestMatchIndex)).getSequence();
         this.mon.log("Search Result of length %d at index %d and offset %d:  ",
                      bestMatchLen, bestMatchIndex + 1, bestMatchOffset);
-        this.mon.addTempIndent();
+        this.mon.tab();
         this.mon.log(bestMatch);
 
 

@@ -42,6 +42,11 @@ public class Plan
         needsRecalc = false;
 	}
 
+    /** return the route at a given level */
+    public Route getRoute(int level) { return this.routes.elementAt(level); }
+    /** set the route at a given level */
+    public void setRoute(int level, Route r) { this.routes.set(level, r); }
+    
     /** create an environment-inspecific String representation of this plan */
 	public String toString () 
     {
@@ -71,10 +76,10 @@ public class Plan
         if (mon != null)
         {
             mon.log("Intended Next Action:\n");
-            mon.addTempIndent();
+            mon.tab();
             mon.log(currAct);
             mon.log("verifying that it matches the current episode's sensing:");
-            mon.addTempIndent();
+            mon.tab();
             mon.log(latestEpisode);
         }
 
