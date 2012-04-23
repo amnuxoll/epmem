@@ -8,14 +8,14 @@ import java.util.*;
  * This state contains the main learning algorithm for Ziggurat.  For an
  * overview of the algorithm please review:
  *
- * Zachary Faltersack, Brian Burns, Andrew Nuxoll and Tanya
- * L. Crenshaw. Ziggurat: Steps Toward a General Episodic Memory. AAAI Fall
- * Symposium Series: Advances in Cognitive Systems, 2011.
+ * <ul> Zachary Faltersack, Brian Burns, Andrew Nuxoll and Tanya
+ * L. Crenshaw. Ziggurat: Steps Toward a General Episodic Memory. <i>AAAI Fall
+ * Symposium Series: Advances in Cognitive Systems</i>, 2011.
  *
- * If you are new to this source code start by looking at the classes for major
- * entities: {@link Action}, {@link Episode} and {@link Sequence}.  In this
- * class, the following methods are fundamental: {@link #tick}, {@link #update}
- * and {@link #findRoute}.
+ * <p>If you are new to this source code start by looking at the classes for
+ * major entities: {@link Action}, {@link Episode} and {@link Sequence}.  In
+ * this class, the following methods are fundamental: {@link #tick}, {@link
+ * #update} and {@link #findRoute}.
  *
  */
 public class Ziggurat
@@ -196,18 +196,18 @@ public class Ziggurat
         // Ensure that the level is within the accepted range for the vectors
         if(level < 0 || level >= MAX_LEVEL_DEPTH)
         {
-            this.mon.log("Exiting update(): level %d out of range\n", level);
+            this.mon.log("Exiting update(): level %d out of range", level);
             return -3;
         }
 
         //Log the current state of the hierarchy at this level
-        this.mon.log("Level %d Episodes >>>>>>>>>>>>>>>>>>>>>>>>>>>\n", level);
+        this.mon.log("Level %d Episodes >>>>>>>>>>>>>>>>>>>>>>>>>>>", level);
         this.mon.log(epmems.elementAt(level));
-        this.mon.log("Level %d Actions >>>>>>>>>>>>>>>>>>>>>>>>>>>\n", level);
+        this.mon.log("Level %d Actions >>>>>>>>>>>>>>>>>>>>>>>>>>>", level);
         this.mon.log(actions.elementAt(level));
-        this.mon.log("Level %d Sequences >>>>>>>>>>>>>>>>>>>>>>>>>>>\n", level);
+        this.mon.log("Level %d Sequences >>>>>>>>>>>>>>>>>>>>>>>>>>>", level);
         this.mon.log(seqs.elementAt(level));
-        this.mon.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< End of Level %i Data\n", level);
+        this.mon.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< End of Level %i Data", level);
 
         // Create pointers to the two associated vectors we'll be working with
         Vector<Episode> episodeList = this.epmems.elementAt(level);
@@ -217,7 +217,7 @@ public class Ziggurat
         // You need a minimum of two episodes to make an action
         if(episodeList.size() <= 1)
         {
-            this.mon.log("\tExiting update(): insufficient episodes (%d) at level %d\n",
+            this.mon.log("\tExiting update(): insufficient episodes (%d) at level %d",
                          episodeList.size(), level);
             return -1;
         }
@@ -382,7 +382,7 @@ public class Ziggurat
    
         this.selfConfidence += (1.0 - this.selfConfidence) / 2.0;
    
-        this.mon.log("to %g\n", this.selfConfidence);
+        this.mon.log("to %g", this.selfConfidence);
     }//rewardAgent   
 
     /**
@@ -396,7 +396,7 @@ public class Ziggurat
    
         this.selfConfidence /= 2.0;
    
-        this.mon.log("to %g\n", this.selfConfidence);
+        this.mon.log("to %g", this.selfConfidence);
     }//penalizeAgent   
 
     /**
@@ -931,6 +931,97 @@ public class Ziggurat
     }//findInterimStartPartialMatch
 
     /**
+     * chooseCommand_SemiRandom
+     *
+     * This function selects a random command that would create a new action
+     * based upon the agent's most recent sensing.  If no such new action can be
+     * made, then it just chooses a random command without qualification.
+     *
+     * CAVEAT:  This routine assumes that the lowest numbered command is 0.
+     *
+     */
+    int chooseCommand_SemiRandom()
+    {
+        //Make an array of boolean values (one per command) and init them all to
+        //true. This array will eventually indicates whether the given command
+        //would create a unique episode (true) or not (false).
+        int numCmds = this.env.getNumCommands();
+        boolean valid[] = new boolean[numCmds];
+        for(int i = 0; i < numCmds; i++)
+        {
+            valid[i] = true;        // innocent until proven guilty
+        }
+
+        //Retrieve the cousins list of actions that have the agent's current
+        //sensing on the LHS
+        Episode nowEp = this.epmems.firstElement().lastElement();
+        Vector<Action> cousins = findCousinList(nowEp);
+
+        //Mark the commands associated with the cousins as invalid
+        for(Action act : cousins)
+        {
+            ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
+            valid[currEp.getCommand()] = false; // guilty!
+        }
+
+        //Start from a random starting position in the valid array and return
+        //the first random entry found.  If no unique command is found, the
+        //original random value is used
+        int cmd = randGen.nextInt(numCmds);
+        for(int i = 0; i < numCmds; i++)
+        {
+            int next = (cmd + i) % numCmds;
+            if (valid[next])
+            {
+                cmd = next;
+                break;
+            }
+        }
+
+        this.mon.log("Choosing a semi-random command: %d", cmd);
+        return cmd;
+
+    }//chooseCommand_SemiRandom
+
+    /**
+     * chooseCommand_WithPlan
+     *
+     * This function increments to the next action in the current plan and
+     * extracts the associated cmd to return to the caller.
+     *
+     * CAVEAT: this.currPlan should contain a valid plan that does not need
+     *         recalc.
+     */
+    int chooseCommand_WithPlan()
+    {
+        this.mon.log("Choosing command from plan:");
+        this.mon.tab();
+        this.mon.log(this.currPlan);
+   
+        //Before executing the next command in the plan, see if there is a
+        //replacement rule that the agent is confident enough to apply to the
+        //current plan.  If so, apply it.
+        //%%%TBD: considerReplacement();
+
+        //Get the current level 0 action from the plan
+        Route level0Route = this.currPlan.getRoute(0);
+        Action currAction = level0Route.getCurrAction();
+
+        //extract the command prescribed by the current action
+        ElementalEpisode lhs = (ElementalEpisode)currAction.getLHS();        
+        int cmd = lhs.getCommand();
+
+        //advance the "current action" pointer to the next action as a result of
+        //taking this action
+        this.currPlan.advance(0);
+
+        //Return the selected command to the environment
+        return cmd;
+
+    }//chooseCommand_WithPlan
+    
+
+    /**
      * chooseCommand
      *
      * This function decides what command to issue next.  Typically this
@@ -947,40 +1038,31 @@ public class Ziggurat
         //Increment command counter for data gathering
         (this.stepsSoFar)++;
            
-        //If the agent has taken a wrong step, then it loses confidence in itself
-        //and in the recently applied replacements
+        //If there is a plan in effect, first see if it's been effective so far.
         if (this.currPlan != null)
         {
-            this.mon.log("checking to see if plan is still valid\n");
+            this.mon.log("Checking to see if the plan is still valid");
 
-            //Check to see if the plan is still valid. :)
+            //Check to see if the plan is still valid.
             Vector<Episode> lvl0Eps = this.epmems.firstElement();
             ElementalEpisode nowEp = (ElementalEpisode)lvl0Eps.lastElement();
             if (! this.currPlan.nextStepIsValid(nowEp))
             {
-                this.mon.log("Current plan invalid.  Replanning...:\n");
+                this.mon.log("Current plan invalid.  Replanning...:");
 
                 //"We now consecrate the bond of obedience."  The agent and all
                 //active replacements are now to be penalized for causing this
                 //failure.
                 penalizeDecEls();
                 penalizeAgent();
-           
-                //Since the plan has failed, create a new one
-                this.currPlan = initPlan();
 
-                //Log the new plan
-                if (this.currPlan != null)
-                {
-                 this.mon.log("Replan:");
-                 this.mon.tab();
-                 this.mon.log(this.currPlan);
-                }
+                //Remove the bad plan so we can replan
+                this.currPlan = null;
+           
             }//if
             else                // The plan is going swimmingly! 
             {
                 this.mon.log("Plan successful so far.");
-
 
                 //%%%This functionality (commented out below) needs to be in the
                 //%%%Plan not in Zigg.  I'm leaving this here until that's done.
@@ -990,30 +1072,28 @@ public class Ziggurat
                 Route topRoute = this.currPlan.getTopRoute(this.currPlan);
                 for(i = topRoute.getLevel(); i >= 0; i--)
                 {
-                    //Has the route at this level just completed a sequence?
-                    Route currRoute = this.currPlan.getRoute(i);
-                    if ((currRoute.currSeqIndex() > 0) && (currRoute.currActIndex() == 0))
-                    {
-                        currRoute->replSeq = NULL;
+                //Has the route at this level just completed a sequence?
+                Route currRoute = this.currPlan.getRoute(i);
+                if ((currRoute.currSeqIndex() > 0) && (currRoute.currActIndex() == 0))
+                {
+                currRoute->replSeq = NULL;
                    
-                        //Reapply all active replacements at this level
-                        for(j = 0; j < g_activeRepls->size; j++)
-                        {
-                            Replacement *currRepl = (Replacement *)g_activeRepls->array[j];
-                            if (currRepl->level == i)
-                            {
-                                applyReplacementToPlan(g_plan, currRepl);
-                            }
-                        }//for
-                    }//if
+                //Reapply all active replacements at this level
+                for(j = 0; j < g_activeRepls->size; j++)
+                {
+                Replacement *currRepl = (Replacement *)g_activeRepls->array[j];
+                if (currRepl->level == i)
+                {
+                applyReplacementToPlan(g_plan, currRepl);
+                }
+                }//for
+                }//if
                 }//for
                 */
 
 
                 //If a level 0 sequence has just completed then the agent's
                 //confidence is increased due to the partial success
-                //(Note: Index 1 rather than 0 is used due to overlap between
-                //sequences.)
                 Route lvl0Route = this.currPlan.getRoute(0);
                 if ((lvl0Route.getCurrSeqIndex() > 0)
                     && (lvl0Route.getCurrActIndex() == 0))
@@ -1026,7 +1106,7 @@ public class Ziggurat
         }//if
 
         //If the current plan is invalid then we first need to make a new plan
-        if ( this.currPlan.needsRecalc() )
+        if ( (this.currPlan == null) || (this.currPlan.needsRecalc()) )
         {
             this.currPlan = initPlan();
 
@@ -1035,12 +1115,14 @@ public class Ziggurat
             //that would create a new action.
             if (this.currPlan == null)
             {
-                this.mon.log("No valid plan available.  Taking a random action.");
+                this.mon.log("No plan can be found.  Taking a random action.");
                 this.mon.exit("chooseCommand");
                 return 42; //%%%TBD: chooseCommand_SemiRandom();
             }//if
 
-            this.mon.log("New plan:");
+            //Log the new plan
+            this.mon.log("New Plan:");
+            this.mon.tab();
             this.mon.log(this.currPlan);
         }//if
 
@@ -1065,6 +1147,7 @@ public class Ziggurat
 
         //If we've reached this point then there is a working plan so the agent
         //should select the next step with that plan.
+        this.mon.exit("chooseCommand");
         return 42; //%%%TBD: chooseCommand_WithPlan();
 
     }//chooseCommand
