@@ -132,6 +132,12 @@ public class ElementalEpisode extends Episode
         this.cmd = cmd;
     }
 
+    /** get the value of the cmd */
+    public int getCommand()
+    {
+        return this.cmd;
+    }
+
     /**
      * @return true if this episode contains a reward
      */

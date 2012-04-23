@@ -45,7 +45,6 @@ public class Plan
     /** @return @link{#needsRecalc} */
     public boolean needsRecalc() { return this.needsRecalc; }
     
-    
     /** @return the route at a given level */
     public Route getRoute(int level)
     {
@@ -116,18 +115,20 @@ public class Plan
 	}
 
     /**
-     * update
+     * advance
      *
      * advances this plan by a single step.  The current sequence and action in
-     * each routes is adjusted as necessary.
+     * each route is adjusted as necessary.  
+     *
+     * @param level   advancement is performed at this level
      *
      * @return success code (0) or error code (negative)
      */
-	public int update (int level) 
+	public int advance (int level) 
     {
         //%%%TBD
         return -1;
-	}//update
+	}//advance
 
     /**
      * applies the given replacement to the appropriate level of this plan
