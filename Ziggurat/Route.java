@@ -99,6 +99,20 @@ public class Route extends Vector<Sequence>
         return result;
     }
 
+    /** creates a new route from the LHS of a given Action.  The Action must be
+     * from level 1 or higher.
+     *
+     * @return the new Route or null on failure
+     */
+    public static Route newRouteFromParentAction(Action act)
+    {
+        assert(act.getLevel() >= 1);
+
+        SequenceEpisode seqEp = (SequenceEpisode)act.getLHS();
+        Sequence seq = seqEp.getSequence();
+        return newRouteFromSequence(seq);
+    }//newRouteFromParentAction
+
     /*======================================================================
      * Public Methods
      *----------------------------------------------------------------------
@@ -114,68 +128,62 @@ public class Route extends Vector<Sequence>
     public int getCurrActIndex() { return this.currActIndex; }
     public int getCurrSeqIndex() { return this.currSeqIndex; }
     
-	/**
-     * auto increments the currAction/currSequence pointers
+    /**
+     * advance
      *
-     * %%% this method needs to auto-apply replacements when it advances
+     * advances this route by a single step.  This may require updating the
+     * sequence pointer as well.  Furthermore, if there are active replacements
+     * they need to be applied
+     *
+     * @return the new current action or null if we've reached the end of the
+     * route 
      */
-	public Action nextAction() 
+	public Action advance () 
     {
-		currActIndex++;
-        //If a replacement is in place then 
-		if(replSeq != null)
-		{
-            //If we've run out of the current sequence, advance to the next one
-			if(currActIndex >= replSeq.length())
-			{
-				this.replSeq = null;
-				this.currActIndex = 0;
-				this.currSeqIndex++;
-			}
-			else
-			{
-				return replSeq.getActionAtIndex(currActIndex);
-			}
-		}
-		else if(currActIndex >= this.elementAt(currSeqIndex).length())
+        //The only mandatory step
+		(this.currActIndex)++;
+
+        //If the new action index doesn't exceeds the current sequence then we
+        //are done
+        Sequence currSeq = this.getCurrSequence();
+        if (this.currActIndex < currSeq.length())
         {
-            this.replSeq = null;
-            this.currActIndex = 0;
-            this.currSeqIndex++;
+            return this.getCurrAction();
         }
-		
-        if(currSeqIndex >= this.size())
-        {
-            return null;
-        }
-        else
-        {
-        	return this.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
-        }
-	}//nextAction
+
+        //If we reach this point, then advance to next sequence and reset the
+        //action index
+        (this.currSeqIndex)++;
+        this.currActIndex = 0;
+        this.replSeq = null;
+        
+        //If the new sequence index exceeds the array then there is no next
+        //action to return
+        if (this.currSeqIndex >= this.size()) return null;
+
+        //Active replacements needs to be re-applied to this route
+        //TBD%%%
+
+        return this.getCurrAction();
+	}//advance
 
     /**
-     * getCurrAction
-     *
-     * retrieves the current action in the current sequence
-     *
-     * @return null if there is no current action
+     * @return the current action in the current sequence
      */
 	public Action getCurrAction() 
     {
-		if(replSeq != null) return replSeq.getActionAtIndex(currActIndex);
-        else                return this.elementAt(currSeqIndex).getActionAtIndex(currActIndex);
+        Sequence currSequence = this.getCurrSequence();
+        assert(this.currActIndex < currSequence.length());
+               
+		return currSequence.getActionAtIndex(this.currActIndex);
 	}//getCurrAction
 
     /**
-     * getCurrSequence
-     *
-     * retrieves a reference to the current sequence
-     *
-     * @return null if there is no current sequence
+     * @return a reference to the current sequence
      */
 	public Sequence getCurrSequence() 
     {
+        assert(this.currSeqIndex < this.size());
 		if(replSeq != null) return replSeq;
 		else 				return this.elementAt(currSeqIndex);
 	}
@@ -229,5 +237,7 @@ public class Route extends Vector<Sequence>
         Sequence seq = this.getCurrSequence();
         return seq.getLevel();
     }
+
+    
     
 }//class Route

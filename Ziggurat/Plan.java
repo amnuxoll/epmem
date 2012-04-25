@@ -72,7 +72,7 @@ public class Plan
 	public String toString () 
     {
         //%%%TBD
-		return "";
+		return "Hi!  I'm a plan.";
 	}
 
     /**
@@ -82,7 +82,7 @@ public class Plan
 	public boolean nextStepIsValid (ElementalEpisode latestEpisode) 
     {
         //Ignore this request for degenerate plans
-        if ((this.routes.size() == 0) || (needsRecalc))
+        if ((this.routes.size() == 0) || (this.needsRecalc))
         {
             return false;
         }
@@ -94,15 +94,12 @@ public class Plan
 
         //Report the comparison to the monitor
         Monitor mon = Ziggurat.getMonitor();
-        if (mon != null)
-        {
-            mon.log("Intended Next Action:\n");
-            mon.tab();
-            mon.log(currAct);
-            mon.log("verifying that it matches the current episode's sensing:");
-            mon.tab();
-            mon.log(latestEpisode);
-        }
+        mon.log("Intended Next Action:\n");
+        mon.tab();
+        mon.log(currAct);
+        mon.log("verifying that it matches the current episode's sensing:");
+        mon.tab();
+        mon.log(latestEpisode);
 
         return latestEpisode.equalSensors(lhsEp);
    
@@ -115,19 +112,62 @@ public class Plan
 	}
 
     /**
-     * advance
+     * advance                 <!-- RECURSIVE -->
      *
      * advances this plan by a single step.  The current sequence and action in
-     * each route is adjusted as necessary.  
+     * each higher level route is adjusted as necessary via recursive calls.
      *
      * @param level   advancement is performed at this level
      *
-     * @return success code (0) or error code (negative)
+     * @return the next action to be executed in the route at the given level or
+     * null if there is no next action at this level
      */
-	public int advance (int level) 
+	public Action advance (int level) 
     {
-        //%%%TBD
-        return -1;
+        //If there is no route at this level, report this
+        if (this.routes.size() <= level)
+        {
+            return null;
+        }
+
+        Monitor mon = Ziggurat.getMonitor();
+        mon.enter("Plan.advance");
+
+        //Retrieve the route at this level
+        Route route = this.routes.elementAt(level);
+        mon.log("Updating Level %d Route:", level);
+        mon.tab();
+        mon.log(route);
+
+        // Advance the route and return if that was successful
+        Action nextAct = route.advance();
+        if (nextAct != null)
+        {
+            mon.exit("Plan.advance");
+            return nextAct;
+        }
+
+        //Since the current route has been exhausted, recursively call advance to
+        //get the action from one level up.  This will be used to create a new
+        //route at htis level.
+        Action parentAct = this.advance(level+1);
+
+        //If the parent route is unavailable or also exhausted this route can
+        //not be advanced.
+        if (parentAct == null)
+        {
+            mon.exit("Plan.advance");
+            return null;
+        }
+
+        //Create a new route at this level based upon the newly updated parent
+        //route
+        Route newRoute = Route.newRouteFromParentAction(parentAct);
+
+        //%%%TBD: apply active replacements to the new route
+        
+        mon.exit("Plan.advance");
+        return newRoute.getCurrAction();
 	}//advance
 
     /**
