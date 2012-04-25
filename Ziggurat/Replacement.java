@@ -15,15 +15,32 @@ public class Replacement extends DecisionElement
     protected Vector<Action> original;
     protected Action replacement;
 
-    /** ctor just inits instance vars */
-    public Replacement(Vector<Action> original, Action replacement) 
+    /** common initialization steps */
+    private void initRepl(Vector<Action> original, Action replacement)
     {
         this.level = original.elementAt(0).getLevel(); //inherit from constituents
         this.original = original;
         this.replacement = replacement;
+    }
+
+    /** this ctor just inits instance vars */
+    public Replacement(Vector<Action> original, Action replacement) 
+    {
+        initRepl(original, replacement);
     }//ctor
 
-    /** this will probably never get used... */
+    /** this ctor is convenient when you want to have exactly two actions in the
+     * original vector */
+    public Replacement(Action origAct1, Action origAct2, Action replacement) 
+    {
+        Vector<Action> vec = new Vector<Action>();
+        vec.add(origAct1);
+        vec.add(origAct2);
+
+        initRepl(vec, replacement);
+    }//ctor
+
+    /** standard equivalence comparison */
     public boolean equals (Replacement other) 
     {
         return other.original.equals(this.original)
@@ -64,6 +81,9 @@ public class Replacement extends DecisionElement
      */
     protected int applyPos(Sequence seq)
     {
+        //If the sequence is the wrong level then we don't bother checking
+        if (seq.getLevel() != this.getLevel()) return -1;
+
         for(int i = 0; i < seq.length() - 1; i++)
         {
             if (vecMatch(original, 0, seq.getActions(), i, original.size()))
