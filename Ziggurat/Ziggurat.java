@@ -931,13 +931,236 @@ public class Ziggurat
     }//findInterimStartPartialMatch
 
     /**
+     * findBestReplacement
+     *
+     * Find a replacement in this.repls that could be applied to the current
+     * sequence in this.currPlan. If there are multiple such replacements, the
+     * one with the highest confidence is returned.
+     * 
+     * NOTE: This method does not find replacements across adjacent sequences in
+     *       this.currPlan.  This might be something to consider in the future.
+     *
+     * NOTE: This is a pretty expensive which may matter someday.
+     *
+     * @return best replacement found or null no applicable replacements were
+     *         found.
+     */
+    Replacement findBestReplacement()
+    {
+        this.mon.enter("findBestReplacement");
+        
+        Replacement result = null; // this will hold the return value
+        double bestConf = -1.0;    // confidence in the best match so far
+
+        assert(this.currPlan != null);
+
+        // iterate through each level of the plan
+        for(int level = this.currPlan.getNumLevels() - 1; level >= 0; level--)
+        {
+            //Extract the current sequence from the route at this level
+            Route  route   = this.currPlan.getRoute(level);
+            Sequence currSeq = route.getCurrSequence();
+
+            //If there are no replacements available at this level, skip this
+            //iteration
+            if (this.repls.size() <= level) continue;
+
+            //Iterate over the replacement rules for this level to find the best
+            //match
+            Vector<Replacement> levelRepls = this.repls.elementAt(level);
+            for(Replacement cand : levelRepls)
+            {
+                if ((route.canApply(cand)) && (cand.getUtility() > bestConf))
+                {
+                    result = cand;
+                    bestConf = cand.getUtility();
+                }
+            }                
+        }//for (each level)
+
+        //Log the outcome
+        if (result == null)
+        {
+            this.mon.log("no applicable replacement found");
+        }
+        else
+        {
+            this.mon.log("best existing repl: ");
+            this.mon.tab();
+            this.mon.log(result);
+        }   
+
+        //If a match wasn't found, then result will still be null
+        this.mon.exit("findBestReplacement");
+        return result;
+    }//findBestReplacement
+
+    /**
+     * replacementExists
+     *
+     * searches this.repls to see if the equivalent of a given replacement is
+     * already present.
+     *
+     * @arg findMe  the replacement to search for
+     *
+     * @return true if the equivalent is present and false otherwise
+     */
+    private boolean replacementExists(Replacement findMe)
+    {
+        //get the existing replacements that are the same level as this one
+        int level = findMe.getLevel();
+        Vector<Replacement> replList = this.repls.elementAt(level);
+        
+        //Iterate through the list looking for matches
+        for(Replacement repl : replList)
+        {
+            if (repl.equals(findMe))
+            {
+                return true;
+            }
+        }//for
+
+        return false;
+   
+    }//replacementExists
+
+    
+    /**
+     * makeNewReplacement
+     *
+     * this method examines the current plan and creates a new replacement rule
+     * at the lowest available level such that a) the rule would apply to the
+     * current position in the current plan and b) the rule is not a duplicate
+     * of any existing one in {@link #repls}.
+     *
+     * CAVEAT:  Caller is responsible for guaranteeing that the current plan is valid
+     *
+     * @return a new Replacement struct (or NULL if something goes wrong)
+     *
+     */
+    Replacement makeNewReplacement()
+    {
+        this.mon.enter("makeNewReplacement");
+        
+        //Search all levels starting at the bottom
+        for(int level = 0; level < this.currPlan.getNumLevels(); level++)
+        {
+            //Extract the current sequence from the route at this level
+            Route  route   = this.currPlan.getRoute(level);
+            Sequence currSeq = route.getCurrSequence();
+
+            //There must be at least two actions left or don't bother
+            int actIdx = route.getCurrActIndex();
+            if (actIdx + 1 >= currSeq.length())
+            {
+                this.mon.log("remainder of sequence too short for replacement");
+                this.mon.exit("makeNewReplacement");
+                return null;
+            }
+
+            //Extract the next two actions from the current sequence
+            Action act1 = currSeq.getActionAtIndex(actIdx);
+            Action act2 = currSeq.getActionAtIndex(actIdx + 1);
+
+            this.mon.log("Constructing a new replacment for these two actions:");
+            this.mon.tab();
+            this.mon.log(act1);
+            this.mon.tab();
+            this.mon.log(act2);
+       
+            //Pick a random starting position in actions list for this level. We
+            //start the search in a random position so that the agent won't
+            //always default to the lowest numbered command.
+            Vector<Action> actList = this.actions.elementAt(level);
+            int start = this.randGen.nextInt(actList.size());
+
+            //Starting at the random start position, try all possible actions
+            //until we find one that creates a new, unique replacement
+            for(int i = 0; i < actList.size(); i++)
+            {
+                //Retrieve the candidate action
+                int index = (start + i) % actList.size();
+                Action candAct = actList.elementAt(index);
+
+                //See if the candidate is compatible with these to-be-replaced
+                //actions.  This comparision is done differently at level 0 than
+                //other levels
+                if (level == 0)
+                {
+                    //The LHS sensors of candidate must match the LHS sensors of
+                    //act1
+                    ElementalEpisode candLHS = (ElementalEpisode)candAct.getLHS();
+                    ElementalEpisode act1LHS = (ElementalEpisode)act1.getLHS();
+                    if (! candLHS.equalSensors(act1LHS))
+                    {
+                        continue;   // bad match, try a different candidate
+                    }
+
+                    //the RHS sensors of the candidate must match the RHS
+                    //sensors of act2.
+                    ElementalEpisode candRHS = (ElementalEpisode)candAct.getRHS();
+                    ElementalEpisode act2RHS = (ElementalEpisode)act1.getRHS();
+                    if (! candRHS.equalSensors(act2RHS))
+                    {
+                        continue;   // bad match, try a different candidate
+                    }
+                }//if
+                else                // level 1 or higher
+                {
+                    //The first action of the LHS subsequence must match
+                    SequenceEpisode candLHS = (SequenceEpisode)candAct.getLHS();
+                    SequenceEpisode act1LHS = (SequenceEpisode)act1.getLHS();
+                    Action candLHSSubAct = candLHS.getSequence().firstAction();
+                    Action act1LHSSubAct = act1LHS.getSequence().firstAction();
+                    if (! candLHSSubAct.equals(act1LHSSubAct))
+                    {
+                        continue;   // bad match, try a different candidate
+                    }
+
+                    //the last action of the RHS subsequence must match
+                    SequenceEpisode candRHS = (SequenceEpisode)candAct.getRHS();
+                    SequenceEpisode act2RHS = (SequenceEpisode)act2.getRHS();
+                    Action candRHSSubAct = candRHS.getSequence().lastAction();
+                    Action act2RHSSubAct = act2RHS.getSequence().lastAction();
+                    if (candRHSSubAct != act2RHSSubAct)
+                    {
+                        continue;   // bad match, try a different candidate
+                    }
+
+                }//else
+
+                //If we reach this point then the candidate is compatible.
+                //Create the replacement and see if it is a duplicate
+                Replacement result = new Replacement(act1, act2, candAct);
+                if (replacementExists(result))
+                {
+                    continue;  //duplicate replacement
+                }
+
+                //All checks passed. Success!  Add the replacement it creates to
+                //the list of known replacements and return it to the caller
+                Vector<Replacement> replList = this.repls.elementAt(level);
+                replList.add(result);
+                return result;
+
+            }//for
+           
+        }//for
+
+        // No new replacement can be made.  This happens when replacmeents are
+        // only possible at some levels and at those levels all valid candidates
+        // already exist with low confidence.
+        return null;
+    }//makeNewReplacement
+
+    /**
      * considerReplacement
      *
      * See if there is a replacement rule that the agent is confident enough to
      * apply to the current plan and apply it.
      *
      */
-    void considerReplacement()
+    protected void considerReplacement()
     {
         //See if the current plan can handle any more replacements before
         //proceeding 
@@ -945,102 +1168,60 @@ public class Ziggurat
          || (this.currPlan.numRepls() >= MAX_REPLS)) return;
         this.mon.enter("considerReplacement");
 
-        // %%%STOPPED HERE
-               
-        //        //Avoid being more risky with repls than allowed
-        //        double risk = 0.0;
-        // for(i = 0; i < g_activeRepls->size; i++)
-        // {
-        //     Replacement *repl = g_activeRepls->array[i];
-        //     risk += (1.0 - repl->confidence);
-        // }
-        // if (risk > MAX_REPL_RISK)
-        // {
-        //     #if DEBUGGING_FIND_REPL
-        //         printf("\trisk (%g) is too high for new replacement.\n", risk);
-        //     fflush(stdout);
-        //     #endif
+        Replacement selectedRepl = null;  //this will hold the repl we select
 
-        //         return;
-        // }
-   
-        // /*----------------------------------------------------------------------
-        //  * Find the best replacement that can be applied
-        //  *----------------------------------------------------------------------
-        //  */
-        // //Retrieve the best matching existing replacement 
-        // Replacement *repl = findBestReplacement();
+        //Retrieve the best matching existing replacement 
+        Replacement existingCand = findBestReplacement();
 
-        // //Also make a new replacement if the agent is confident enough
-        // Replacement *newRepl = NULL;
-        // if ( g_selfConfidence >= (1.0 - INIT_REPL_CONFIDENCE))
-        // {
-        //     newRepl = makeNewReplacement();
-        //     if (newRepl == NULL)
-        //     {
-        //         #if DEBUGGING_FIND_REPL
-        //             printf("Agent confidence (%g) is high enough for a new replacement but none could be made.\n", g_selfConfidence);
-        //         fflush(stdout);
-        //         #endif
-        //             }
-        // }//if
+        //Also create a new replacement if the agent is confident enough
+        Replacement newCand = null;
+        if ( this.selfConfidence >= (1.0 - DecisionElement.INIT_UTILITY))
+        {
+            newCand = makeNewReplacement();
+        }
 
-        // //Choose between the best existing replacement and the new candidate
-        // //replacement
-        // if (repl == NULL)
-        // {
-        //     //If both null give up
-        //     if (newRepl == NULL)
-        //     {
-        //         #if DEBUGGING
-        //             printf("No valid replacement found.\n", g_selfConfidence);
-        //         fflush(stdout);
-        //         #endif
-        //             return;
-        //     }
-        //     else
-        //     {                       // If only the newRepl is available, use it
-        //         // add this new one to the list
-        //         Vector *replList = (Vector *)g_replacements->array[newRepl->level];
-        //         addEntry(replList, newRepl);
+        //If both are null, no dice
+        if ((existingCand == null) && (newCand == null))
+        {
+            this.mon.log("No valid replacement found.");
+            this.mon.exit("considerReplacement");
+            return;
+        }
+        //If either is null, then the choice is easy
+        else if (existingCand == null)
+        {
+            selectedRepl = newCand;
+        }
+        else if (newCand == null)
+        {
+            selectedRepl = existingCand;
+        }
+        //if both are non-null select the one with highest confidence
+        else if (newCand.getUtility() > existingCand.getUtility())
+        {
+            selectedRepl = newCand;
+        }
+        else
+        {
+            selectedRepl = existingCand;
+        }
 
-        //         repl = newRepl;
-        //     }
-        // }
-        // else
-        // {
-        //     //If I'm more confident in something new, try it instead
-        //     if ((newRepl != NULL) && (newRepl->confidence > repl->confidence))
-        //     {
-        //         // add this new one to the list
-        //         Vector *replList = (Vector *)g_replacements->array[newRepl->level];
-        //         addEntry(replList, newRepl);
+        //Make sure the agent is confident enough to use the selected replacement
+        if (this.selfConfidence < (1.0 - selectedRepl.getUtility()))
+        {
+            this.mon.log("No valid replacement found.  Agent confidence (%g) too low for new replacement.\n",
+                         this.selfConfidence);
+            this.mon.exit("considerReplacement");
+            return;
+        }
 
-        //         repl = newRepl;
-        //     }
-        // }//else
-        
+        //Apply the replacement (repl) to the current plan
+        this.currPlan.applyReplacement(selectedRepl);
 
-        // //Make sure the agent is confident enough to use the selected replacement
-        // if (g_selfConfidence < (1.0 - repl->confidence))
-        // {
-        //     #if DEBUGGING
-        //         printf("No valid replacement found.  Agent confidence (%g) too low for new replacement.\n", g_selfConfidence);
-        //     fflush(stdout);
-        //     #endif
-        //         //Agent is not confident enough to do a replacement
-        //         return;
-        // }
-
-        // /*----------------------------------------------------------------------
-        //  * Apply the replacement (repl) to g_plan
-        //  *----------------------------------------------------------------------
-        //  */
-        // //This guy does all the work
-        // applyReplacementToPlan(g_plan, repl);
-   
-        // //Log that the replacement is active
-        // addEntry(g_activeRepls, repl);
+        this.mon.log("Applied replacement:");
+        this.mon.tab();
+        this.mon.log(selectedRepl);
+        this.mon.exit("considerReplacement");
    
     }//considerReplacement
 
@@ -1117,7 +1298,7 @@ public class Ziggurat
         //Before executing the next command in the plan, see if there is a
         //replacement rule that the agent is confident enough to apply to the
         //current plan.  If so, apply it.
-        //%%%TBD: considerReplacement();
+        considerReplacement();
 
         //Get the current level 0 action from the plan
         Route level0Route = this.currPlan.getRoute(0);

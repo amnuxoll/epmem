@@ -172,6 +172,7 @@ public class Route extends Vector<Sequence>
      */
 	public Action getCurrAction() 
     {
+        assert(this.currActIndex != NONE);
         Sequence currSequence = this.getCurrSequence();
         assert(this.currActIndex < currSequence.length());
                
@@ -183,20 +184,39 @@ public class Route extends Vector<Sequence>
      */
 	public Sequence getCurrSequence() 
     {
+        assert(this.currSeqIndex != NONE);
         assert(this.currSeqIndex < this.size());
 		if(replSeq != null) return replSeq;
 		else 				return this.elementAt(currSeqIndex);
-	}
+	}//getCurrSequence
 
     /**
-     * applyReplacement
+     * canApply
+     *
+     * checks to see if a given replacement can be applied to the current
+     * sequence in this route at a position that is not beyond the current
+     * action in the sequence.
+     *
+     * @param repl  the replacement to consider
+     *
+     * @return true if it can be applied, false otherwise
+     */
+    public boolean canApply(Replacement repl)
+    {
+        Sequence currSeq = this.getCurrSequence();
+        int applyPos = repl.applyPos(currSeq);
+        return (applyPos >= this.currActIndex);
+    }//canApply
+
+    /**
+     * apply
      *
      * applies a given replacement to a route
      */
-	public void applyReplacement(Replacement repl) 
+	public void apply(Replacement repl) 
     {
 		replSeq = repl.apply(this.getCurrSequence());
-	}
+	}//apply
 
     /**
      * numElementalEpisodes
