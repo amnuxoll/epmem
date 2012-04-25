@@ -14,13 +14,23 @@ import java.util.*;
  */
 public class Plan
 {
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
     /** the plan is comprised of these routes */
 	protected Vector<Route> routes;
     /** when set, this is an indication that the plan is no longer valid and
 	should not be used.  This typically happens when the plan incorrectly
-	predicts the outcome of an agent's action. */
+	predicts the outcome of an agent's action. %%%Do we still need this? -:AMN:*/
 	protected boolean needsRecalc;
+    /** a list of all the replacements that are currently active for this plan */
+    protected Vector<Replacement> repls = new Vector<Replacement>();
 
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
     /** default ctor creates an empty, invalid plan */
 	public Plan() 
     {
@@ -42,8 +52,15 @@ public class Plan
         needsRecalc = false;
 	}
 
+    /*======================================================================
+     * Accessor Methods
+     *----------------------------------------------------------------------
+     */
     /** @return @link{#needsRecalc} */
     public boolean needsRecalc() { return this.needsRecalc; }
+
+    /** @return the number of active replacements */
+    public int numRepls() { return this.repls.size(); }
     
     /** @return the route at a given level */
     public Route getRoute(int level)
@@ -75,6 +92,16 @@ public class Plan
 		return "Hi!  I'm a plan.";
 	}
 
+    /** @return how many levels are in this plan */
+	public int getNumLevels () 
+    {
+        return this.routes.size();
+	}
+
+    /*======================================================================
+     * Public Methods
+     *----------------------------------------------------------------------
+     */
     /**
      * @return true if the LHS of the current action in the plan matches the
 	 * given episode
@@ -104,12 +131,6 @@ public class Plan
         return latestEpisode.equalSensors(lhsEp);
    
 	}//nextStepIsValid
-
-    /** @return how many levels are in this plan */
-	public int getNumLevels () 
-    {
-        return this.routes.size();
-	}
 
     /**
      * advance                 <!-- RECURSIVE -->
@@ -177,27 +198,5 @@ public class Plan
     {
 		//%%%TBD
 	}
-
-    /**
-     * initRouteFromParent
-     *
-     * examines the parent route of a given level and based upon its current
-     * action creates a route at the given level containing the appropriate
-     * sequence.
-     *
-     * CAVEAT: Caller is responsible for guaranteeing that the parent route
-     *         exists!
-     *
-     * @arg level  the level that needs to be updated.
-     * @arg LHS    specifies whether the sequence should be extracted from the
-     *             left-hand-side (TRUE) or right-hand-side (FALSE) of the parent
-     *             action.  Usually you will want to set this to TRUE.
-     */
-	protected void initRouteFromParent (int level, boolean LHS) 
-    {
-		//%%%TBD
-	}//initRouteFromParent
-
-    
 
 }//class Plan
