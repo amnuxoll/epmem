@@ -27,18 +27,18 @@ public class Ziggurat
     /** maximum number of levels in the Ziggurat
      *  (In practice, this may not be necessary as higher levels become
      *   increasingly harder to achieve. ) */
-    public static int MAX_LEVEL_DEPTH = 4;
-
+    public static final int MAX_LEVEL_DEPTH = 4;
     /** initial self confidence value */
-    public static double INIT_SELF_CONFIDENCE = 0.5;
+    public static final double INIT_SELF_CONFIDENCE = 0.5;
     /** maximum confidence value */
-    public static double MAX_CONFIDENCE = 1.0;
+    public static final double MAX_CONFIDENCE = 1.0;
     /** minimum confidence value */
-    public static double MIN_CONFIDENCE = 0.0;
-
+    public static final double MIN_CONFIDENCE = 0.0;
     /** crank this number down as a way to speed up findRoute().
         %%%is this really necessary?%%% */
-    private final static int MAX_ROUTE_CANDS = 20;
+    private static final int MAX_ROUTE_CANDS = 20;
+    /** maximum number of replacements that can be applied at any one time */
+    private static final int MAX_REPLS = 1;
 
     /*======================================================================
      * Instance Variables
@@ -157,7 +157,7 @@ public class Ziggurat
         }//if
 
         //Select the agent's next action
-        int cmd = 44;//%%%TBD: chooseCommand();
+        int cmd = chooseCommand();
         ep.setCommand(cmd);
 
 
@@ -179,7 +179,7 @@ public class Ziggurat
      *----------------------------------------------------------------------
      */
     /**
-     * update                    *RECURSIVE*
+     * update                    <!-- RECURSIVE -->
      *
      * this method is used to update the entire Ziggurat hierarchy once a new
      * level 0 episode has been added from the agent's sensing.
@@ -300,7 +300,7 @@ public class Ziggurat
             updateExistingAction = newAction;
         }
 
-        //%%%SANITY CHECK
+        //Sanity Check
         if(updateExistingAction == null)
         {
             this.mon.log("ERROR:  I'm insane!");
@@ -931,6 +931,122 @@ public class Ziggurat
     }//findInterimStartPartialMatch
 
     /**
+     * considerReplacement
+     *
+     * See if there is a replacement rule that the agent is confident enough to
+     * apply to the current plan and apply it.
+     *
+     */
+    void considerReplacement()
+    {
+        //See if the current plan can handle any more replacements before
+        //proceeding 
+        if ((this.currPlan == null) 
+         || (this.currPlan.numRepls() >= MAX_REPLS)) return;
+        this.mon.enter("considerReplacement");
+
+        // %%%STOPPED HERE
+               
+        //        //Avoid being more risky with repls than allowed
+        //        double risk = 0.0;
+        // for(i = 0; i < g_activeRepls->size; i++)
+        // {
+        //     Replacement *repl = g_activeRepls->array[i];
+        //     risk += (1.0 - repl->confidence);
+        // }
+        // if (risk > MAX_REPL_RISK)
+        // {
+        //     #if DEBUGGING_FIND_REPL
+        //         printf("\trisk (%g) is too high for new replacement.\n", risk);
+        //     fflush(stdout);
+        //     #endif
+
+        //         return;
+        // }
+   
+        // /*----------------------------------------------------------------------
+        //  * Find the best replacement that can be applied
+        //  *----------------------------------------------------------------------
+        //  */
+        // //Retrieve the best matching existing replacement 
+        // Replacement *repl = findBestReplacement();
+
+        // //Also make a new replacement if the agent is confident enough
+        // Replacement *newRepl = NULL;
+        // if ( g_selfConfidence >= (1.0 - INIT_REPL_CONFIDENCE))
+        // {
+        //     newRepl = makeNewReplacement();
+        //     if (newRepl == NULL)
+        //     {
+        //         #if DEBUGGING_FIND_REPL
+        //             printf("Agent confidence (%g) is high enough for a new replacement but none could be made.\n", g_selfConfidence);
+        //         fflush(stdout);
+        //         #endif
+        //             }
+        // }//if
+
+        // //Choose between the best existing replacement and the new candidate
+        // //replacement
+        // if (repl == NULL)
+        // {
+        //     //If both null give up
+        //     if (newRepl == NULL)
+        //     {
+        //         #if DEBUGGING
+        //             printf("No valid replacement found.\n", g_selfConfidence);
+        //         fflush(stdout);
+        //         #endif
+        //             return;
+        //     }
+        //     else
+        //     {                       // If only the newRepl is available, use it
+        //         // add this new one to the list
+        //         Vector *replList = (Vector *)g_replacements->array[newRepl->level];
+        //         addEntry(replList, newRepl);
+
+        //         repl = newRepl;
+        //     }
+        // }
+        // else
+        // {
+        //     //If I'm more confident in something new, try it instead
+        //     if ((newRepl != NULL) && (newRepl->confidence > repl->confidence))
+        //     {
+        //         // add this new one to the list
+        //         Vector *replList = (Vector *)g_replacements->array[newRepl->level];
+        //         addEntry(replList, newRepl);
+
+        //         repl = newRepl;
+        //     }
+        // }//else
+        
+
+        // //Make sure the agent is confident enough to use the selected replacement
+        // if (g_selfConfidence < (1.0 - repl->confidence))
+        // {
+        //     #if DEBUGGING
+        //         printf("No valid replacement found.  Agent confidence (%g) too low for new replacement.\n", g_selfConfidence);
+        //     fflush(stdout);
+        //     #endif
+        //         //Agent is not confident enough to do a replacement
+        //         return;
+        // }
+
+        // /*----------------------------------------------------------------------
+        //  * Apply the replacement (repl) to g_plan
+        //  *----------------------------------------------------------------------
+        //  */
+        // //This guy does all the work
+        // applyReplacementToPlan(g_plan, repl);
+   
+        // //Log that the replacement is active
+        // addEntry(g_activeRepls, repl);
+   
+    }//considerReplacement
+
+
+    
+    /**
      * chooseCommand_SemiRandom
      *
      * This function selects a random command that would create a new action
@@ -1117,7 +1233,7 @@ public class Ziggurat
             {
                 this.mon.log("No plan can be found.  Taking a random action.");
                 this.mon.exit("chooseCommand");
-                return 42; //%%%TBD: chooseCommand_SemiRandom();
+                return chooseCommand_SemiRandom();
             }//if
 
             //Log the new plan
@@ -1148,7 +1264,7 @@ public class Ziggurat
         //If we've reached this point then there is a working plan so the agent
         //should select the next step with that plan.
         this.mon.exit("chooseCommand");
-        return 42; //%%%TBD: chooseCommand_WithPlan();
+        return chooseCommand_WithPlan();
 
     }//chooseCommand
     
