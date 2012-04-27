@@ -9,10 +9,6 @@ import java.util.*;
  * a vector of Sequences that the agents expects/intends will take it from its
  * current state to some goal/reward state.
  * 
- * NOTES:
- * When is applyReplacement() called? Must be at minimum .between. sequences 
- * 	else nextAction() is incorrect
- *
  * @author Zachary Paul Faltersack
  * 
  */
@@ -41,6 +37,9 @@ public class Route extends Vector<Sequence>
     /** this is the index of the next action in the current sequence that is to
 	be executed */
 	protected int currActIndex;
+
+    /** a list of all the replacements that are currently active for this route */
+    protected Vector<Replacement> repls = new Vector<Replacement>();
 
     /*======================================================================
      * Constructors
@@ -79,7 +78,8 @@ public class Route extends Vector<Sequence>
         super(orig);
         replSeq = orig.replSeq;
         currSeqIndex = orig.currSeqIndex;
-        currActIndex = currActIndex;
+        currActIndex = orig.currActIndex;
+        repls = orig.repls;
     }
 
     /** creates a new route that contains a given sequence */
@@ -118,16 +118,60 @@ public class Route extends Vector<Sequence>
      *----------------------------------------------------------------------
      */
 
+    /** accessors */
+    public int getCurrActIndex() { return this.currActIndex; }
+    public int getCurrSeqIndex() { return this.currSeqIndex; }
+    public Vector<Replacement> getRepls() { return this.repls; }
+
+    /** @return the number of active replacements on this plan*/
+    public int numRepls()   { return this.repls.size(); }
+    
+    
     /** copy me! */
     public Object clone()
     {
         return new Route(this);
     }
 
-    /** acessor */
-    public int getCurrActIndex() { return this.currActIndex; }
-    public int getCurrSeqIndex() { return this.currSeqIndex; }
-    
+    /** create an environment-inspecific String representation of this route
+     * which is a comma-separated list of sequences enclosed in curly braces. */
+	public String toString () 
+    {
+
+        //If the route contains more than one sequence, we'll put an asterisk
+        //after the current sequence so it can be easily spotted.  To do this we
+        //need to note the current sequence
+        Sequence currSeq = (this.size() == 1) ? null : this.getCurrSequence();
+
+        //This loop creates the result string
+        String result = "{ ";   // return value
+        for(int i = 0; i < this.size(); i++)
+        {
+            Sequence seq = this.elementAt(i);
+            
+            //precede all but first sequence with a comma separator
+            if (i > 0) result += ", ";  
+
+            result += seq.toString();
+
+            // demark current sequence if seen
+            if (seq == currSeq) result += "*";
+        }
+        result += " }";
+
+        //Mark the current action in the current sequence with an asterisk using
+        //some fancy and expensive string manipulation
+        String[] parts = result.split(",", this.currActIndex + 2);
+        parts[this.currActIndex] += "*";
+        result = "";
+        for(String s : parts)
+        {
+            result += s + ",";
+        }
+
+        return result;
+	}//toString
+
     /**
      * advance
      *
@@ -143,7 +187,7 @@ public class Route extends Vector<Sequence>
         //The only mandatory step
 		(this.currActIndex)++;
 
-        //If the new action index doesn't exceeds the current sequence then we
+        //If the new action index doesn't exceed the current sequence then we
         //are done
         Sequence currSeq = this.getCurrSequence();
         if (this.currActIndex < currSeq.length())
@@ -161,9 +205,17 @@ public class Route extends Vector<Sequence>
         //action to return
         if (this.currSeqIndex >= this.size()) return null;
 
-        //Active replacements needs to be re-applied to this route
-        //TBD%%%
-
+        //Active replacements needs to be re-applied to the new sequence
+        currSeq = this.getCurrSequence();
+        for(Replacement repl : this.repls)
+        {
+            if (repl.canApply(currSeq))
+            {
+                currSeq = repl.apply(currSeq);
+                this.replSeq = currSeq;
+            }
+        }//for
+                
         return this.getCurrAction();
 	}//advance
 
@@ -209,14 +261,26 @@ public class Route extends Vector<Sequence>
     }//canApply
 
     /**
-     * apply
+     * applyReplacement
      *
      * applies a given replacement to a route
      */
-	public void apply(Replacement repl) 
+	public void applyReplacement(Replacement repl) 
     {
-		replSeq = repl.apply(this.getCurrSequence());
-	}//apply
+        //Apply the replacement
+        Sequence currSeq = this.getCurrSequence();
+        
+        //Sanity Check:  the replacement should not modify the route before the
+        //current action
+        assert(repl.applyPos(currSeq) >= this.currActIndex);
+        
+        //Save this result into the route
+        replSeq = repl.apply(currSeq);
+
+        //Save the replacement to apply to future sequences
+        this.repls.add(repl);
+
+	}//applyReplacement
 
     /**
      * numElementalEpisodes
