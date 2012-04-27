@@ -15,7 +15,6 @@ public class Sequence extends DecisionElement
 {
     /** these are the acitons that comprise the sequence (order matters) */
     protected Vector<Action> actions;
-//%%%AMN: Still needed? Forgot what this is for:  protected boolean valid; 
 
     /** default ctor creates an empty sequence */
     public Sequence()
