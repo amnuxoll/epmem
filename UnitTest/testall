@@ -7,7 +7,7 @@
 
 CP=".:..:./junit:./junit/junit-4.10.jar:junit-4.10.jar:/usr/share/java/junit4.jar"
 
-tests=( WMETest WMESetTest ElementalEpisodeTest ActionTest ActionWithSequenceEpisodesTest SequenceEpisodeTest SequenceTest SequenceWithSequenceEpisodesTest )
+tests=( WMETest WMESetTest ElementalEpisodeTest ActionTest ActionWithSequenceEpisodesTest SequenceEpisodeTest SequenceTest SequenceWithSequenceEpisodesTest FlipSystemEnvironmentTest )
 
 
 #We may be one folder below the junit folder

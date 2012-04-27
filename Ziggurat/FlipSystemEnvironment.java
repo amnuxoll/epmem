@@ -19,7 +19,7 @@ public class FlipSystemEnvironment extends Environment {
 	
 	public FlipSystemEnvironment() {
 		this.currentState = State.STATE_1;
-		this.WME_reward = new WME("reward", "0", WME.Type.INT);
+		this.WME_reward = new WME("reward", "0.0", WME.Type.DOUBLE);
 	}// *ctor
 	
 	/**
@@ -28,10 +28,10 @@ public class FlipSystemEnvironment extends Environment {
 	private void executeCMD_LEFT() {
 		switch(this.currentState) {
 		case STATE_1:
-			this.WME_reward = new WME("reward", "0", WME.Type.INT);
+			this.WME_reward = new WME("reward", "0.0", WME.Type.DOUBLE);
 			break;
 		case STATE_2:
-			this.WME_reward = new WME("reward", "1", WME.Type.INT);
+			this.WME_reward = new WME("reward", "1.0", WME.Type.DOUBLE);
 			break;
 		}
 		this.currentState = State.STATE_1;
@@ -43,10 +43,10 @@ public class FlipSystemEnvironment extends Environment {
 	private void executeCMD_RIGHT() {
 		switch(this.currentState) {
 		case STATE_1:
-			this.WME_reward = new WME("reward", "1", WME.Type.INT);
+			this.WME_reward = new WME("reward", "1.0", WME.Type.DOUBLE);
 			break;
 		case STATE_2:
-			this.WME_reward = new WME("reward", "0", WME.Type.INT);
+			this.WME_reward = new WME("reward", "0.0", WME.Type.DOUBLE);
 			break;
 		}
 		this.currentState = State.STATE_2;
@@ -59,10 +59,10 @@ public class FlipSystemEnvironment extends Environment {
 	private void executeCMD_UP() {
 		switch(this.currentState) {
 		case STATE_1:
-			this.WME_reward = new WME("reward", "0", WME.Type.INT);
+			this.WME_reward = new WME("reward", "0.0", WME.Type.DOUBLE);
 			break;
 		case STATE_2:
-			this.WME_reward = new WME("reward", "0", WME.Type.INT);
+			this.WME_reward = new WME("reward", "0.0", WME.Type.DOUBLE);
 			break;
 		}
 	}// executeCMD_UP

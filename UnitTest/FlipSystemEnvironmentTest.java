@@ -13,7 +13,7 @@ public class FlipSystemEnvironmentTest {
 	public static FlipSystemEnvironment fs = new FlipSystemEnvironment();
 	
 	public static WMESet generateWinWMESet() {
-		WME wme = new WME("reward", "1", WME.Type.INT);
+		WME wme = new WME("reward", "1.0", WME.Type.DOUBLE);
 		Hashtable<String, WME> rtnVal = new Hashtable<String, WME>();
 		rtnVal.put(wme.attr, wme);
 		
@@ -21,7 +21,7 @@ public class FlipSystemEnvironmentTest {
 	}// genereateWinWMESet
 	
 	public static WMESet generateLoseWMESet() {
-		WME wme = new WME("reward", "0", WME.Type.INT);
+		WME wme = new WME("reward", "0.0", WME.Type.DOUBLE);
 		Hashtable<String, WME> rtnVal = new Hashtable<String, WME>();
 		rtnVal.put(wme.attr, wme);
 		
