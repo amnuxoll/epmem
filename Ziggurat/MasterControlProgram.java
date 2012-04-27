@@ -3,14 +3,22 @@ package Ziggurat;
 public class MasterControlProgram {
 	
 	public static void main(String args[]) {
-		// Initialize an environment and our agent
-		Environment env = initEnvironment(args[0]);
-		if(env == null) {
-			System.out.println("You requested an invalid environment: " + args[0] 
-			                 + "\nKnown environments are:\n");
-			System.out.println("flipsystem");
-			System.exit(0);
-		}
+		// Initialize an environment
+		Environment env = null;
+		if(args.length == 0) {
+			env = new FlipSystemEnvironment();
+		} else {
+			initEnvironment(args[0]);
+		
+			if(env == null) {
+				System.out.println("You requested an invalid environment: " + args[0] 
+				                 + "\nKnown environments are:\n");
+				System.out.println("flipsystem");
+				System.exit(0);
+			}// if
+		}// else]
+		
+		// Initialize our agent
 		Ziggurat zigg = new Ziggurat(env);
 
 		WMESet currentSensors = env.generateCurrentWMESet();
