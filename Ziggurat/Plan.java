@@ -21,11 +21,9 @@ public class Plan
     /** the plan is comprised of these routes */
 	protected Vector<Route> routes;
     /** when set, this is an indication that the plan is no longer valid and
-	should not be used.  This typically happens when the plan incorrectly
-	predicts the outcome of an agent's action. %%%Do we still need this? -:AMN:*/
-	protected boolean needsRecalc;
-    /** a list of all the replacements that are currently active for this plan */
-    protected Vector<Replacement> repls = new Vector<Replacement>();
+	should not be used.  This typically happens when the agent completes a
+	plan. */
+	protected boolean needsRecalc = true;
 
     /*======================================================================
      * Constructors
@@ -34,7 +32,7 @@ public class Plan
     /** default ctor creates an empty, invalid plan */
 	public Plan() 
     {
-		routes = new Vector<Route>();
+		this.routes = new Vector<Route>();
         needsRecalc = true;
 	}
 
@@ -44,10 +42,7 @@ public class Plan
      */
 	public Plan (Vector<Route> initRoutes) 
     {
-        this();
-        
-        if ( (initRoutes == null) || (initRoutes.size() == 0)) return;
-
+        assert(initRoutes != null);
         this.routes = initRoutes;
         needsRecalc = false;
 	}
@@ -59,8 +54,17 @@ public class Plan
     /** @return @link{#needsRecalc} */
     public boolean needsRecalc() { return this.needsRecalc; }
 
-    /** @return the number of active replacements */
-    public int numRepls() { return this.repls.size(); }
+    /** calculates the number of active replacements on this plan*/
+    public int numRepls()
+    {
+        int count = 0;
+        for(Route r : this.routes)
+        {
+            count += r.numRepls();
+        }
+
+        return count;
+    }//numRepls
     
     /** @return the route at a given level */
     public Route getRoute(int level)
@@ -85,12 +89,20 @@ public class Plan
     /** return the highest level route in the plan */
     public Route getTopRoute(int level) { return this.routes.elementAt(level); }
     
-    /** create an environment-inspecific String representation of this plan */
+    /** create an environment-inspecific String representation of this plan
+     * which is just a list of routes separates by newlines */
 	public String toString () 
     {
-        //%%%TBD
-		return "Hi!  I'm a plan.";
-	}
+        String result = "";
+        for(int i = this.routes.size() - 1; i >= 0; i--)
+        {
+            result += i + ": ";
+            Route r = this.getRoute(i);
+            result += r.toString();
+            if (i > 0) result += "\n";
+        }
+		return result;
+	}//toString
 
     /** @return how many levels are in this plan */
 	public int getNumLevels () 
@@ -162,11 +174,13 @@ public class Plan
 
         // Advance the route and return if that was successful
         Action nextAct = route.advance();
+
+        //If the advance was successful we're done
         if (nextAct != null)
         {
             mon.exit("Plan.advance");
             return nextAct;
-        }
+        }//if
 
         //Since the current route has been exhausted, recursively call advance to
         //get the action from one level up.  This will be used to create a new
@@ -177,6 +191,12 @@ public class Plan
         //not be advanced.
         if (parentAct == null)
         {
+            //If we can't advance at level 0 then this plan is no longer valid
+            if (level == 0)
+            {
+                needsRecalc = true;
+            }
+            
             mon.exit("Plan.advance");
             return null;
         }
@@ -185,18 +205,25 @@ public class Plan
         //route
         Route newRoute = Route.newRouteFromParentAction(parentAct);
 
-        //%%%TBD: apply active replacements to the new route
+        //reapply replacements from the old route to the new route
+        for(Replacement repl : route.getRepls())
+        {
+            newRoute.applyReplacement(repl);
+        }
         
         mon.exit("Plan.advance");
         return newRoute.getCurrAction();
 	}//advance
 
     /**
-     * applies the given replacement to the appropriate level of this plan
+     * applies the given replacement to the appropriate level of this plan 
      */
 	public void applyReplacement (Replacement repl) 
     {
-		//%%%TBD
-	}
+        //apply the replacement
+        int level = repl.getLevel();
+        Route r = getRoute(level);
+        r.applyReplacement(repl);
+	}//applyReplacement
 
 }//class Plan

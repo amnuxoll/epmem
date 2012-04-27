@@ -34,9 +34,9 @@ public class Ziggurat
     public static final double MAX_CONFIDENCE = 1.0;
     /** minimum confidence value */
     public static final double MIN_CONFIDENCE = 0.0;
-    /** crank this number down as a way to speed up findRoute().
-        %%%is this really necessary?%%% */
-    private static final int MAX_ROUTE_CANDS = 20;
+    /** use this number down as a way to speed up findRoute().  Set to zero for
+        unlimited route searching. */
+    private static final int MAX_ROUTE_CANDS = 0;
     /** maximum number of replacements that can be applied at any one time */
     private static final int MAX_REPLS = 1;
 
@@ -133,10 +133,10 @@ public class Ziggurat
 
         
         // If we receive a reward, update the memory to reflect this
-        double reward = this.env.currReward();
-        if(reward > 0.0)
+        WME rewardWME = sensors.getAttr(WME.REWARD_STRING);
+        if((rewardWME != null) && (rewardWME.getDouble()  > 0.0))
         {
-            this.mon.reward(reward);
+            this.mon.reward(rewardWME.getDouble());
        
             //If a a plan is in place, reward the agent and any outstanding replacements
             if (this.currPlan != null)
@@ -662,7 +662,7 @@ public class Ziggurat
             this.mon.think();  //to track "thinking time"
 
             //To avoid long delays, give up on planning after examining N candidate routes
-            if (i > MAX_ROUTE_CANDS)
+            if ((MAX_ROUTE_CANDS > 0) && (i > MAX_ROUTE_CANDS))
             {
                 break;
             }
@@ -1165,7 +1165,7 @@ public class Ziggurat
         //See if the current plan can handle any more replacements before
         //proceeding 
         if ((this.currPlan == null) 
-         || (this.currPlan.numRepls() >= MAX_REPLS)) return;
+            || (this.currPlan.numRepls() >= MAX_REPLS)) return;
         this.mon.enter("considerReplacement");
 
         Replacement selectedRepl = null;  //this will hold the repl we select
@@ -1360,34 +1360,6 @@ public class Ziggurat
             else                // The plan is going swimmingly! 
             {
                 this.mon.log("Plan successful so far.");
-
-                //%%%This functionality (commented out below) needs to be in the
-                //%%%Plan not in Zigg.  I'm leaving this here until that's done.
-                /*
-                //If a sequence has been completed then the active replacements need
-                //to be applied to the new current sequence
-                Route topRoute = this.currPlan.getTopRoute(this.currPlan);
-                for(i = topRoute.getLevel(); i >= 0; i--)
-                {
-                //Has the route at this level just completed a sequence?
-                Route currRoute = this.currPlan.getRoute(i);
-                if ((currRoute.currSeqIndex() > 0) && (currRoute.currActIndex() == 0))
-                {
-                currRoute->replSeq = NULL;
-                   
-                //Reapply all active replacements at this level
-                for(j = 0; j < g_activeRepls->size; j++)
-                {
-                Replacement *currRepl = (Replacement *)g_activeRepls->array[j];
-                if (currRepl->level == i)
-                {
-                applyReplacementToPlan(g_plan, currRepl);
-                }
-                }//for
-                }//if
-                }//for
-                */
-
 
                 //If a level 0 sequence has just completed then the agent's
                 //confidence is increased due to the partial success
