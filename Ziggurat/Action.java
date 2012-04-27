@@ -43,28 +43,33 @@ public class Action extends DecisionElement
      * compares two actions.  If the actions contain elemental episodes then the
 	 * rhs only need the sensors to match.
      */
-	public boolean equals(Action other) 
+	public boolean equals(Object other) 
     {
-        //Catch the obvious case
-        if (other == this) return true;
+        //Verify we've been given an action
+        if (! (other instanceof Action)) return false;
+        Action act = (Action)other;
+        
+        //Catch the obvious cases
+        if (act == this) return true;
+        if (act.level != this.level) return false;
 
         //compare left-hand-sides
-        if (!this.lhs.equals(other.lhs))
+        if (!this.lhs.equals(act.lhs))
         {
             return false;
         }
 
         //compare right-hand-side (non-ElementalEpisode)
-        if (! (other.rhs instanceof ElementalEpisode) )
+        if (! (act.rhs instanceof ElementalEpisode) )
         {
-            return this.rhs.equals(other.rhs);
+            return this.rhs.equals(act.rhs);
         }
 
         //When comparing Elemental RHS, only the sensors matter 
-        if (other.rhs instanceof ElementalEpisode)
+        if (act.rhs instanceof ElementalEpisode)
         {
             ElementalEpisode ee1 = (ElementalEpisode)this.rhs;
-            ElementalEpisode ee2 = (ElementalEpisode)other.rhs;
+            ElementalEpisode ee2 = (ElementalEpisode)act.rhs;
             
             return ee1.equalSensors(ee2);
         }
@@ -123,7 +128,12 @@ public class Action extends DecisionElement
     {
     	Action rtn = new Action(this.lhs.clone(), this.rhs.clone());
     	rtn.cousins.addAll(this.cousins);
-    	return rtn;
+
+        //These values inherited from DecisionElement
+        rtn.utility = this.utility;
+        rtn.level = this.level;
+
+        return rtn;
     }//clone
 
     /**

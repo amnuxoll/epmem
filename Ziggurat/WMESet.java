@@ -55,10 +55,14 @@ public class WMESet
 	 * This method takes another WMESet and tests that they 
 	 * contain equivalent WMEs.
 	 */
-	public boolean equals(WMESet other)
+	public boolean equals(Object other)
 	{
+        //Verify we've been given a WMESet
+        if (! (other instanceof WMESet)) return false;
+        WMESet wset = (WMESet)other;
+
 		// Check sizes
-		if(this.sensors.size() != other.sensors.size()) return false;
+		if(this.sensors.size() != wset.sensors.size()) return false;
 		
 		// Iterate through and make sure they each contain the same
 		// WMEs with the same values.
@@ -66,7 +70,7 @@ public class WMESet
 		while(keys.hasMoreElements())
 		{
 			String key = keys.nextElement();
-			if(!other.sensors.containsKey(key) || !this.sensors.get(key).equals(other.sensors.get(key)))
+			if(!wset.sensors.containsKey(key) || !this.sensors.get(key).equals(wset.sensors.get(key)))
 			{
 				return false;
 			}

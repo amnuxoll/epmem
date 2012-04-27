@@ -26,29 +26,38 @@ public class SequenceEpisode extends Episode
     }
 
     /** guess what this does? */
-    public boolean equals(Episode other) 
+    public boolean equals(Object other) 
     {
         if (other instanceof SequenceEpisode)
         {
-            Sequence seq = ((SequenceEpisode)other).sequence;
+            SequenceEpisode seqEp = (SequenceEpisode)other;
 
-            //Catch the obvious case
-            if (other == this) return true;
+            //Catch the obvious cases
+            if (seqEp == this) return true;
+            if (seqEp.level != this.level) return false;
         
-            return seq.equals(this.sequence);
+            return seqEp.sequence.equals(this.sequence);
         }
 
         return false;
     }
 
+    /** guess what this does? */
     public String toString() 
     {
         return this.sequence.toString();
     }
-    
+
+    /** copy me! */
     public SequenceEpisode clone()
     {
-    	return new SequenceEpisode(this.sequence.clone());
+    	SequenceEpisode rtn = new SequenceEpisode(this.sequence.clone());
+
+        //These values inherited from DecisionElement
+        rtn.utility = this.utility;
+        rtn.level = this.level;
+
+        return rtn;
     }
 
     /**

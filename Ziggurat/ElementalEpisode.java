@@ -77,16 +77,17 @@ public class ElementalEpisode extends Episode
      *----------------------------------------------------------------------
      */
 	/** episodes are equal if they contain the same knowlege */
-	public boolean equals(Episode other) 
+	public boolean equals(Object other) 
     {
         //must both be ElementalEpisode
         if (! (other instanceof ElementalEpisode)) return false;
+        ElementalEpisode ee = (ElementalEpisode)other;
 
-        //Catch the obvious case
-        if (other == this) return true;
+        //Catch the obvious cases
+        if (ee == this) return true;
+        if (ee.level != this.level) return false;
 
         //verify that all relevant instance variables match
-        ElementalEpisode ee = (ElementalEpisode)other;
         return (equalSensors(ee) && this.cmd == ee.cmd);
 	}//equals
 
@@ -123,7 +124,7 @@ public class ElementalEpisode extends Episode
     /** create a close of this episode */
 	public ElementalEpisode clone()
 	{
-		return new ElementalEpisode(this.id, this.sensors.clone(), this.cmd, 0.0);
+		return new ElementalEpisode(this.id, this.sensors.clone(), this.cmd, this.utility);
 	}
 
     /** set the value of cmd */
