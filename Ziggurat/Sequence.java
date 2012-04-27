@@ -46,20 +46,24 @@ public class Sequence extends DecisionElement
      *
      * CAVEAT: This method is fairly expensive.  Use it sparingly.
      */
-    public boolean equals(Sequence other) 
+    public boolean equals(Object other) 
     {
+        //Verify we've been given a sequence
+        if (! (other instanceof Sequence)) return false;
+        Sequence seq = (Sequence)other;
+        
         //Catch the obvious case
-        if (other == this) return true;
+        if (seq == this) return true;
 
         //must be same length or don't bother
         int len = this.length();
-        if (other.length() != len) return false;
+        if (seq.length() != len) return false;
 
         //compare the constituent actions
         for(int i = 0; i < len; i++)
         {
             Action a1 = this.actions.elementAt(i);
-            Action a2 = other.actions.elementAt(i);
+            Action a2 = seq.actions.elementAt(i);
 
             if (! a1.equals(a2) ) return false;
         }//for
@@ -83,6 +87,10 @@ public class Sequence extends DecisionElement
         {
         	seq.add(a.clone());
         }
+
+        //These values inherited from DecisionElement
+        seq.utility = this.utility;
+        seq.level = this.level;
 
         return seq;
     }//clone

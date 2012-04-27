@@ -12,7 +12,7 @@ import java.util.*;
  */
 public abstract class Episode extends DecisionElement
 {
-	public abstract boolean equals(Episode other);
+	public abstract boolean equals(Object other);
 
 	public abstract String toString();
 

@@ -41,14 +41,24 @@ public class Replacement extends DecisionElement
     }//ctor
 
     /** standard equivalence comparison */
-    public boolean equals (Replacement other) 
+    public boolean equals (Object other) 
     {
-        return other.original.equals(this.original)
-            && other.replacement.equals(this.replacement);
+        //First, verify we've been given a replacement
+        if (! (other instanceof Replacement)) return false;
+        Replacement repl = (Replacement)other;
+
+        //Catch the obvious cases
+        if (repl == this) return true;
+        if (repl.level != this.level) return false;
+        
+        return repl.original.equals(this.original)
+            && repl.replacement.equals(this.replacement);
     }//equals
 
     /**
      * vecMatch
+     *
+     * Compares a range of values within a pair of Vector<Action> 
      *
      * @param vec1, vec2    the vectors to compare
      * @param pos1, pos2    the respective indexes with which to compare them
@@ -56,14 +66,14 @@ public class Replacement extends DecisionElement
      * 
      * @return true if two given Vectors match at given indexes.
      */
-    public static boolean vecMatch(Vector vec1, int pos1,
-                                   Vector vec2, int pos2,
+    protected static boolean vecMatch(Vector<Action> vec1, int pos1,
+                                   Vector<Action> vec2, int pos2,
                                    int len)
     {
         for(int i = 0; i < len; i++)
         {
-            Object o1 = vec1.get(pos1 + i);
-            Object o2 = vec2.get(pos2 + i);
+            Action o1 = vec1.get(pos1 + i);
+            Action o2 = vec2.get(pos2 + i);
 
             if (! o1.equals(o2)) return false;
         }
@@ -79,14 +89,14 @@ public class Replacement extends DecisionElement
      * @return the first index where the replacement can occur, or -1 if it can
      * not be applied
      */
-    protected int applyPos(Sequence seq)
+    public int applyPos(Sequence seq)
     {
         //If the sequence is the wrong level then we don't bother checking
         if (seq.getLevel() != this.getLevel()) return -1;
 
         for(int i = 0; i < seq.length() - 1; i++)
         {
-            if (vecMatch(original, 0, seq.getActions(), i, original.size()))
+            if (vecMatch(this.original, 0, seq.getActions(), i, original.size()))
             {
                 return i;
             }
@@ -123,16 +133,15 @@ public class Replacement extends DecisionElement
         Vector<Action> vec = result.getActions();
 
         //Keep applying the replacement as long as you can
-        int index = applyPos(orig);
-        while(index == -1)
+        int index = applyPos(result);
+        while(index != -1)
         {
             vec.removeElementAt(index);
             vec.removeElementAt(index);
             vec.insertElementAt(this.replacement, index);
 
-            index = applyPos(orig);
+            index = applyPos(result);
         }//while
-        
 
         return result;
     }//apply

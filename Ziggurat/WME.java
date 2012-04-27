@@ -42,12 +42,17 @@ public class WME
 	}
 
     /** returns true if the given WME equals this one */
-	public boolean equals(WME w) 
+	public boolean equals(Object other) 
     {
+        //Verify we've been given a WME
+        if (! (other instanceof WME)) return false;
+        WME w = (WME)other;
+
+        //compare
 		return w.attr.equals(this.attr)
             && w.value.equals(this.value)
             && (w.type == this.type);
-	}
+	}//equals
 
     /** returns the WME's value as a char */
 	public char getChar() 
