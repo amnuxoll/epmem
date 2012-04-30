@@ -82,7 +82,7 @@ public class Route extends Vector<Sequence>
         repls = orig.repls;
     }
 
-    /** creates a new route that contains a given sequence */
+    /** creates a new route that contains just one sequence */
     public static Route newRouteFromSequence(Sequence seq)
     {
         Vector<Sequence> vec = new Vector<Sequence>();
@@ -128,7 +128,7 @@ public class Route extends Vector<Sequence>
     
     
     /** copy me! */
-    public Object clone()
+    public Route clone()
     {
         return new Route(this);
     }
@@ -190,6 +190,7 @@ public class Route extends Vector<Sequence>
         //If the new action index doesn't exceed the current sequence then we
         //are done
         Sequence currSeq = this.getCurrSequence();
+        if (currSeq == null) return null;
         if (this.currActIndex < currSeq.length())
         {
             return this.getCurrAction();
@@ -220,26 +221,27 @@ public class Route extends Vector<Sequence>
 	}//advance
 
     /**
-     * @return the current action in the current sequence
+     * @return a reference to the current action in the current sequence or null
+     *         if there is none
      */
 	public Action getCurrAction() 
     {
-        assert(this.currActIndex != NONE);
+        if (this.currActIndex == NONE) return null;
         Sequence currSequence = this.getCurrSequence();
-        assert(this.currActIndex < currSequence.length());
+        if(this.currActIndex >= currSequence.length()) return null;
                
 		return currSequence.getActionAtIndex(this.currActIndex);
 	}//getCurrAction
 
     /**
-     * @return a reference to the current sequence
+     * @return a reference to the current sequence or null if there is none
      */
 	public Sequence getCurrSequence() 
     {
-        assert(this.currSeqIndex != NONE);
-        assert(this.currSeqIndex < this.size());
+        if (this.currSeqIndex == NONE) return null;
+        if (this.currSeqIndex >= this.size()) return null;
 		if(replSeq != null) return replSeq;
-		else 				return this.elementAt(currSeqIndex);
+		else 				return this.elementAt(this.currSeqIndex);
 	}//getCurrSequence
 
     /**
@@ -305,12 +307,37 @@ public class Route extends Vector<Sequence>
      */
 	public int remainingElementalEpisodes() 
     {
+        //Special case:  nothing left in the route
+        Sequence currSeq = this.getCurrSequence();
+        if (currSeq == null)
+        {
+            return 0; // no sequences left
+        }
+
+        
+        //Count the number of elemental eps left in the current sequence
         int count = 0;
-        for(int i = currSeqIndex; i < this.size(); ++i)
+        if (currSeq.level == 0)
+        {
+            count += currSeq.length() - this.currActIndex;
+        }
+        else
+        {
+            for(int i = currActIndex; i < currSeq.length(); i++)
+            {
+                Action a = currSeq.getActionAtIndex(i);
+                SequenceEpisode seqEp = (SequenceEpisode)a.getLHS();
+                count += seqEp.getSequence().numElementalEpisodes();
+            }
+        }
+    
+        //Count the number of elemental eps left in the subsequent sequences
+        for(int i = currSeqIndex+1; i < this.size(); ++i)
         {
             count += this.elementAt(i).numElementalEpisodes();
         }
-		return count - currActIndex;
+        
+		return count;
 	}
 
     /**

@@ -96,8 +96,10 @@ public class ReplacementTest
 
     //END tests
 
-    //An easy way to run this test individually from the command line without
-    //the JUnit jar file
+    /**
+     * An easy way to run this test individually from the command line without
+     * the JUnit jar file
+     */
 	public static void main(String[] args)
     {
         ReplacementTest rt = new ReplacementTest();

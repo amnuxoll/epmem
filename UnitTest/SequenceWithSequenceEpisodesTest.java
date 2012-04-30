@@ -12,7 +12,8 @@ import Ziggurat.Sequence;
  * 
  * This JUnit test case ensures Sequence is working with SequenceEpisodes.
  */
-public class SequenceWithSequenceEpisodesTest {
+public class SequenceWithSequenceEpisodesTest
+{
 
 	// Create some Sequences we can use here, and access in other test files if necessary
 	public static Sequence sSE1 = new Sequence(ActionWithSequenceEpisodesTest.makeActionVectorSequenceEpisodes1());
