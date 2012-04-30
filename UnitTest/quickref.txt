@@ -1,0 +1,35 @@
+This file contains a quick reference to the values of all the various
+static variables in many of these unit tests.
+
+ElementalEpisodeTest.java
+ep1 = set1:1
+ep2 = set1:1
+ep3 = set1:2
+ep4 = set2:2
+ep5 = set2:2
+
+ActionTest.java
+aEE1 = ep1 -> ep2
+aEE2 = ep3 -> ep4
+aEE3 = ep1 -> ep2
+
+SequenceTest.java
+sEE1 = aEE1 aEE2 aEE3 aEE1
+sEE2 = aEE1 aEE2 aEE3 aEE1
+sEE3 = aEE2 aEE2 aEE1 aEE3
+
+SequenceEpisodeTest.java
+seep1 = sEE1
+seep2 = sEE2
+seep3 = sEE3
+
+ActionWithSequenceEpisodesTest.java
+aSE1 = seep1 -> seep2
+aSE2 = seep1 -> seep2
+aSE3 = seep2 -> seep3
+
+SequenceWithSequenceEpisodesTest.java
+sSE1 = aSE1 aSE2 aSE3 aSE1
+sSE2 = aSE1 aSE2 aSE3 aSE1
+sSE3 = aSE2 aSE2 aSE1 aSE3
+
