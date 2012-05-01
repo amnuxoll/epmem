@@ -228,6 +228,7 @@ public class Route extends Vector<Sequence>
     {
         if (this.currActIndex == NONE) return null;
         Sequence currSequence = this.getCurrSequence();
+        if (currSequence == null) return null;
         if(this.currActIndex >= currSequence.length()) return null;
                
 		return currSequence.getActionAtIndex(this.currActIndex);

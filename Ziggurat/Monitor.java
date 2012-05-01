@@ -6,15 +6,15 @@ import Ziggurat.Episode;
 /**
  * class Monitor
  *
- * An instance of this class is used to monitor events in Ziggurat and the
- * environment.
+ * A class that wishes to monitor events in Ziggurat and the environment must
+ * inherit from this class and implement the print() and println() methods that
+ * record given strings to a log.  The constructors must also be modified to
+ * call the corresponding super().
  *
- * Currently this is just a console logger.  In the long term, Monitor may
- * become an abstract class with different subclasses that behave in different
- * ways.
+ * @see MonitorStdOut, MonitorNull
  *
  */
-public class Monitor
+public abstract class Monitor
 {
     /*======================================================================
      * Constants
@@ -66,11 +66,71 @@ public class Monitor
         this.env = env;
     }
     
-    
+    /*======================================================================
+     * Abstract Methods
+     *----------------------------------------------------------------------
+     */
+    /**
+     * print
+     *
+     * prints a partial line to the log
+     *
+     * @param s the message to log
+     */
+    public abstract void print(String s);
+
+    /**
+     * println
+     *
+     * prints a single line to the log
+     *
+     * @param s the message to log
+     */
+    public abstract void println(String s);
+
     /*======================================================================
      * Methods
      *----------------------------------------------------------------------
      */
+    /**
+     * logPart
+     *
+     * prints a partial log entry.  NOTE:  There is a lot of copy/paste here
+     * from log().  I don't know how to avoid that
+     */
+    public void logPart(String s)
+    {
+        if (!inPart) padLeft(s, this.indent + this.tempIndent);
+        inPart = true;
+        this.print(s);
+        
+        //if there is a temporary indent in place, remove it now
+        if (this.tempIndent != 0)
+        {
+            this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
+        }
+    }
+
+    /**
+     * logs a single generic event
+     *
+     * @param s the message to log
+     */
+   public void log(String s)
+    {
+        s = padLeft(s, this.indent + this.tempIndent);
+        this.println(s);
+
+        //if there is a temporary indent in place, remove it now
+        if (this.tempIndent != 0)
+        {
+            this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
+        }
+
+        //end any partial entry
+        inPart = false;
+    }//log
+
     /**
      * indent a given string with spaces
      *
@@ -97,50 +157,11 @@ public class Monitor
     }//tab
 
     /**
-     * logPart
-     *
-     * prints a partial log entry.  NOTE:  There is a lot of copy/paste here
-     * from log().  I don't know how to avoid that
-     */
-    public void logPart(String s)
-    {
-        if (!inPart) padLeft(s, this.indent + this.tempIndent);
-        inPart = true;
-        System.out.print(s);
-        
-        //if there is a temporary indent in place, remove it now
-        if (this.tempIndent != 0)
-        {
-            this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
-        }
-    }
-
-    /**
      * prints a single dot ('.') to the screen.  Multiple calls to this method
      * indicate "thinking".
      */
     public void think() { logPart("."); }
     
-    /**
-     * logs a single generic event
-     *
-     * @param s the message to log
-     */
-   public void log(String s)
-    {
-        s = padLeft(s, this.indent + this.tempIndent);
-        System.out.println(s);
-
-        //if there is a temporary indent in place, remove it now
-        if (this.tempIndent != 0)
-        {
-            this.tempIndent = Math.max(0, tempIndent - INDENT_SIZE);
-        }
-
-        //end any partial entry
-        inPart = false;
-    }//log
-
     /**
      * logs a single generic event but also supports printf-style string formatting
      *
@@ -166,7 +187,7 @@ public class Monitor
      */
    public void log(String s, int arg1)
     {
-        this.log(s, new Integer(arg1));
+        this.log(s, (Object)(new Integer(arg1)));
     }//log
 
     /**

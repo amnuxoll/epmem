@@ -61,8 +61,9 @@ public class Ziggurat
     private Environment env = null;
     /** the monitor that is currently logging events in Zigg.  I'm making this
      * static so that other entities can log events to the monitor.  Maybe a
-     * mistake?  But at the moment I can't think of a better approach. */
-    private static Monitor mon = null;
+     * mistake?  But at the moment I can't think of a better approach. (:AMN:, Apr 2012)
+     */
+    private static Monitor mon = new MonitorNull();
     /** this is the highest level in the hierarchy that contains data.  This is
      * used by the findInterimStart methods */
     private int lastUpdateLevel = 0;
@@ -101,7 +102,7 @@ public class Ziggurat
         this.env = env;
         if (this.mon == null)
         {
-            this.mon = new Monitor(env);
+            this.mon = new MonitorStdOut(env);
         }
         
     }//ctor
@@ -171,7 +172,7 @@ public class Ziggurat
 
     }//tick
 
-    /** accessor for the monitor */
+    /** accessor for the monitor.  If none is available, a null one is returned. */
     public static Monitor getMonitor() { return Ziggurat.mon; }
 
     /*======================================================================
@@ -464,10 +465,8 @@ public class Ziggurat
             }
         }//if
 
-        //Figure out what level the route is at
-        int level = seedRoute.getLevel();
-   
         //Try to initialize the route at the same level as the start sequence
+        int level = seedRoute.getLevel();
         Route currRoute = findRoute(seedRoute);
         
         //Give up if no route can be found
@@ -479,34 +478,15 @@ public class Ziggurat
             return null;
         }//if
 
-        //Initialize an incomplete plan using the new route
-        Plan resultPlan = new Plan();
-        resultPlan.setRoute(level, currRoute);
+        //Initialize a plan using the new route
+        Plan resultPlan = new Plan(currRoute);
 
         //report
         this.mon.log("Success: found route to goal at level: %d:", level);
         this.mon.tab();
         this.mon.log(currRoute);
-       
-        //Initialize the route at levels below the level of the currRoute.  Each
-        //route is based on the current sequence in the route at the previous
-        //level
-        /*%%%very important that this code is correct.  I'm not 100% sure that
-          we are initializing with the correct episode here!-:AMN: */
-        for(int i = level - 1; i >= 0; i--)
-        {
-            //Get the very first episode in the route (which must be a
-            //SequenceEpisode because level+1 can't be zero)
-            Route parentRoute = resultPlan.getRoute(i+1);
-            Action parentAct = parentRoute.getCurrAction();
-            SequenceEpisode parentEp = (SequenceEpisode)parentAct.getLHS();
-
-            //parentEp is the sequence that comprises the route one level below
-            Route newRoute = Route.newRouteFromSequence(parentEp.getSequence());
-            resultPlan.setRoute(i, newRoute);
-        }//for
-
         this.mon.exit("initPlan");
+
         return resultPlan;
     }// initPlan
 
