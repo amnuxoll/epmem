@@ -42,8 +42,49 @@ public class Plan
      */
 	public Plan (Vector<Route> initRoutes) 
     {
-        assert(initRoutes != null);
-        this.routes = initRoutes;
+        this();
+        
+        if (initRoutes != null)
+        {
+            this.routes = initRoutes;
+            needsRecalc = false;
+        }
+	}
+
+    /** this ctor initializes a plan with the given route. If the route is not
+     * level 0, then subroutes are constructed.
+     *
+     */
+	public Plan (Route initRoute) 
+    {
+        //default init for a bad given route
+        this();
+        if (initRoute == null) return;
+
+        //insert the given route
+        int level = initRoute.getLevel();
+        this.setRoute(level, initRoute);
+
+        //Now calculate each subroute
+        
+        //Initialize the route at levels below the given route.  Each route is
+        //based on the current sequence in the route at the previous level
+        /*%%%very important that this code is correct.  I'm not 100% sure that
+          we are initializing with the correct episode here!-:AMN: */
+        for(int i = level - 1; i >= 0; i--)
+        {
+            //Get the very first episode in the route (which must be a
+            //SequenceEpisode because level+1 can't be zero)
+            Route parentRoute = this.getRoute(i+1);
+            Action parentAct = parentRoute.getCurrAction();
+            SequenceEpisode parentEp = (SequenceEpisode)parentAct.getLHS();
+
+            //parentEp is the sequence that comprises the route one level below
+            Route newRoute = Route.newRouteFromSequence(parentEp.getSequence());
+            this.setRoute(i, newRoute);
+        }//for
+
+        
         needsRecalc = false;
 	}
 
@@ -150,7 +191,9 @@ public class Plan
      * advances this plan by a single step.  The current sequence and action in
      * each higher level route is adjusted as necessary via recursive calls.
      *
-     * @param level   advancement is performed at this level
+     * @param level   advancement is performed at this level.  If called
+     *                externally, this parameter should usually be 0.  Higher
+     *                level advancements are reserved for recursive calls.
      *
      * @return the next action to be executed in the route at the given level or
      * null if there is no next action at this level
@@ -178,6 +221,7 @@ public class Plan
         //If the advance was successful we're done
         if (nextAct != null)
         {
+            mon.log("Moved to next action (" + route.getCurrActIndex()  + ") in current level " + level + " route.");
             mon.exit("Plan.advance");
             return nextAct;
         }//if
@@ -196,7 +240,8 @@ public class Plan
             {
                 needsRecalc = true;
             }
-            
+
+            mon.log("Plan at level " + (level+1) + " is exhausted.");
             mon.exit("Plan.advance");
             return null;
         }
@@ -204,6 +249,7 @@ public class Plan
         //Create a new route at this level based upon the newly updated parent
         //route
         Route newRoute = Route.newRouteFromParentAction(parentAct);
+        this.setRoute(level, newRoute);
 
         //reapply replacements from the old route to the new route
         for(Replacement repl : route.getRepls())
@@ -211,6 +257,7 @@ public class Plan
             newRoute.applyReplacement(repl);
         }
         
+        mon.log("Extracted new route at level " + level + " from parent.");
         mon.exit("Plan.advance");
         return newRoute.getCurrAction();
 	}//advance
