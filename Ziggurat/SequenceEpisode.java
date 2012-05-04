@@ -1,16 +1,24 @@
 package Ziggurat;
 
 /**
- * class SequenceEpisode
+ * <!-- class SequenceEpisode -->
  *
- * a SequenceEpisode is an episode at some level N that contains a sequence at
+ * A SequenceEpisode is an episode at some level N that contains a sequence at
  * level N-1.  As such, it's mostly just a wrapper class.
  */
 public class SequenceEpisode extends Episode 
 {
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
+    /** the episode consists of this sequence at one level below */
     protected Sequence sequence;
 
-    /** ctor  */
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
     public SequenceEpisode(Sequence sequence)
     {
         this.sequence = sequence;
@@ -19,13 +27,20 @@ public class SequenceEpisode extends Episode
         this.level = sequence.getLevel() + 1;
     }
 
-    /** accessor methods */
+    /*======================================================================
+     * Accessors
+     *----------------------------------------------------------------------
+     */
     public Sequence getSequence()
     {
         return sequence;
     }
 
-    /** guess what this does? */
+    /*======================================================================
+     * Methods
+     *----------------------------------------------------------------------
+     */
+    /** standard equivalance comparison */
     public boolean equals(Object other) 
     {
         if (other instanceof SequenceEpisode)
@@ -42,13 +57,18 @@ public class SequenceEpisode extends Episode
         return false;
     }
 
-    /** guess what this does? */
+    /** 
+     * Typically you want to use the printing facility in the current
+     * { @link Environment} class instead.
+     *
+     * @return a String representation of this SequenceEpisode
+     */
     public String toString() 
     {
         return this.sequence.toString();
     }
 
-    /** copy me! */
+    /** this creates a deep copy */
     public SequenceEpisode clone()
     {
     	SequenceEpisode rtn = new SequenceEpisode(this.sequence.clone());
@@ -58,7 +78,7 @@ public class SequenceEpisode extends Episode
         rtn.level = this.level;
 
         return rtn;
-    }
+    }//clone
 
     /**
      * @return true if its sequence contains a reward

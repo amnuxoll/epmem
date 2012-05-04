@@ -3,11 +3,13 @@ package Ziggurat;
 import java.util.*;
 
 /**
- * Plan
+ * <!-- class Plan -->
  * 
  * This class defines a Plan, which is a collection of Route objects (one per
  * level in the hierarchy) that comprise the current intended path to a goal
- * state.  Each route is a component of the route one level above it. 
+ * state.  Each route is a component of the route one level above it except the
+ * top-most route which is a complete route from a certain point to a goal.  Of
+ * course, there is no guarantee that a plan will actually work!
  * 
  * @author Zachary Paul Faltersack
  * 
@@ -86,13 +88,13 @@ public class Plan
 
         
         needsRecalc = false;
-	}
+	}//ctor
 
     /*======================================================================
      * Accessor Methods
      *----------------------------------------------------------------------
      */
-    /** @return @link{#needsRecalc} */
+    /** @return the value of {@link #needsRecalc} */
     public boolean needsRecalc() { return this.needsRecalc; }
 
     /** calculates the number of active replacements on this plan*/
@@ -152,7 +154,7 @@ public class Plan
 	}
 
     /*======================================================================
-     * Public Methods
+     * Methods
      *----------------------------------------------------------------------
      */
     /**

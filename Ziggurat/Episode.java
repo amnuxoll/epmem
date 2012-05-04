@@ -3,7 +3,7 @@ package Ziggurat;
 import java.util.*;
 
 /**
- * class Episode
+ * <!-- class Episode -->
  *
  * Each instance of this class contains a single episode in the episodic memory.
  * This exact nature of the episode's contants are specified in a subclass.

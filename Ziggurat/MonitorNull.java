@@ -4,9 +4,9 @@ import java.util.*;
 import Ziggurat.Episode;
 
 /**
- * class MonitorNull
+ * <!-- class MonitorNull -->
  *
- * This monitor does not actually log anything.
+ * This monitor supresses all log messages.
  *
  */
 public class MonitorNull extends Monitor

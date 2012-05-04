@@ -1,37 +1,46 @@
 package Ziggurat;
 
 /**
- * class WME
+ * <!-- class WME -->
  *
  * This class contains a simplified representation of a working memory element
  * in the Soar cognitive architecture.  In the long-term, the actual Soar WME
- * struct will be used here.
+ * struct would be used here.
  *
- * A WME is an atomic unit of knowledge:  an attribute and value pair combined
+ * <p>A WME is an atomic unit of knowledge: an attribute and value pair combined
  * with an ID that connects it to other WMEs.  For Zigg's purposes, the ID is
  * currently not implemented.  For more complex environments it will be
- * essential. 
+ * essential.
  */
 public class WME 
 {
+    /*======================================================================
+     * Constants
+     *----------------------------------------------------------------------
+     */
 	/** this is the attribute string associated with rewards */
     public static final String REWARD_STRING = "reward";
 
 
-    /*
+    /**
      * a WME's value can be a string, integer, double or char.  Internally, it
 	 * is always stored as a String and converted to other types as necessary.
      */
 	public enum Type {STRING, INT, DOUBLE, CHAR}
 
-    /* ---=== instance  variables ===--- */
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
 	public String attr;
 	public String value;
     public Type type;
 
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
     /**
-     * WME ctor
-     *
      * initializes instance variables
      */
 	public WME(String attr, String value, Type type) 
@@ -41,19 +50,10 @@ public class WME
         this.type = type;
 	}
 
-    /** returns true if the given WME equals this one */
-	public boolean equals(Object other) 
-    {
-        //Verify we've been given a WME
-        if (! (other instanceof WME)) return false;
-        WME w = (WME)other;
-
-        //compare
-		return w.attr.equals(this.attr)
-            && w.value.equals(this.value)
-            && (w.type == this.type);
-	}//equals
-
+    /*======================================================================
+     * Accessors
+     *----------------------------------------------------------------------
+     */
     /** returns the WME's value as a char */
 	public char getChar() 
     {
@@ -98,6 +98,23 @@ public class WME
 
         return 0.0;
 	}//getDouble
+
+    /*======================================================================
+     * Methods
+     *----------------------------------------------------------------------
+     */
+    /** returns true if the given WME equals this one */
+	public boolean equals(Object other) 
+    {
+        //Verify we've been given a WME
+        if (! (other instanceof WME)) return false;
+        WME w = (WME)other;
+
+        //compare
+		return w.attr.equals(this.attr)
+            && w.value.equals(this.value)
+            && (w.type == this.type);
+	}//equals
 
     /** returns a String representation of this WME */
 	public String toString () 

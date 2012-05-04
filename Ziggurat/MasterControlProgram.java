@@ -1,18 +1,35 @@
 package Ziggurat;
 
-public class MasterControlProgram {
-	
-	public static void main(String args[]) {
+/**
+ * <!-- class MasterControlProgram -->
+ *
+ * This is the start point for training Ziggurat.  It create an Environment and
+ * an instance of Ziggurat and connects them together.
+ *
+ *
+ */
+public class MasterControlProgram 
+{
+    /**
+     * main
+     *
+     * Loads the environment specified by the command line and runs it.
+     */
+	public static void main(String args[]) 
+    {
 		// Initialize an environment
 		Environment env = null;
-		if(args.length == 0) {
+		if(args.length == 0) 
+        {
 			env = new FlipSystemEnvironment();
-		} else {
+		} else 
+        {
 			initEnvironment(args[0]);
 		
-			if(env == null) {
+			if(env == null) 
+            {
 				System.out.println("You requested an invalid environment: " + args[0] 
-				                 + "\nKnown environments are:\n");
+                                   + "\nKnown environments are:\n");
 				System.out.println("flipsystem");
 				System.exit(0);
 			}// if
@@ -22,7 +39,8 @@ public class MasterControlProgram {
 		Ziggurat zigg = new Ziggurat(env);
 
 		WMESet currentSensors = env.generateCurrentWMESet();
-		while(true /*%%% update later*/) {
+		while(true /*%%% update later*/) 
+        {
 			// Capture new sensor data resulting from the command
 			// Ziggurat sent to the environment based on the previous
 			// sensor data.
@@ -30,9 +48,14 @@ public class MasterControlProgram {
 		}
 	}//main
 	
-	// Given some predetermined environment names, initialize the 
-	// correct type. Null if none match.
-	private static Environment initEnvironment(String name) {
+	/**
+     * Given some predetermined environment names, initialize the 
+	 * correct type. Null if none match.
+     *
+     * @param name   the name of the environment to use
+     */
+	private static Environment initEnvironment(String name) 
+    {
 		if(name.equals("flipsystem")) return new FlipSystemEnvironment();
 		else return null;
 	}// initEnvironment

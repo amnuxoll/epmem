@@ -65,8 +65,8 @@ public class SequenceWithSequenceEpisodesTest
 	@Test
 	public void test_numElementalEpisodes()
 	{
-		assertTrue(sSE1.numElementalEpisodes() == 16);
-		sSE1.add(ActionWithSequenceEpisodesTest.aSE2);
 		assertTrue(sSE1.numElementalEpisodes() == 20);
+		sSE1.add(ActionWithSequenceEpisodesTest.aSE2);
+		assertTrue(sSE1.numElementalEpisodes() == 24);
 	}
 }//class SequenceWithSequenceEpisodesTest

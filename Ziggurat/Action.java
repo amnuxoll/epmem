@@ -3,20 +3,31 @@ package Ziggurat;
 import java.util.*;
 
 /**
- * class Action
+ * <!-- class Action -->
  *
- * An action consists of an Episode+Action-->Resulting Episode
+ * An Action consists of an Episode+Action-->Resulting Episode
  * triplet. In English, that's "I was in this state, I took this
  * action and ended up in this new resulting state."
  */
 public class Action extends DecisionElement
 {
-	protected Episode lhs;  //left-hand side episode
-	protected Episode rhs;  //right-hand side episode
-	protected int freq;     //how many times the agent has experienced this action
-	protected Vector<Action> cousins;   //other rules with same lhs, different LHS
-	protected double utility;           //utility of this action
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
+    /** left-hand-side episode */
+	protected Episode lhs;
+    /** right-hand-side episode */
+	protected Episode rhs;
+    /** how many times the agent has experienced this action */
+	protected int freq;
+    /** other rules with same lhs, different LHS */
+	protected Vector<Action> cousins;
 
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
 	/** ctor initializes the episodes that make up the action and then
      * initializes the other variables with default starting values. */
 	public Action(Episode lhs, Episode rhs) 
@@ -30,7 +41,7 @@ public class Action extends DecisionElement
 	}//ctor
 
 
-    /** accessor methods */
+    /* accessor methods */
     public Episode getLHS() { return lhs; }
     public Episode getRHS() { return rhs; }
     public Episode[] getEpisodes() { return new Episode[] {lhs,rhs}; }
@@ -39,6 +50,10 @@ public class Action extends DecisionElement
     public void setCousins(Vector<Action> newList) { this.cousins = newList; }
     
     
+    /*======================================================================
+     * Methods
+     *----------------------------------------------------------------------
+     */
     /**
      * compares two actions.  If the actions contain elemental episodes then the
 	 * rhs only need the sensors to match.
@@ -78,9 +93,11 @@ public class Action extends DecisionElement
            
 	}//equals
 
-    /** @return a String representation of this action.
+    /** 
      * Typically you want to use the printing facility in the current
-     * Environment# class instead.
+     * { @link Environment} class instead.
+     *
+     * @return a String representation of this action.
      */
 	public String toString() 
     {
@@ -118,12 +135,18 @@ public class Action extends DecisionElement
        return retVal;
 	}//toString
 
-    /** @return true if this is an indeterminate action. */
+    /**
+     * an indeterminate action is one that yields different results depending on
+     * past actions.
+     * 
+     * @return true if this is an indeterminate action.
+     */
     public boolean isIndeterminate()
     {
         return (this.cousins.size() > 0);
     }
-    
+
+    /** this is a deep copy */
     public Action clone()
     {
     	Action rtn = new Action(this.lhs.clone(), this.rhs.clone());

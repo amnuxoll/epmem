@@ -4,14 +4,15 @@ import java.util.*;
 import Ziggurat.Episode;
 
 /**
- * class Monitor
+ * <!-- class Monitor -->
  *
  * A class that wishes to monitor events in Ziggurat and the environment must
  * inherit from this class and implement the print() and println() methods that
  * record given strings to a log.  The constructors must also be modified to
  * call the corresponding super().
  *
- * @see MonitorStdOut, MonitorNull
+ * @see MonitorStdOut
+ * @see MonitorNull
  *
  */
 public abstract class Monitor
@@ -48,7 +49,7 @@ public abstract class Monitor
     private int tempIndent = 0;
 
     /**
-     * a user can log a line in parts using @link{#logPart}.  This boolean
+     * a user can log a line in parts using {@link #logPart}.  This boolean
      * tracks whether a partial log has been added yet.
      */
     private boolean inPart = false;
@@ -158,7 +159,11 @@ public abstract class Monitor
 
     /**
      * prints a single dot ('.') to the screen.  Multiple calls to this method
-     * indicate "thinking".
+     * can be used to give a qualitative measure of how much the agent is
+     * "thinking" when it executes an expensive algorithm.  For example: {@link
+     * Ziggurat.Ziggurat#findRoute}
+     *
+     * 
      */
     public void think() { logPart("."); }
     

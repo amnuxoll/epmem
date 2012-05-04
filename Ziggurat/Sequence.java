@@ -4,18 +4,26 @@ import java.util.*;
 
 
 /**
- * class Sequence
+ * <!-- class Sequence -->
  *
- * Each instance of this class models a temporal sequence of #Action.  Sequences
- * are divided by indeterminate actions.  Whenever an indeterminate action
- * occurs, it becomes the last action in the sequence and a new sequence begins
- * with the next action.
+ * Each instance of this class models a temporal sequence of {@link Action}.
+ * Sequences are divided by indeterminate actions.  Whenever an indeterminate
+ * action occurs, it becomes the last action in the sequence and a new sequence
+ * begins with the next action.
  */
 public class Sequence extends DecisionElement
 {
-    /** these are the acitons that comprise the sequence (order matters) */
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
+    /** these are the actions that comprise the sequence (order matters) */
     protected Vector<Action> actions;
 
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
     /** default ctor creates an empty sequence */
     public Sequence()
     {
@@ -34,13 +42,20 @@ public class Sequence extends DecisionElement
         }
     }
     
-    /** accessor methods */
+    /*======================================================================
+     * Accessors
+     *----------------------------------------------------------------------
+     */
     public Vector<Action> getActions() { return this.actions; }
     public Action getActionAtIndex(int i) { return (this.actions.size() > i ? this.actions.elementAt(i) : null); }
     public Action firstAction() { return getActionAtIndex(0); }
     public Action lastAction() { return getActionAtIndex(this.actions.size() - 1); }
     public int length() { return this.actions.size(); }
     
+    /*======================================================================
+     * Methods
+     *----------------------------------------------------------------------
+     */
     /**
      * @return true if the given Sequence matches this one.
      *
@@ -74,9 +89,10 @@ public class Sequence extends DecisionElement
     /**
      * clone
      *
+     * creates a deep copy of this sequence
+     * 
      * @return a duplicate of this sequence with a reset utility
      *
-     * CAVEAT:  this method makes a shallow copy of its internal #Action vector
      */
     @SuppressWarnings("unchecked")
     public Sequence clone()
