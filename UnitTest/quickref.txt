@@ -39,7 +39,9 @@ route1 = aEE1 aEE2 aEE3 aEE1
 route2 = aEE1 aEE2 aEE3 aEE1
          aEE2 aEE2 aEE1 aEE3
          aEE1 aEE2 aEE3 aEE1
-         
+
+route3 = sSE3 sSE2 sSE1
+
 route3 = aSE2 aSE2 aSE1 aSE3
          aSE1 aSE2 aSE3 aSE1
          aSE1 aSE2 aSE3 aSE1

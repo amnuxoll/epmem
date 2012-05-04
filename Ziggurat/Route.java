@@ -41,6 +41,18 @@ public class Route extends Vector<Sequence>
     /** a list of all the replacements that are currently active for this route */
     protected Vector<Replacement> repls = new Vector<Replacement>();
 
+    /** When set, this flag indicates that the route is currently reached its
+     * final sequence (the RHS of the last action).  This flag is never set for
+     * level 0 routes.
+     */
+    protected boolean onLastRHS = false;
+
+    /**
+     * the current level of this route as determined by its constituent
+     * sequences
+     */
+    protected int level = -1;
+
     /*======================================================================
      * Constructors
      *----------------------------------------------------------------------
@@ -70,17 +82,10 @@ public class Route extends Vector<Sequence>
 
         currSeqIndex = 0;
         currActIndex = 0;
+        Sequence seq = this.elementAt(this.currSeqIndex);
+        this.level = seq.getLevel();
+        
 	}//ctor
-
-    /** copy ctor */
-    public Route(Route orig)
-    {
-        super(orig);
-        replSeq = orig.replSeq;
-        currSeqIndex = orig.currSeqIndex;
-        currActIndex = orig.currActIndex;
-        repls = orig.repls;
-    }
 
     /** creates a new route that contains just one sequence */
     public static Route newRouteFromSequence(Sequence seq)
@@ -106,7 +111,8 @@ public class Route extends Vector<Sequence>
      */
     public static Route newRouteFromParentAction(Action act)
     {
-        assert(act.getLevel() >= 1);
+        //The given action must be of level 1 or higher
+        if (act.getLevel() < 1) return null;
 
         SequenceEpisode seqEp = (SequenceEpisode)act.getLHS();
         Sequence seq = seqEp.getSequence();
@@ -122,6 +128,7 @@ public class Route extends Vector<Sequence>
     public int getCurrActIndex() { return this.currActIndex; }
     public int getCurrSeqIndex() { return this.currSeqIndex; }
     public Vector<Replacement> getRepls() { return this.repls; }
+    public boolean isOnLastRHS() { return this.onLastRHS; }
 
     /** @return the number of active replacements on this plan*/
     public int numRepls()   { return this.repls.size(); }
@@ -130,8 +137,29 @@ public class Route extends Vector<Sequence>
     /** copy me! */
     public Route clone()
     {
-        return new Route(this);
-    }
+        //Clone the sequences
+        Vector<Sequence> copySeq = new Vector<Sequence>();
+        for(Sequence s : this)
+        {
+            copySeq.add(s.clone());
+        }
+        
+        Route copy = new Route(copySeq);
+        copy.currSeqIndex = this.currSeqIndex;
+        copy.currActIndex = this.currActIndex;
+        copy.level = this.level;
+        if (this.replSeq != null)
+        {
+            copy.replSeq = this.replSeq.clone();
+        }
+        else
+        {
+            copy.replSeq = null;
+        }
+
+        return copy;
+        
+    }//clone
 
     /** create an environment-inspecific String representation of this route
      * which is a comma-separated list of sequences enclosed in curly braces. */
@@ -202,11 +230,30 @@ public class Route extends Vector<Sequence>
         this.currActIndex = 0;
         this.replSeq = null;
         
+        //Special Case: If the new sequence index exactly equals the array size
+        //*and* this is not a level 0 sequence, then we have to finish the route
+        //by completing the RHS of the last action in the sequence
+        if ((this.currSeqIndex == this.size())
+            && (this.getLevel() > 0)
+            && (! this.onLastRHS))
+        {
+            this.onLastRHS = true;
+        }
+        //If the RHS has been completed then reset everything to prevent the
+        //RHS from being executed more than once
+        else if (this.onLastRHS)
+        {
+            this.onLastRHS = false;
+            this.currActIndex = NONE;
+            this.currSeqIndex = NONE;
+        }
+
         //If the new sequence index exceeds the array then there is no next
         //action to return
         if (this.currSeqIndex >= this.size()) return null;
 
-        //Active replacements needs to be re-applied to the new sequence
+        //If we reach this point, we've started in on a new sequence at this
+        //level.  Active replacements needs to be re-applied to the new sequence
         currSeq = this.getCurrSequence();
         for(Replacement repl : this.repls)
         {
@@ -239,11 +286,29 @@ public class Route extends Vector<Sequence>
      */
 	public Sequence getCurrSequence() 
     {
+        //Case:  This sequence has not been initialized
         if (this.currSeqIndex == NONE) return null;
+
+        //Case:  The sequence index has exceeded the vector
         if (this.currSeqIndex >= this.size()) return null;
+
+        //Case:  If a replacement sequence is in place, us it
 		if(replSeq != null) return replSeq;
-		else 				return this.elementAt(this.currSeqIndex);
+
+        //Default/Normal Case:  Get the sequence at the currSeqIndex
+        return this.elementAt(this.currSeqIndex);
 	}//getCurrSequence
+
+    /**
+     * @return a reference to the last action in the last sequence of this route
+     */
+	public Action lastAction() 
+    {
+        Sequence seq = this.lastElement();
+        if (seq == null) return null;
+               
+		return seq.lastAction();
+	}//getCurrAction
 
     /**
      * canApply
@@ -306,7 +371,7 @@ public class Route extends Vector<Sequence>
      * assuming that the agent begins executing from the current action of the
      * current sequence
      */
-	public int remainingElementalEpisodes() 
+	public int remainingElementalEpisodes()
     {
         //Special case:  nothing left in the route
         Sequence currSeq = this.getCurrSequence();
@@ -318,18 +383,24 @@ public class Route extends Vector<Sequence>
         
         //Count the number of elemental eps left in the current sequence
         int count = 0;
-        if (currSeq.level == 0)
+        if (currSeq.getLevel() == 0)
         {
             count += currSeq.length() - this.currActIndex;
         }
         else
         {
+            //Add up the length of the each action's LHS sequence
             for(int i = currActIndex; i < currSeq.length(); i++)
             {
                 Action a = currSeq.getActionAtIndex(i);
                 SequenceEpisode seqEp = (SequenceEpisode)a.getLHS();
                 count += seqEp.getSequence().numElementalEpisodes();
             }
+
+            //Also add the RHS sequence of the last action
+            Action a = currSeq.lastAction();
+            SequenceEpisode seqEp = (SequenceEpisode)a.getRHS();
+            count += seqEp.getSequence().numElementalEpisodes();
         }
     
         //Count the number of elemental eps left in the subsequent sequences
@@ -339,15 +410,14 @@ public class Route extends Vector<Sequence>
         }
         
 		return count;
-	}
+	}//remainingElementalEpisodes
 
     /**
      * @return the level of the sequences in this route
      */
     public int getLevel()
     {
-        Sequence seq = this.getCurrSequence();
-        return seq.getLevel();
+        return this.level;
     }
 
     
