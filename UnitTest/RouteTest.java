@@ -124,19 +124,45 @@ public class RouteTest
     }//test_applyReplacement
 
     @Test 
-    public void test_episodeCounts()
+    public void test_episodeCount1()
     {
-        Route r = route3.clone();
-        assertTrue(r.numElementalEpisodes() == route3Actions.length*4);
-        for(int i = 0; i <= r.numElementalEpisodes(); i+=4)
+        Route r = route1.clone();
+
+        assertTrue(r.numElementalEpisodes() == route1Actions.length);
+        for(int i = 0; i <= r.numElementalEpisodes(); i++)
         {
             assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
             r.advance();
         }
     }
 
-    
-    
+    @Test 
+    public void test_episodeCount2()
+    {
+        Route r = route2.clone();
+
+        assertTrue(r.numElementalEpisodes() == route2Actions.length);
+        for(int i = 0; i <= r.numElementalEpisodes(); i++)
+        {
+            assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
+            r.advance();
+        }
+    }
+
+    @Test 
+    public void test_episodeCount3()
+    {
+        Route r = route3.clone();
+
+        assertTrue(r.numElementalEpisodes() == route3Actions.length*5);
+        int[] lengths = { 0, 4, 8, 12, 20, 24, 28, 32, 40, 44, 48, 52, 60 };
+        for(int i = 0; i < lengths.length; i++)
+        {
+            assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + lengths[i]);
+            r.advance();
+        }
+    }
+
 	// BEGIN Test cases --------------------------------------
 
     /**
@@ -150,7 +176,9 @@ public class RouteTest
         rt.test_advance2();
         rt.test_advance3();
         rt.test_applyReplacement();
-        rt.test_episodeCounts();
+        rt.test_episodeCount1();
+        rt.test_episodeCount2();
+        rt.test_episodeCount3();
     }
 	
 }//class RouteTest
