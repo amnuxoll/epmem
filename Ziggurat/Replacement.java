@@ -3,19 +3,28 @@ package Ziggurat;
 import java.util.*;
 
 /**
- * class Replacement
+ * <!-- class Replacement -->
  *
- * a replacement defines a way that a #Sequence might shortened by replacing N
+ * a replacement defines a way that a {@link Sequence} might shortened by replacing N
  * actions with a single action.
  */
 
 public class Replacement extends DecisionElement
 {
-    /** instance variables */
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
+    /** the series of actions that would be replaced */
     protected Vector<Action> original;
+    /** the replacement action */
     protected Action replacement;
 
-    /** common initialization steps */
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
+    /** common initialization steps for all ctors */
     private void initRepl(Vector<Action> original, Action replacement)
     {
         this.level = original.elementAt(0).getLevel(); //inherit from constituents
@@ -40,6 +49,10 @@ public class Replacement extends DecisionElement
         initRepl(vec, replacement);
     }//ctor
 
+    /*======================================================================
+     * Methods
+     *----------------------------------------------------------------------
+     */
     /** standard equivalence comparison */
     public boolean equals (Object other) 
     {
@@ -58,11 +71,13 @@ public class Replacement extends DecisionElement
     /**
      * vecMatch
      *
-     * Compares a range of values within a pair of Vector<Action> 
+     * compares a range of values within a pair of Vector<Action> 
      *
-     * @param vec1, vec2    the vectors to compare
-     * @param pos1, pos2    the respective indexes with which to compare them
-     * @param len           how many to compare
+     * @param vec1    vec1 and vec2 are the vectors to compare
+     * @param vec2    
+     * @param pos1    pos1 and pos2 are the respective indexes with which to compare them
+     * @param pos2    
+     * @param len     how many to compare
      * 
      * @return true if two given Vectors match at given indexes.
      */

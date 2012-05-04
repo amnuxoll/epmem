@@ -3,7 +3,7 @@ package Ziggurat;
 import java.util.*;
 
 /**
- * class Environment
+ * <!-- class Environment -->
  *
  * Any agent environment must subclass this class so that Zigg can interact with
  * that environment

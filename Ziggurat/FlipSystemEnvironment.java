@@ -2,6 +2,21 @@ package Ziggurat;
 
 import java.util.Hashtable;
 
+/**
+ * <!-- class FlipSystemEnvironment -->
+ *
+ * This a very simple environment that is drawn from:<br>
+ *
+ * Michael Holmes and Charles L. Isbell. Schema Learning: Experience-based
+ * Construction of Predictive Action Models. In Advances in Neural Information
+ * Processing Systems (NIPS) 17, pages 585-562, 2005.
+ * 
+ * <p>There are two states and three commands ( left, right and up ).  Moving
+ * right from state 1 puts you in state 2.  Moving left from state 2 puts you in
+ * state 1.  All other commands return you to the same state.  Whenever you
+ * change states you get a reward.
+ *
+ */
 public class FlipSystemEnvironment extends Environment {
 
 	// Define possible states

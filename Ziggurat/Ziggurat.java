@@ -67,7 +67,7 @@ public class Ziggurat
     /** this is the highest level in the hierarchy that contains data.  This is
      * used by the findInterimStart methods */
     private int lastUpdateLevel = 0;
-    /** this vector contains all @link{DecisionElement}s that have recently been
+    /** this vector contains all {@link DecisionElement}s that have recently been
      * used to make a decision.  When the outcome of decision(s) is known these
      * active elements' utlities are adjusted based upon that outcome.
      */
@@ -615,11 +615,11 @@ public class Ziggurat
      * CAVEAT:  initRoute does not verify that the given sequence and route are
      *          valid/allocated
      *
-     * @arg seedRoute  a starting Route containing just the first sequence
+     * @param seedRoute  a starting Route containing just the first sequence
      *
      * @return a Route object
      */
-    Route findRoute(Route seedRoute)
+    public Route findRoute(Route seedRoute)
     {
         this.mon.enter("findRoute");
         

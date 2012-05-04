@@ -9,6 +9,24 @@ import java.util.*;
  * a vector of Sequences that the agents expects/intends will take it from its
  * current state to some goal/reward state.
  * 
+ * <h4>An Important Note About Routes</h4>
+ *
+ * Consider a route that looks like this: <code>{ A->B, B->C, C->D},
+ * {D->E, E->F, F->G}</code> where the letters are the episodes and the
+ * arrows show LHS and RHS of actions and the curly braces show sequences.  If
+ * this is a level 0 route, then executing the route is as simple as issues the
+ * command in each of the episodes A through F.  The G part is the goal state
+ * that we're trying to reach and, if this route is correct, it will be reached
+ * immediately upon executing the command in F.
+ *
+ * <p>However, if this route is at level 1 or higher then each of those episodes
+ * (A through G) is a SequenceEpisode.  That means that the 'G' in the last
+ * action, F->G, contains a sequence from one level lower that must be
+ * completed in order to actually reach the goal state.
+ *
+ * <p>This difference has a serious impact on both the {@link #advance} and
+ * {@link #remainingElementalEpisodes} methods
+ *
  * @author Zachary Paul Faltersack
  * 
  */
@@ -26,7 +44,7 @@ public class Route extends Vector<Sequence>
      *----------------------------------------------------------------------
      */
     
-    /** if a @link{Replacement} has been applied to the sequence the agent is
+    /** if a {@link Replacement} has been applied to the sequence the agent is
         currently executing, this the modified version is stored here. */
 	protected Sequence replSeq;
 
@@ -205,7 +223,8 @@ public class Route extends Vector<Sequence>
      *
      * advances this route by a single step.  This may require updating the
      * sequence pointer as well.  Furthermore, if there are active replacements
-     * they need to be applied
+     * they need to be applied.
+     *
      *
      * @return the new current action or null if we've reached the end of the
      * route 

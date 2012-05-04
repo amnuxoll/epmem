@@ -3,7 +3,7 @@ package Ziggurat;
 import java.util.*;
 
 /**
- * class ElementalEpisode
+ * <!-- class ElementalEpisode -->
  *
  * This class contains information about an atomic episode from the agent's
  * experience.  In essence, it is a snapshot of an instant in time from the
@@ -98,9 +98,10 @@ public class ElementalEpisode extends Episode
 	}
 
 	/**
-     * @return a string containing all the WMEs in the episode + command.
      * Typically you want to use the printing facility in the current
      * Environment# class instead.
+     *
+     * @return a string containing all the WMEs in the episode + command.
      */
 	public String toString() 
     {

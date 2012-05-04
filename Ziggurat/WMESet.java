@@ -3,45 +3,57 @@ package Ziggurat;
 import java.util.*;
 
 /**
- * WMESet
+ * <!-- class WMESet -->
  * 
- * A wrapper class that simplifies the handling of a set
- * of WMEs. This class allows us to more accurately and
- * deliberately test a set of WMEs for equality.
+ * A wrapper class that simplifies the handling of a set of WMEs. This class
+ * allows us to more accurately and deliberately test a set of WMEs for
+ * equality.
  *
  */
 public class WMESet
 {
-    // This hashtable saves the WMEs indexed by their name
-	private Hashtable<String,WME> sensors;
+    /*======================================================================
+     * Instance Variables
+     *----------------------------------------------------------------------
+     */
+    /** This hashtable saves the WMEs indexed by their name */
+	protected Hashtable<String,WME> sensors;
 	
-	/*
+    /*======================================================================
+     * Constructors
+     *----------------------------------------------------------------------
+     */
+	/**
 	 * WMESet
 	 * 
-	 * This constructor takes a Hashtable of WMEs and saves
-	 * it after checking for null.
+	 * constructor takes a Hashtable of WMEs and saves it after checking for
+	 * null.
 	 */
 	public WMESet(Hashtable<String, WME> sensors)
 	{
 		this.sensors = sensors == null ? new Hashtable<String,WME>() : sensors;
 	}//ctor
 	
-	/*
+    /*======================================================================
+     * Accessors
+     *----------------------------------------------------------------------
+     */
+	/**
 	 * hasAttr
 	 * 
-	 * This method takes a WME name and determines if this
-	 * set contains a WME with that name,
+	 * takes a WME name and determines if this set contains a WME with that
+	 * name,
 	 */
 	public boolean hasAttr(String attr)
 	{
 		return sensors.containsKey(attr);
 	}//hasAttr
 	
-	/*
+	/**
 	 * getAttr
 	 * 
-	 * This method takes a WME name, confirms that it actually
-	 * has the WME, and returns it if it does.
+	 * takes a WME name, confirms that it actually has the WME, and returns it
+	 * if it does.
 	 */
 	public WME getAttr(String attr)
 	{
@@ -49,11 +61,12 @@ public class WMESet
 		return this.sensors.get(attr);
 	}//getAttr
 	
-	/*
-	 * equals
-	 * 
-	 * This method takes another WMESet and tests that they 
-	 * contain equivalent WMEs.
+    /*======================================================================
+     * Methods
+     *----------------------------------------------------------------------
+     */
+	/**
+	 * standard equivalence comparison
 	 */
 	public boolean equals(Object other)
 	{
@@ -78,10 +91,8 @@ public class WMESet
 		return true;
 	}//equals
 	
-	/*
-	 * toString
-	 * 
-	 * Return the string representation of this WMESet.
+	/**
+	 * @return the string representation of this WMESet.
 	 */
 	public String toString()
 	{
@@ -98,10 +109,10 @@ public class WMESet
 		return rtnVal;
 	}//toString
 	
-	/*
+	/**
 	 * clone
 	 * 
-	 * This method creates a clone of this WMESet.
+	 * @return a copy of this WMESet.
 	 */
 	public WMESet clone()
 	{
@@ -114,11 +125,10 @@ public class WMESet
 		return new WMESet(newSenses);
 	}//clone
 	
-	/*
+	/**
 	 * getSensorKeys
 	 * 
-	 * Return a Set of strings that contains the names of all
-	 * the WMEs in this set.
+	 * @return a Set of the names of all the WMEs in this WMESet
 	 */
 	public Set<String> getSensorKeys()
 	{

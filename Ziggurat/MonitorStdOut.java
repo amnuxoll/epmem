@@ -4,7 +4,7 @@ import java.util.*;
 import Ziggurat.Episode;
 
 /**
- * class MonitorStdOut
+ * <!-- class MonitorStdOut -->
  *
  * This Monitor is a console logger.  
  *
@@ -32,7 +32,7 @@ public class MonitorStdOut extends Monitor
     /**
      * print
      *
-     * prints a partial line to the log
+     * prints a partial line to the console
      *
      * @param s the message to log
      */
@@ -44,7 +44,7 @@ public class MonitorStdOut extends Monitor
     /**
      * println
      *
-     * prints a single line to the log
+     * prints a single line to the console
      *
      * @param s the message to log
      */
