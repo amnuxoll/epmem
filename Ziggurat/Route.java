@@ -31,9 +31,6 @@ import java.util.*;
  * 
  */
 
-//%%%TODO:  Override the add() method to check that the first LHS of the new
-//%%%sequence matches the last LHS of the previous last action in the route
-
 public class Route extends Vector<Sequence>
 {
     /*======================================================================
@@ -88,7 +85,15 @@ public class Route extends Vector<Sequence>
         defaultInit();
 	}//ctor
 
-    /** creates a route from a given vector of sequence */
+    /**
+     * creates a route from a given vector of sequence.
+     *
+     * <p><b>CAVEAT</b>: This routine does not verify that the given sequence
+     * creates a valid route.  In particular, it does not verify that the RHS of
+     * the last action in each sequence matches the LHS of the first action in
+     * the next sequence.
+     * 
+     */
 	public Route(Vector<Sequence> initSeq)
     {
         super(initSeq);
@@ -445,6 +450,26 @@ public class Route extends Vector<Sequence>
         return this.level;
     }
 
-    
-    
+    /**
+     * add
+     *
+     * overrides the add method inherited from Vector to also verify that the
+     * RHS of the last action in the last sequence matches the LHS of the first
+     * action in the sequence we are adding.
+     */
+    public boolean add(Sequence seq)
+    {
+        System.out.println("foo");
+        
+        //Verify that these two sequences tie together properly
+        Action currLastAct = this.lastElement().lastAction();
+        Action connectAct = seq.firstAction();
+        if (! currLastAct.getRHS().equals(connectAct.getLHS()))
+        {
+            return false;
+        }
+        
+        return super.add(seq);
+    }
+
 }//class Route
