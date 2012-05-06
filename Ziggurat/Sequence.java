@@ -170,16 +170,6 @@ public class Sequence extends DecisionElement
     		}
         }//for
 
-        //For sequences higher than level 0, we need to add the episodes in the
-        //RHS of the last action
-        if (this.getLevel() > 0)
-        {
-            Action a = this.lastAction();
-            SequenceEpisode ep = (SequenceEpisode)a.getRHS();
-            Sequence seq = ep.getSequence();
-            count += seq.numElementalEpisodes();  //recurse
-        }
-
         return count;
     }//numElementalEpisodes
 

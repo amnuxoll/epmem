@@ -26,32 +26,15 @@ public class PlanTest
         Action nextAction = null;
         for(Action a : actions)
         {
-            //%%%DEBUG: REMOVE THIS
-            System.out.println("&");
-            
             //Verify the next level 0 action from the plan matches expectations
             Route level0Route = p.getRoute(0);
             Action currAction = level0Route.getCurrAction();
-
-            //%%%DEBUG: REMOVE THIS
-            System.out.println("" + a);
-            System.out.println("==");
-            System.out.println("" + currAction);
-            System.out.println("");
-//            if (currAction == null)
-            {
-                System.out.println("level0Route=" + level0Route);
-                System.out.println("level0Route.currSeqIndex=" + level0Route.getCurrSeqIndex());
-                System.out.println("level0Route.currActIndex=" + level0Route.getCurrActIndex());
-            }
-            
-            
             assertTrue(a.equals(currAction));
 
             //advance the "current action" pointer to the next action as a
             //result of taking this action
             nextAction = p.advance(0);
-        }
+        }//for
 
         assertTrue(nextAction == null);
         assertTrue(p.advance(0) == null);
@@ -75,22 +58,21 @@ public class PlanTest
 	public void test_advance3()
     {
         Plan p = new Plan(RouteTest.route3);
-        Action[] actions = 
-            {ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
-             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
-             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
-/*             ActionTest.aEE2, ActionTest.aEE2, ActionTest.aEE1,
-             ActionTest.aEE3, */
-             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
-             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
-             ActionTest.aEE2, ActionTest.aEE2, ActionTest.aEE1, ActionTest.aEE3,
-/*             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3,
-             ActionTest.aEE1, */
-             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
-             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
-             ActionTest.aEE2, ActionTest.aEE2, ActionTest.aEE1, ActionTest.aEE3,
-             ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3,
-              ActionTest.aEE1}; 
+
+        Action[] actions = {
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1,
+            ActionTest.aEE1, ActionTest.aEE2, ActionTest.aEE3, ActionTest.aEE1};
 
         matchPlan(p, actions);
 	}
@@ -105,9 +87,9 @@ public class PlanTest
     public static void main(String[] args)
     {
         PlanTest pt = new PlanTest();
-        pt.test_advance1();
-        pt.test_advance2();
-//        pt.test_advance3();
+        // pt.test_advance1();
+        // pt.test_advance2();
+        pt.test_advance3();
     }
 	
 }//class PlanTest

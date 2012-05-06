@@ -71,8 +71,6 @@ public class Plan
         
         //Initialize the route at levels below the given route.  Each route is
         //based on the current sequence in the route at the previous level
-        /*%%%very important that this code is correct.  I'm not 100% sure that
-          we are initializing with the correct episode here!-:AMN: */
         for(int i = level - 1; i >= 0; i--)
         {
             //Get the very first episode in the route (which must be a
@@ -228,35 +226,15 @@ public class Plan
             return nextAct;
         }//if
 
-        //Since the current route has been exhausted, recursively call advance
-        //to get the action from one level up and use it to create a new route
-        //at this level.
+        //If the current route has been exhausted, recursively call advance to
+        //get the action from one level up and use it to create a new route at
+        //this level.
         Action parentAct = this.advance(level+1);
-        Route newRoute = null;
-        if (parentAct != null)
-        {
-            //Create a new route at this level based upon the newly updated parent
-            //route
-            newRoute = Route.newRouteFromParentAction(parentAct);
-        }
-        //Special Case:  If the parent has just finished exhausting itself, then
-        //we still need to execute the RHS of its last action.
-        else if (route.isOnLastRHS())
-        {
-            //Extract the sequence at this level that comes from the RHS
-            Action act = route.lastAction();
-            SequenceEpisode ep = (SequenceEpisode)act.getRHS();
-            Sequence seq = ep.getSequence();
 
-            //Use the sequence to build the new route at this level
-            newRoute = Route.newRouteFromSequence(seq);
-        }
-
-        //If the parent route is unavailable or exhausted this route can not be
-        //advanced.
-        else
+        //If the parent route is exhausted then this route can't be renewed
+        if (parentAct == null)
         {
-            //If we can't advance at level 0 then this plan is no longer valid
+            //If we are at level 0 then this entire plan is exhausted
             if (level == 0)
             {
                 needsRecalc = true;
@@ -265,20 +243,23 @@ public class Plan
             mon.log("Plan at level " + (level+1) + " is exhausted.");
             mon.exit("Plan.advance");
             return null;
-        }//else
-
-
-        //If we reach this point, newRoute has been initialized
-        this.setRoute(level, newRoute);
+        }//if
         
+        //Create a new route at this level based upon the newly updated parent
+        //route
+        Route newRoute = Route.newRouteFromParentAction(parentAct);
+
         //reapply replacements from the old route to the new route
         for(Replacement repl : route.getRepls())
         {
             newRoute.applyReplacement(repl);
         }
         
+        //Place the newly initalized route in the plan and return its first action
+        this.setRoute(level, newRoute);
         mon.log("Extracted new route at level " + level + " from parent.");
         mon.exit("Plan.advance");
+
         return newRoute.getCurrAction();
 	}//advance
 

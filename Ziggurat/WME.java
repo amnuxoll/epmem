@@ -142,9 +142,42 @@ public class WME
         return result;
 	}//toString
 
+    /** make a copy of 'this' */
 	public WME clone()
 	{
 		return new WME(this.attr, this.value, this.type);
 	}
 	
+    /**
+     * creates a WME from a given attribute and value string.  The type of the
+     * WME is determined by looking for a particular hint which is sought in
+     * this order:
+     * <ul>
+     *   <li>DOUBLE  - value contains a period ('.')
+     *   <li>INT     - first char is a digit (note: so neg nums don't work)
+     *   <li>CHAR    - value contains only one character
+     *   <li>STRING  - anything else
+     * </ul>
+     * 
+     */
+    public static WME makeWME(String attr, String val)
+    {
+        if (val.contains("."))
+        {
+            return new WME(attr, val, WME.Type.DOUBLE);
+        }
+
+        if (Character.isDigit(val.charAt(0)))
+        {
+            return new WME(attr, val, WME.Type.INT);
+        }
+
+        if (val.length() == 1)
+        {
+            return new WME(attr, val, WME.Type.CHAR);
+        }
+
+        return new WME(attr, val, WME.Type.STRING);
+    }//makeWME
+
 }//class WME

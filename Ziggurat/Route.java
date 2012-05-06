@@ -30,6 +30,10 @@ import java.util.*;
  * @author Zachary Paul Faltersack
  * 
  */
+
+//%%%TODO:  Override the add() method to check that the first LHS of the new
+//%%%sequence matches the last LHS of the previous last action in the route
+
 public class Route extends Vector<Sequence>
 {
     /*======================================================================
@@ -58,12 +62,6 @@ public class Route extends Vector<Sequence>
 
     /** a list of all the replacements that are currently active for this route */
     protected Vector<Replacement> repls = new Vector<Replacement>();
-
-    /** When set, this flag indicates that the route is currently reached its
-     * final sequence (the RHS of the last action).  This flag is never set for
-     * level 0 routes.
-     */
-    protected boolean onLastRHS = false;
 
     /**
      * the current level of this route as determined by its constituent
@@ -146,7 +144,6 @@ public class Route extends Vector<Sequence>
     public int getCurrActIndex() { return this.currActIndex; }
     public int getCurrSeqIndex() { return this.currSeqIndex; }
     public Vector<Replacement> getRepls() { return this.repls; }
-    public boolean isOnLastRHS() { return this.onLastRHS; }
 
     /** @return the number of active replacements on this plan*/
     public int numRepls()   { return this.repls.size(); }
@@ -249,22 +246,18 @@ public class Route extends Vector<Sequence>
         this.currActIndex = 0;
         this.replSeq = null;
         
-        //Special Case: If the new sequence index exactly equals the array size
-        //*and* this is not a level 0 sequence, then we have to finish the route
-        //by completing the RHS of the last action in the sequence
-        if ((this.currSeqIndex == this.size())
-            && (this.getLevel() > 0)
-            && (! this.onLastRHS))
+        //Special Case: If the new action index has just reached the end of the
+        //last sequence in the route then we still have to execute the RHS of
+        //the last action (unless this is a level 0 route).  To "fake it",
+        //create a temporary Action whose LHS is the real last action's RHS.
+        //For more explanation, see "An Important Note About Routes" at the top
+        //of this file.
+        if ((this.currSeqIndex == this.size()) && (this.getLevel() > 0))
         {
-            this.onLastRHS = true;
-        }
-        //If the RHS has been completed then reset everything to prevent the
-        //RHS from being executed more than once
-        else if (this.onLastRHS)
-        {
-            this.onLastRHS = false;
-            this.currActIndex = NONE;
-            this.currSeqIndex = NONE;
+            Action lastAct = currSeq.lastAction();
+            SequenceEpisode seqEp = (SequenceEpisode)lastAct.getRHS();
+            Action result = new Action(seqEp, ElementalEpisode.EMPTY);
+            return result;
         }
 
         //If the new sequence index exceeds the array then there is no next
@@ -382,6 +375,16 @@ public class Route extends Vector<Sequence>
         {
             count += s.numElementalEpisodes();
         }
+
+        //At level 1+, add the ElementalEpisodes in the RHS of the last action
+        //of the last sequence
+        if (this.getLevel() > 0)
+        {
+            Action a = this.lastElement().lastAction();
+            SequenceEpisode seqEp = (SequenceEpisode)a.getRHS();
+            count += seqEp.getSequence().numElementalEpisodes();
+        }
+        
 		return count;
 	}
 
@@ -402,11 +405,11 @@ public class Route extends Vector<Sequence>
         
         //Count the number of elemental eps left in the current sequence
         int count = 0;
-        if (currSeq.getLevel() == 0)
+        if (this.getLevel() == 0)
         {
             count += currSeq.length() - this.currActIndex;
         }
-        else
+        else //level 1+
         {
             //Add up the length of the each action's LHS sequence
             for(int i = currActIndex; i < currSeq.length(); i++)
@@ -415,12 +418,7 @@ public class Route extends Vector<Sequence>
                 SequenceEpisode seqEp = (SequenceEpisode)a.getLHS();
                 count += seqEp.getSequence().numElementalEpisodes();
             }
-
-            //Also add the RHS sequence of the last action
-            Action a = currSeq.lastAction();
-            SequenceEpisode seqEp = (SequenceEpisode)a.getRHS();
-            count += seqEp.getSequence().numElementalEpisodes();
-        }
+        }//else
     
         //Count the number of elemental eps left in the subsequent sequences
         for(int i = currSeqIndex+1; i < this.size(); ++i)
@@ -428,6 +426,14 @@ public class Route extends Vector<Sequence>
             count += this.elementAt(i).numElementalEpisodes();
         }
         
+        //At level 1+, add the ElementalEpisodes in the RHS of the last action
+        //of the last sequence
+        if (this.getLevel() > 0)
+        {
+            Action a = this.lastElement().lastAction();
+            SequenceEpisode seqEp = (SequenceEpisode)a.getRHS();
+            count += seqEp.getSequence().numElementalEpisodes();
+        }
 		return count;
 	}//remainingElementalEpisodes
 

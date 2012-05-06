@@ -29,29 +29,10 @@ public class WMESetTest {
 		"attr33", "val33"};
 	
 	// Create some WMESet we can use here, and access in other test files if necessary
-	public static WMESet set1 = new WMESet(makeSensors(sensors1));
-	public static WMESet set2 = new WMESet(makeSensors(sensors2));
-	public static WMESet set3 = new WMESet(makeSensors(sensors3));
+	public static WMESet set1 = new WMESet(WMESet.makeSensors(sensors1));
+	public static WMESet set2 = new WMESet(WMESet.makeSensors(sensors2));
+	public static WMESet set3 = new WMESet(WMESet.makeSensors(sensors3));
 	
-    /**
-     * creates a sensor hashtable from an array of String.  The string is
-     * considered to be a sequence of attribute,value,attribute,value,...
-     * These are passed to WMETest#makeWME.
-     * 
-     */
-    public static Hashtable<String,WME> makeSensors(String[] data)
-    {
-        Hashtable<String,WME> result = new Hashtable<String,WME>();
-        
-        for(int i = 1; i < data.length; i += 2)
-        {
-            WME w = WMETest.makeWME(data[i-1], data[i]);
-            result.put(data[i-1], w);
-        }
-
-        return result;
-    }//makeSensors
-
 	// BEGIN Test cases --------------------------------------
 
 	@Test
