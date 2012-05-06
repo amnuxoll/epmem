@@ -18,46 +18,14 @@ public class WMETest {
     public static WME wme4;
     
 
-    /**
-     * creates a WME from a given attribute and value string.  The type of the
-     * WME is determined by looking for a particular hint which is sought in
-     * this order:
-     * <ul>
-     *   <li>DOUBLE  - value contains a period ('.')
-     *   <li>INT     - first char is a digit (note: so neg nums don't work)
-     *   <li>CHAR    - value contains only one character
-     *   <li>STRING  - anything else
-     * </ul>
-     * 
-     */
-    public static WME makeWME(String attr, String val)
-    {
-        if (val.contains("."))
-        {
-            return new WME(attr, val, WME.Type.DOUBLE);
-        }
-
-        if (Character.isDigit(val.charAt(0)))
-        {
-            return new WME(attr, val, WME.Type.INT);
-        }
-
-        if (val.length() == 1)
-        {
-            return new WME(attr, val, WME.Type.CHAR);
-        }
-
-        return new WME(attr, val, WME.Type.STRING);
-    }//makeWME
-
     @BeforeClass
     public static void oneTimeSetUp()
     {
         //Create some WMEs
-        wme1 = makeWME("hi", "there");
-        wme2 = makeWME("hi", "5");
-        wme3 = makeWME("hi", "f");
-        wme4 = makeWME("hi", "5.0");
+        wme1 = WME.makeWME("hi", "there");
+        wme2 = WME.makeWME("hi", "5");
+        wme3 = WME.makeWME("hi", "f");
+        wme4 = WME.makeWME("hi", "5.0");
     }
 
 	// BEGIN Test cases --------------------------------------

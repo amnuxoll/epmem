@@ -31,7 +31,6 @@ public class RouteTest
      ActionWithSequenceEpisodesTest.aSE1, ActionWithSequenceEpisodesTest.aSE2, ActionWithSequenceEpisodesTest.aSE3, ActionWithSequenceEpisodesTest.aSE1,
      ActionWithSequenceEpisodesTest.aSE1, ActionWithSequenceEpisodesTest.aSE2, ActionWithSequenceEpisodesTest.aSE3, ActionWithSequenceEpisodesTest.aSE1};
 
-
     /** route2 is a level 1 route with multiple sequences */
     public static Route constructRoute2()
     {
@@ -60,10 +59,10 @@ public class RouteTest
     {
         Route r = route1.clone();
         Action nextAction = null;
-        for(Action currAction : route1Actions)
+        for(Action expectedAction : route1Actions)
         {
             Action a = r.getCurrAction();
-            assertTrue(a.equals(currAction));
+            assertTrue(a.equals(expectedAction));
             nextAction = r.advance();
         }
 
@@ -76,10 +75,10 @@ public class RouteTest
     {
         Route r = route2.clone();
         Action nextAction = null;
-        for(Action currAction : route2Actions)
+        for(Action expectedAction : route2Actions)
         {
             Action a = r.getCurrAction();
-            assertTrue(a.equals(currAction));
+            assertTrue(a.equals(expectedAction));
             nextAction = r.advance();
         }
 
@@ -92,14 +91,18 @@ public class RouteTest
     {
         Route r = route3.clone();
         Action nextAction = null;
-        for(Action currAction : route3Actions)
+        Action currAction = null;
+        for(Action expectedAction : route3Actions)
         {
-            Action a = r.getCurrAction();
-            assertTrue(a.equals(currAction));
+            currAction = r.getCurrAction();
+            assertTrue(currAction.equals(expectedAction));
             nextAction = r.advance();
         }
 
-        assertTrue(nextAction == null);
+        //Since this is not a level 0 route, we should be able to squeeze one
+        //more "fake" action out whose LHS is the RHS of the last action
+        assertTrue(nextAction.equals(
+                       new Action(currAction.getRHS(), ElementalEpisode.EMPTY)));
         assertTrue(r.advance() == null);
 	}
 
@@ -115,10 +118,10 @@ public class RouteTest
             {ActionTest.aEE3, ActionTest.aEE3, ActionTest.aEE1,
              ActionTest.aEE2, ActionTest.aEE2, ActionTest.aEE1, ActionTest.aEE3,
              ActionTest.aEE3, ActionTest.aEE3, ActionTest.aEE1};
-        for(Action currAction : acts)
+        for(Action expectedAction : acts)
         {
             Action a = r.getCurrAction();
-            assertTrue(a.equals(currAction));
+            assertTrue(a.equals(expectedAction));
             r.advance();
         }
     }//test_applyReplacement
@@ -129,6 +132,8 @@ public class RouteTest
         Route r = route1.clone();
 
         assertTrue(r.numElementalEpisodes() == route1Actions.length);
+
+        //Note that the loop does an extra iteration to verify the "null" return value
         for(int i = 0; i <= r.numElementalEpisodes(); i++)
         {
             assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
@@ -142,6 +147,7 @@ public class RouteTest
         Route r = route2.clone();
 
         assertTrue(r.numElementalEpisodes() == route2Actions.length);
+        //Note that the loop does an extra iteration to verify the "null" return value
         for(int i = 0; i <= r.numElementalEpisodes(); i++)
         {
             assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
@@ -153,12 +159,13 @@ public class RouteTest
     public void test_episodeCount3()
     {
         Route r = route3.clone();
-
-        assertTrue(r.numElementalEpisodes() == route3Actions.length*5);
-        int[] lengths = { 0, 4, 8, 12, 20, 24, 28, 32, 40, 44, 48, 52, 60 };
-        for(int i = 0; i < lengths.length; i++)
+        assertTrue(r.numElementalEpisodes() == (route3Actions.length*4 + 4) );
+        for(int i = 0; i < r.numElementalEpisodes(); i+=4)
         {
-            assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + lengths[i]);
+            // Special Case:  double count on the last one to account for RHS
+            if (r.numElementalEpisodes() - i == 4) i += 4; 
+            
+            assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
             r.advance();
         }
     }

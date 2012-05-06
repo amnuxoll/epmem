@@ -134,4 +134,28 @@ public class WMESet
 	{
 		return sensors.keySet();
 	}//getSensorKeys
+
+    /**
+     * makeSensors
+     * 
+     * creates a sensor Hashtable from an array of String. 
+     * 
+     * @param data an array of string considered to be a sequence of
+     * attribute,value,attribute,value,etc.
+     * 
+     */
+    public static Hashtable<String,WME> makeSensors(String[] data)
+    {
+        Hashtable<String,WME> result = new Hashtable<String,WME>();
+        
+        for(int i = 1; i < data.length; i += 2)
+        {
+            WME w = WME.makeWME(data[i-1], data[i]);
+            result.put(data[i-1], w);
+        }
+
+        return result;
+    }//makeSensors
+
+    
 }//class WMESet

@@ -17,6 +17,16 @@ import java.util.*;
 public class ElementalEpisode extends Episode 
 {
     /*======================================================================
+     * Constants
+     *----------------------------------------------------------------------
+     */
+    /** used to create EMPTY */
+    private static String[] emptySet = {"content", "empty"};
+    /** This empty Episode comes in handy from time to time */
+    public static Episode EMPTY = 
+        new ElementalEpisode(-1, new WMESet(WMESet.makeSensors(emptySet)), -1, 0.0);
+    
+    /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
      */
