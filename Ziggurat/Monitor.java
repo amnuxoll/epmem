@@ -204,7 +204,7 @@ public abstract class Monitor
      */
    public void log(String s, int arg1, int arg2)
     {
-        this.log(s, new Integer(arg1), new Integer(arg2));
+        this.log(s, (Object)(new Integer(arg1)), (Object)(new Integer(arg2)));
     }//log
 
 
@@ -216,7 +216,7 @@ public abstract class Monitor
      */
    public void log(String s, double arg1)
     {
-        this.log(s, new Double(arg1));
+        this.log(s, (Object)(new Double(arg1)));
     }//log
 
     /**

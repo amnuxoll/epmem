@@ -87,8 +87,8 @@ public class PlanTest
     public static void main(String[] args)
     {
         PlanTest pt = new PlanTest();
-        // pt.test_advance1();
-        // pt.test_advance2();
+        pt.test_advance1();
+        pt.test_advance2();
         pt.test_advance3();
     }
 	

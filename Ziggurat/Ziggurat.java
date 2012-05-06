@@ -45,39 +45,39 @@ public class Ziggurat
      *----------------------------------------------------------------------
      */
     /** All episodes learned so far */
-    private Vector<Vector<Episode>> epmems = new Vector<Vector<Episode>>();
+    protected Vector<Vector<Episode>> epmems = new Vector<Vector<Episode>>();
     /** All actions learned so far */
-    private Vector<Vector<Action>> actions = new Vector<Vector<Action>>();
+    protected Vector<Vector<Action>> actions = new Vector<Vector<Action>>();
     /** All sequences learned so far */
-    private Vector<Vector<Sequence>> seqs = new Vector<Vector<Sequence>>();
+    protected Vector<Vector<Sequence>> seqs = new Vector<Vector<Sequence>>();
     /** The agent's current plan for reaching a goal */
-    private Plan currPlan = null;
+    protected Plan currPlan = null;
     /** All replacement rules that the agent has tried */
-    private Vector<Vector<Replacement>> repls = new Vector<Vector<Replacement>>();
+    protected Vector<Vector<Replacement>> repls = new Vector<Vector<Replacement>>();
     /** high confidence means the agent will try new things.  Value range [0..1] */
-    private double selfConfidence = INIT_SELF_CONFIDENCE;
+    protected double selfConfidence = INIT_SELF_CONFIDENCE;
     /** the current environment provides the agent with a limited amount of
         information about itself */
-    private Environment env = null;
+    protected Environment env = null;
     /** the monitor that is currently logging events in Zigg.  I'm making this
      * static so that other entities can log events to the monitor.  Maybe a
      * mistake?  But at the moment I can't think of a better approach. (:AMN:, Apr 2012)
      */
-    private static Monitor mon = new MonitorNull();
+    protected static Monitor mon = new MonitorNull();
     /** this is the highest level in the hierarchy that contains data.  This is
      * used by the findInterimStart methods */
-    private int lastUpdateLevel = 0;
+    protected int lastUpdateLevel = 0;
     /** this vector contains all {@link DecisionElement}s that have recently been
      * used to make a decision.  When the outcome of decision(s) is known these
      * active elements' utlities are adjusted based upon that outcome.
      */
-    private Vector<DecisionElement> activeDecEls = new Vector<DecisionElement>();
+    protected Vector<DecisionElement> activeDecEls = new Vector<DecisionElement>();
     /** count how many goals we've reached so far */
-    private int goalCount = 0;
+    protected int goalCount = 0;
     /** count how many steps we've taken since the last goal */
-    private int stepsSoFar = 0;
+    protected int stepsSoFar = 0;
     /** for all your random number geneation needs! */
-    private Random randGen = new Random();
+    protected Random randGen = new Random();
 
     /*======================================================================
      * Constructors
@@ -93,20 +93,41 @@ public class Ziggurat
      */
     public Ziggurat(Environment env)
     {
-        //Init level 0 to an empty list
+        //Init episodes, actions and sequences at level 0 
         this.epmems.add(new Vector<Episode>());
         this.actions.add(new Vector<Action>());
-        this.seqs.add(new Vector<Sequence>());
+        Vector<Sequence> startSeq = new Vector<Sequence>();
+        startSeq.add(new Sequence());
+        this.seqs.add(startSeq);
 
         //record input parameters
         this.env = env;
-        if (this.mon == null)
-        {
-            this.mon = new MonitorStdOut(env);
-        }
+        this.mon = new MonitorStdOut(env);
         
     }//ctor
 
+
+    /*======================================================================
+     * Accessor Methods
+     *----------------------------------------------------------------------
+     */
+    /** accessor for the monitor.  */
+    public static Monitor getMonitor() { return Ziggurat.mon; }
+
+    /** accessor for the monitor.  */
+    public static void setMonitor(Monitor newMon) { Ziggurat.mon = newMon; }
+
+    /** This is used by the unit tests to constrain the behavior of Ziggurat */
+    public void setRandGen(Random gen) { this.randGen = gen; }
+
+    /** retrieve all episodes */
+    public Vector<Vector<Episode>> getEpmems() { return this.epmems; }
+
+    /** retrieve all actions */
+    public Vector<Vector<Action>> getActions() { return this.actions; }
+
+    /** retrieve all sequences */
+    public Vector<Vector<Sequence>> getSequences() { return this.seqs; }
 
     /*======================================================================
      * Public Methods
@@ -172,9 +193,6 @@ public class Ziggurat
 
     }//tick
 
-    /** accessor for the monitor.  If none is available, a null one is returned. */
-    public static Monitor getMonitor() { return Ziggurat.mon; }
-
     /*======================================================================
      * Private Methods
      *----------------------------------------------------------------------
@@ -208,7 +226,7 @@ public class Ziggurat
         this.mon.log(actions.elementAt(level));
         this.mon.log("Level %d Sequences >>>>>>>>>>>>>>>>>>>>>>>>>>>", level);
         this.mon.log(seqs.elementAt(level));
-        this.mon.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< End of Level %i Data", level);
+        this.mon.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< End of Level %d Data", level);
 
         // Create pointers to the two associated vectors we'll be working with
         Vector<Episode> episodeList = this.epmems.elementAt(level);
@@ -287,7 +305,7 @@ public class Ziggurat
         //Add the new action
         if(addNewAction)
         {
-            this.mon.log("Adding new action to level %i action list: ", level);
+            this.mon.log("Adding new action to level %d action list: ", level);
             this.mon.log(newAction);
             actionList.add(newAction);
 
@@ -351,10 +369,21 @@ public class Ziggurat
             // exist
             if (level + 1 < MAX_LEVEL_DEPTH)
             {
-                this.mon.log("Creating a new level %i episode with sequence: ", level + 1);
+                this.mon.log("Creating a new level %d episode with sequence: ", level + 1);
                 this.mon.tab();
                 this.mon.log(currSequence);
 
+                //Make sure the parent level exists!
+                while (this.epmems.size() <= level + 1)
+                {
+                    this.epmems.add(new Vector<Episode>());
+                    this.actions.add(new Vector<Action>());
+                    Vector<Sequence> startSeq = new Vector<Sequence>();
+                    startSeq.add(new Sequence());
+                    this.seqs.add(startSeq);
+                }
+                    
+                //Add the new episode
                 Vector<Episode> parentEpList = epmems.elementAt(level + 1);
                 parentEpList.add(new SequenceEpisode(currSequence));
                     
@@ -451,7 +480,11 @@ public class Ziggurat
     Plan initPlan()
     {
         this.mon.enter("initPlan");
-       
+
+        //If there are no level 1 episodes yet then there's not enough data to
+        //create a plan
+        if (this.epmems.size() < 2) return null;
+        
         //Try to figure out where I am.  I can't make plan without this.
         Route seedRoute = findInterimStart();
         if (seedRoute == null)
@@ -1235,12 +1268,15 @@ public class Ziggurat
         Vector<Action> cousins = findCousinList(nowEp);
 
         //Mark the commands associated with the cousins as invalid
-        for(Action act : cousins)
+        if (cousins != null)
         {
-            ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
-            valid[currEp.getCommand()] = false; // guilty!
+            for(Action act : cousins)
+            {
+                ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
+                valid[currEp.getCommand()] = false; // guilty!
+            }
         }
-
+        
         //Start from a random starting position in the valid array and return
         //the first random entry found.  If no unique command is found, the
         //original random value is used
