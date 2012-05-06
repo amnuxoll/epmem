@@ -83,6 +83,37 @@ public class ElementalEpisode extends Episode
 	}//ctor
 
     /*======================================================================
+     * Accessor Methods
+     *----------------------------------------------------------------------
+     */
+    /**
+     * @return a string representation of this episode's sensors
+     */
+    public String sensorsToString()
+    {
+        return sensors.toString();
+    }
+
+	/** returns the WME */
+	public boolean containsAttr(String attr) 
+    {
+        return sensors.hasAttr(attr);
+	}
+
+    /** set the value of cmd */
+    public void setCommand(int cmd)
+    {
+        this.cmd = cmd;
+    }
+
+    /** get the value of the cmd */
+    public int getCommand()
+    {
+        return this.cmd;
+    }
+
+    
+    /*======================================================================
      * Methods
      *----------------------------------------------------------------------
      */
@@ -101,6 +132,12 @@ public class ElementalEpisode extends Episode
         return (equalSensors(ee) && this.cmd == ee.cmd);
 	}//equals
 
+    /** create a close of this episode */
+	public ElementalEpisode clone()
+	{
+		return new ElementalEpisode(this.id, this.sensors.clone(), this.cmd, this.utility);
+	}
+
 	/** returns true if the sensors of two given elemental episodes match */
 	public boolean equalSensors(ElementalEpisode other) 
     {
@@ -117,38 +154,6 @@ public class ElementalEpisode extends Episode
     {
         return sensors.toString() + cmd;
 	}
-
-    /**
-     * @return a string representation of this episode's sensors
-     */
-    public String sensorsToString()
-    {
-        return sensors.toString();
-    }
-
-	/** returns the WME */
-	public boolean containsAttr(String attr) 
-    {
-        return sensors.hasAttr(attr);
-	}
-
-    /** create a close of this episode */
-	public ElementalEpisode clone()
-	{
-		return new ElementalEpisode(this.id, this.sensors.clone(), this.cmd, this.utility);
-	}
-
-    /** set the value of cmd */
-    public void setCommand(int cmd)
-    {
-        this.cmd = cmd;
-    }
-
-    /** get the value of the cmd */
-    public int getCommand()
-    {
-        return this.cmd;
-    }
 
     /**
      * @return true if this episode contains a reward

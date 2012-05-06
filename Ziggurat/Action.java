@@ -143,7 +143,7 @@ public class Action extends DecisionElement
      */
     public boolean isIndeterminate()
     {
-        return (this.cousins.size() > 0);
+        return (this.cousins.size() > 1);
     }
 
     /** this is a deep copy */
