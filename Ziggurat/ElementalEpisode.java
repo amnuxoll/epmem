@@ -156,7 +156,8 @@ public class ElementalEpisode extends Episode
      */
     public boolean containsReward()
     {
-        return this.sensors.hasAttr(WME.REWARD_STRING);
+        WME rewardWME = this.sensors.getAttr(WME.REWARD_STRING);
+        return (rewardWME.getDouble() > 0.0); 
     }
                 
 }//class ElementalEpisode

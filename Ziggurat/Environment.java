@@ -49,6 +49,9 @@ public abstract class Environment
     /** convert a given replacement to a string */
     public String stringify(Replacement repl) { return repl.toString(); }
     
+    /** convert a given replacement to a string */
+    public String stringify(Route route) { return route.toString(); }
+    
     /** convert a given plan to a string */
     public String stringify(Plan plan) { return plan.toString(); }
     

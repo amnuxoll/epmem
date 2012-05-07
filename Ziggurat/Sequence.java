@@ -144,7 +144,14 @@ public class Sequence extends DecisionElement
     public void add(Action act) 
     {
         actions.add(act);
-    }
+
+        //If this is the first action added to the sequence, then inherit its
+        //level
+        if (this.actions.size() == 1)
+        {
+            this.level = act.getLevel();
+        }
+    }//add
 
     /**
      * numElementalEpisodes          *RECURSIVE*

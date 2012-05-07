@@ -277,7 +277,8 @@ public class Ziggurat
             //If just the left-hand-sides match, then we have a cousin
             if (curr.getLHS().equals(newAction.getLHS()))
             {
-                this.mon.log("found a cousin:" + curr);
+                this.mon.logPart("found a cousin: ");
+                this.mon.log(curr);
                 
                 //Iterate over all the cousins to see if there is an exact match
                 Vector<Action> cousinsList = curr.getCousins();
@@ -286,9 +287,11 @@ public class Ziggurat
                     //If both match, then we can reuse the matching action 
                     if (currCousin.equals(newAction))
                     {
+                        this.mon.log("Found a cousin that is an exact match, reusing it.");
+                    
                         matchComplete = true;
                         addNewAction = false;
-                        updateExistingAction = curr;
+                        updateExistingAction = currCousin;
                         break;
                     }
                 }//for
@@ -681,7 +684,7 @@ public class Ziggurat
             {
                 break;
             }
-        
+
             //Find the shortest route that hasn't been examined yet and swap it
             //to the i-th position in the array
             int candPos = findShortestRoute(candRoutes, i);
@@ -697,7 +700,6 @@ public class Ziggurat
             this.mon.log(""); //to reset after the dots (see above)
             this.mon.log("examining next shortest candidate #%d of size %d:",
                          i, cand.numElementalEpisodes());
-            this.mon.tab();
             this.mon.log(cand);
        
             //SUCCESS! If the last sequence in this route contains the goal
@@ -706,6 +708,9 @@ public class Ziggurat
             Sequence lastSeq = cand.lastElement();
             if (lastSeq.containsReward())
             {
+                this.mon.log("Selected this route to goal:");
+                this.mon.tab();
+                this.mon.log(cand);
                 this.mon.exit("findRoute");
                 return cand;
             }//if
@@ -741,9 +746,8 @@ public class Ziggurat
                 if (cand.contains(rhsSeq)) continue;
 
                 //log the new candidate
-                this.mon.log("extending candidate with action: ");
-                this.mon.tab();
-                this.mon.log(rhsSeq);
+                this.mon.logPart("extending candidate with action: ");
+                this.mon.log(act);
        
                 //If we've reached this point, then we can create a new candidate
                 //route that is an extension of the current one
@@ -1024,8 +1028,12 @@ public class Ziggurat
      */
     private boolean replacementExists(Replacement findMe)
     {
-        //get the existing replacements that are the same level as this one
+        //see if there are any existing replacements that are the same level as
+        //this one
         int level = findMe.getLevel();
+        if (this.repls.size() <= level) return false;
+
+        //Retrieve the repls for this level
         Vector<Replacement> replList = this.repls.elementAt(level);
         
         //Iterate through the list looking for matches
@@ -1156,6 +1164,7 @@ public class Ziggurat
 
                 //All checks passed. Success!  Add the replacement it creates to
                 //the list of known replacements and return it to the caller
+                while (this.repls.size() <= level) this.repls.add(new Vector<Replacement>());
                 Vector<Replacement> replList = this.repls.elementAt(level);
                 replList.add(result);
                 return result;
@@ -1235,9 +1244,10 @@ public class Ziggurat
         //Apply the replacement (repl) to the current plan
         this.currPlan.applyReplacement(selectedRepl);
 
-        this.mon.log("Applied replacement:");
-        this.mon.tab();
+        this.mon.logPart("Applied replacement: ");
         this.mon.log(selectedRepl);
+        this.mon.log("to get this revised plan:");
+        this.mon.log(currPlan);
         this.mon.exit("considerReplacement");
    
     }//considerReplacement
