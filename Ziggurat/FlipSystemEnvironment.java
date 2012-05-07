@@ -119,19 +119,4 @@ public class FlipSystemEnvironment extends Environment {
 	/** return the number of available commands in this environment */
     public int getNumCommands() { return NUM_COMMANDS; }
 
-    /** convert a given episode to a string */
-    public String stringify(Episode ep) {return ep.toString(); }
-        
-    /** convert a given action to a string */
-    public String stringify(Action act) { return act.toString(); }
-    
-    /** convert a given sequence to a string */
-    public String stringify(Sequence seq) { return seq.toString(); }
-    
-    /** convert a given replacement to a string */
-    public String stringify(Replacement repl) { return repl.toString(); }
-    
-    /** convert a given plan to a string */
-    public String stringify(Plan plan) { return plan.toString(); }
-	
 }// [class] FlipSystemEnvironment

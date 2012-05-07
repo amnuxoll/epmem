@@ -13,13 +13,14 @@ public abstract class Environment
 {
 	/**
 	 * take a command and apply it to the environment.
-	 * return the resulting WMESet
+     *
+     * @return the resulting WMESet
 	 */
 	public abstract WMESet takeStep(int commandIndex);
 	
 	/**
-	 * get an initial WMESet config indicating we're beginning
-	 * in a brand new environment.
+	 * get an initial WMESet config indicating we're beginning in a brand new
+	 * environment.
 	 */
 	public abstract WMESet generateCurrentWMESet();
 	
@@ -29,29 +30,26 @@ public abstract class Environment
      */
     public abstract int getNumCommands();
 
-    /**
-     * convert a given episode to a string
+    /*
+     * Default implementations of these stringify methods are provided.
+     * However, all but a trivial environment should override them.
      */
-    public abstract String stringify(Episode ep);
+    /** convert a given command to a string */
+    public String stringify(int cmd) { return "" + cmd; }
+    
+    /** convert a given episode to a string */
+    public String stringify(Episode ep) {return ep.toString(); }
         
-    /**
-     * convert a given action to a string
-     */
-    public abstract String stringify(Action act);
+    /** convert a given action to a string */
+    public String stringify(Action act) { return act.toString(); }
     
-    /**
-     * convert a given sequence to a string
-     */
-    public abstract String stringify(Sequence seq);
+    /** convert a given sequence to a string */
+    public String stringify(Sequence seq) { return seq.toString(); }
     
-    /**
-     * convert a given replacement to a string
-     */
-    public abstract String stringify(Replacement repl);
+    /** convert a given replacement to a string */
+    public String stringify(Replacement repl) { return repl.toString(); }
     
-    /**
-     * convert a given plan to a string
-     */
-    public abstract String stringify(Plan plan);
+    /** convert a given plan to a string */
+    public String stringify(Plan plan) { return plan.toString(); }
     
 }//class Environment

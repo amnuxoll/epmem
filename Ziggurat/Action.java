@@ -37,6 +37,7 @@ public class Action extends DecisionElement
         this.rhs = rhs;
         this.freq = 0;
         cousins = new Vector<Action>();
+        cousins.add(this);
         utility = 0.0;
 	}//ctor
 
