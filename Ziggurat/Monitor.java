@@ -101,8 +101,11 @@ public abstract class Monitor
      */
     public void logPart(String s)
     {
-        if (!inPart) padLeft(s, this.indent + this.tempIndent);
-        inPart = true;
+        if (!inPart)
+        {
+            s = padLeft(s, this.indent + this.tempIndent);
+            inPart = true;
+        }
         this.print(s);
         
         //if there is a temporary indent in place, remove it now
@@ -119,7 +122,10 @@ public abstract class Monitor
      */
    public void log(String s)
     {
-        s = padLeft(s, this.indent + this.tempIndent);
+        if (!inPart)
+        {
+            s = padLeft(s, this.indent + this.tempIndent);
+        }
         this.println(s);
 
         //if there is a temporary indent in place, remove it now
@@ -403,33 +409,46 @@ public abstract class Monitor
      * prints a Vector of objects to the log.
      *
      * Presumably the objects in this vector are of a type that can be handled
-     * by one of the other log methods.  If it isn't, .  Java won't
-     * let you create overloaded methods that handle generics so it has to be
-     * done like this.
+     * by one of the other log methods.  If it isn't, then the default
+     * toString() will kick in.  Java won't let you create overloaded methods
+     * that handle generics so it has to be done like this.
      *
      * @param vec   the vector to print
      */
     public void log(Vector vec) 
     {
+        log("{");
+        int count = 0;
         for(Object obj : vec)
         {
-            if (obj instanceof Episode)
+            //Label each entry with its index
+            logPart("  " + count + ": ");
+            count++;
+
+            //Convert the entry to a string
+            if (this.env == null)
             {
-                log((Episode)obj);
+                log(obj.toString());
+            }
+            else if (obj instanceof Episode)
+            {
+                log(this.env.stringify((Episode)obj));
             }
             else if (obj instanceof Action)
             {
-                log((Action)obj);
+                log(this.env.stringify((Action)obj));
             }
             else if (obj instanceof Sequence)
             {
-                log((Sequence)obj);
+                log(this.env.stringify((Sequence)obj));
             }
             else
             {
                 log(obj.toString());
             }
         }//for
+        log("}");
+
     }//log
     
 }//class Monitor

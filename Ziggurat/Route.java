@@ -149,6 +149,7 @@ public class Route extends Vector<Sequence>
     public int getCurrActIndex() { return this.currActIndex; }
     public int getCurrSeqIndex() { return this.currSeqIndex; }
     public Vector<Replacement> getRepls() { return this.repls; }
+    public Sequence getReplSeq() { return this.replSeq; }
 
     /** @return the number of active replacements on this plan*/
     public int numRepls()   { return this.repls.size(); }
@@ -195,7 +196,12 @@ public class Route extends Vector<Sequence>
         String result = "{ ";   // return value
         for(int i = 0; i < this.size(); i++)
         {
+            //Get the i-th sequence
             Sequence seq = this.elementAt(i);
+            if ((i == this.currSeqIndex) && (this.replSeq != null))
+            {
+                seq = this.replSeq;
+            }
             
             //precede all but first sequence with a comma separator
             if (i > 0) result += ", ";  
@@ -448,28 +454,6 @@ public class Route extends Vector<Sequence>
     public int getLevel()
     {
         return this.level;
-    }
-
-    /**
-     * add
-     *
-     * overrides the add method inherited from Vector to also verify that the
-     * RHS of the last action in the last sequence matches the LHS of the first
-     * action in the sequence we are adding.
-     */
-    public boolean add(Sequence seq)
-    {
-        System.out.println("foo");
-        
-        //Verify that these two sequences tie together properly
-        Action currLastAct = this.lastElement().lastAction();
-        Action connectAct = seq.firstAction();
-        if (! currLastAct.getRHS().equals(connectAct.getLHS()))
-        {
-            return false;
-        }
-        
-        return super.add(seq);
     }
 
 }//class Route

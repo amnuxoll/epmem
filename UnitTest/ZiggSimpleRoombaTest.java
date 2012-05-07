@@ -12,7 +12,7 @@ import Ziggurat.*;
  * ZiggSimpleRoombaTest
  * 
  * This JUnit test runs a simple roomba-like environment for a few steps and
- * verifies the right structure is created.
+ * verifies that the right structure is created.
  */
 public class ZiggSimpleRoombaTest
 {
@@ -25,7 +25,7 @@ public class ZiggSimpleRoombaTest
         public FixedSeedRandom()
         {
             super();
-            this.setSeed(42);
+            this.setSeed(5);
         }
     }//class FixedSeedRandom
 
@@ -42,7 +42,7 @@ public class ZiggSimpleRoombaTest
         /* which direction is the roomba facing?  It begins by facing north.
          *               6
          *             5   7
-         *            4  ^  0
+         *            4  ^  0  -> Goal
          *             3   1
          *               2
          */
@@ -108,7 +108,8 @@ public class ZiggSimpleRoombaTest
         {
             if (ep instanceof SequenceEpisode)
             {
-                return ep.toString();
+                SequenceEpisode seqEp = (SequenceEpisode)ep;
+                return "[" + stringify(seqEp.getSequence()) + "]";
             }
 
             ElementalEpisode elEp = (ElementalEpisode)ep;
@@ -145,7 +146,7 @@ public class ZiggSimpleRoombaTest
 
         public String stringify(Sequence seq)
         {
-            String result = "[";
+            String result = "";
             boolean first = true;
             Vector<Action> actions = seq.getActions();
             for(Action a : actions)
@@ -161,10 +162,72 @@ public class ZiggSimpleRoombaTest
                 
                 result += stringify(a);
             }
-            result += "]";
+            
+            return result;
+        }//stringify sequence
+    
+        public String stringify(Replacement repl)
+        {
+            //This is the LHS of the replacement rule
+            String result = "{ ";
+            Vector<Action> lhsVec = repl.getLHS();
+            for(int i = 0; i < lhsVec.size(); i++)
+            {
+                Action act = lhsVec.elementAt(i);
+                
+                //precede all but first sequence with a comma separator
+                if (i > 0) result += ", ";  
+                
+                result += stringify(act);
+            }
+            result += " }";
+            
+            //Arrow
+            result += "==>";
+            
+            //RHS of the replacement rule
+            result += stringify(repl.getRHS());
             
             return result;
         }
+        
+        /** convert a given replacement to a string */
+        public String stringify(Route route)
+        {
+            String result = "{";
+            for(int i=0; i < route.size(); i++)
+            {
+                //Get the i-th sequence
+                Sequence seq = route.elementAt(i);
+                if ((i == route.getCurrSeqIndex()) && (route.getReplSeq() != null))
+                {
+                    seq = route.getReplSeq();
+                }
+            
+                result += "[" + stringify(seq) + "],";
+            }
+            result = result.substring(0, result.length() - 1);
+            result += "}";
+
+            return result;
+        }//stringify route
+
+        public String stringify(Plan plan)
+        {
+            String result = "{\n";
+            int len = plan.getNumLevels();
+            for(int i = 0; i < len; i ++)
+            {
+                Route r = plan.getRoute(i);
+                result += "  Level " + i + ": ";
+                result += stringify(r);
+                result += "\n";
+            }//for
+            result += "}";
+
+            return result;
+        }
+        
         
     }//class SimplifiedRoombaEnvironment
 
@@ -178,11 +241,11 @@ public class ZiggSimpleRoombaTest
         Environment env = new SimplifiedRoombaEnvironment();
         Ziggurat zigg = new Ziggurat(env);
         zigg.setRandGen(new FixedSeedRandom());
-//%%%        zigg.setMonitor(new MonitorNull(env));
+        zigg.setMonitor(new MonitorNull(env));
         
         //Run enough ticks to make a sizeable memory
         WMESet sensors = env.generateCurrentWMESet();
-        for(int i = 0; i < 8; i++)
+        for(int i = 0; i < 50; i++)
         {
             int cmd = zigg.tick(sensors);
             sensors = env.takeStep(cmd);

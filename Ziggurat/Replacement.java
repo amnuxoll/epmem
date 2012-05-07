@@ -50,6 +50,16 @@ public class Replacement extends DecisionElement
     }//ctor
 
     /*======================================================================
+     * Accessors
+     *----------------------------------------------------------------------
+     */
+    /** access the LHS of the replacement rule */
+    public Vector<Action> getLHS() { return this.original; }
+    
+    /** access the LHS of the replacement rule */
+    public Action getRHS() { return this.replacement; }
+
+    /*======================================================================
      * Methods
      *----------------------------------------------------------------------
      */
@@ -68,6 +78,37 @@ public class Replacement extends DecisionElement
             && repl.replacement.equals(this.replacement);
     }//equals
 
+    /** 
+     * Typically you want to use the printing facility in the current
+     * { @link Environment} class instead.
+     *
+     * @return a String representation of this action.
+     */
+	public String toString() 
+    {
+        //This is the LHS of the replacement rule
+        String result = "{ ";   
+        for(int i = 0; i < this.original.size(); i++)
+        {
+            Action act = this.original.elementAt(i);
+            
+            //precede all but first sequence with a comma separator
+            if (i > 0) result += ", ";  
+
+            result += act.toString();
+        }
+        result += " }";
+
+        //Arrow
+        result += "===>";
+
+        //RHS of the replacement rule
+        result += this.replacement;
+
+        return result;
+       
+    }//toString
+    
     /**
      * vecMatch
      *
