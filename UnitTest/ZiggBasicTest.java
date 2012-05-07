@@ -46,12 +46,6 @@ public class ZiggBasicTest
         
         public int getNumCommands() { return 3; }
 
-        public String stringify(Episode ep) { return "ep"; }
-        public String stringify(Action act) { return "act"; }
-        public String stringify(Sequence seq) { return "seq"; }
-        public String stringify(Replacement repl) { return "repl"; }
-        public String stringify(Plan plan) { return "plan"; }
-        
     }//class DummyEnv
 
     
@@ -114,8 +108,51 @@ public class ZiggBasicTest
         //Verify the action
         Action act = actions.elementAt(0).elementAt(0);
         assertTrue(act.toString().equals("{state:0}1---->{state:0}"));
+
+        //Verify that only one (incomplete) sequence exists
+        Vector<Vector<Sequence>> seqs = zigg.getSequences();
+        assertTrue(seqs.size() == 1);
+        assertTrue(seqs.elementAt(0).size() == 1);
 	}
 
+	@Test
+	public void test_OneSequence()
+    {
+        //Create a Zigg
+        Environment env = new DummyEnv();
+        Ziggurat zigg = new Ziggurat(env);
+        zigg.setRandGen(new NonRandom());
+        zigg.setMonitor(new MonitorNull(env));
+        
+        //Run enough ticks to complete a sequence
+        for(int i = 0; i < 8; i++)
+        {
+            String[] sensorArr = { "state", "0" };
+            if (i%2 == 1) sensorArr[1] = ("" + i);
+            WMESet sensors = new WMESet(WMESet.makeSensors(sensorArr));
+            int cmd = zigg.tick(sensors);
+        }
+
+        //Verify that only two level-0 sequences exist (one will be empty)
+        Vector<Vector<Sequence>> seqs = zigg.getSequences();
+        assertTrue(seqs.size() == 2);
+        assertTrue(seqs.elementAt(0).size() == 2);
+
+        //Verify the sequences are the right size
+        Sequence seq1 = seqs.elementAt(0).elementAt(0);
+        Sequence seq2 = seqs.elementAt(0).elementAt(1);
+        assertTrue(seq1.length() == 7);
+        assertTrue(seq2.length() == 0);
+
+        //Verify that there is one level-1 episode that contains the first
+        //sequence
+        Vector<Vector<Episode>> epmems = zigg.getEpmems();
+        assertTrue(epmems.size() == 2);
+        assertTrue(epmems.elementAt(1).size() == 1);
+        SequenceEpisode seqEp = (SequenceEpisode)epmems.elementAt(1).elementAt(0);
+        assertTrue(seqEp.getSequence() == seq1);
+        
+	}//test_OneSequence
 
 	// // BEGIN Test cases --------------------------------------
 
@@ -128,6 +165,7 @@ public class ZiggBasicTest
         ZiggBasicTest zbt = new ZiggBasicTest();
         zbt.test_tick();
         zbt.test_OneAction();
+        zbt.test_OneSequence();
     }
 	
 }//class ZiggBasicTest

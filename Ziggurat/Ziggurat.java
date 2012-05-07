@@ -257,9 +257,10 @@ public class Ziggurat
         //partially matching action.  If the candidate completely matches an
         //existing action, it'll be discarded and the existing action's
         //frequency will be updated
-        boolean matchComplete = false;
-        boolean addNewAction = true;
-        Action updateExistingAction = null;
+        boolean matchComplete = false;      // are we done searching yet?
+        boolean addNewAction = true;        // whether the cand action is unique
+        Action updateExistingAction = null;  //reference to pre-existing,
+                                             //matching action
         for(Action curr : actionList)
         {
             //If both match, then we can reuse the matching action 
@@ -274,6 +275,8 @@ public class Ziggurat
             //If just the left-hand-sides match, then we have a cousin
             if (curr.getLHS().equals(newAction.getLHS()))
             {
+                this.mon.log("found a cousin:" + curr);
+                
                 //Iterate over all the cousins to see if there is an exact match
                 Vector<Action> cousinsList = curr.getCousins();
                 for(Action currCousin : cousinsList)
@@ -292,6 +295,8 @@ public class Ziggurat
                 //but also include it in the cousins list
                 if (updateExistingAction == null)
                 {
+                    this.mon.log("" + cousinsList.size() + " unique cousin(s) found");
+                    
                     cousinsList.add(newAction);
                     newAction.setCousins(cousinsList);
                     matchComplete = true;
@@ -309,12 +314,7 @@ public class Ziggurat
             this.mon.log(newAction);
             actionList.add(newAction);
 
-            //Add itself to its own cousins list to init that list
-            Vector<Action> cousins = new Vector<Action>();
-            cousins.add(newAction);
-            newAction.setCousins(cousins);
-            
-            // set this flag so that we recursively update the next level
+            // set this variable so that we recursively update the next level
             // with this action
             updateExistingAction = newAction;
         }
@@ -336,7 +336,7 @@ public class Ziggurat
         // add most recently seen action to current sequence
         Sequence currSequence = sequenceList.elementAt(sequenceList.size() - 1);
         currSequence.add(updateExistingAction);
-        this.mon.log("Adding action #%d: ", sequenceList.size() - 1);
+        this.mon.log("Adding action #%d: ", currSequence.length() - 1);
         this.mon.tab();
         this.mon.log(updateExistingAction);
         this.mon.log(" to current sequence:");
@@ -479,12 +479,12 @@ public class Ziggurat
      */
     Plan initPlan()
     {
-        this.mon.enter("initPlan");
-
         //If there are no level 1 episodes yet then there's not enough data to
         //create a plan
         if (this.epmems.size() < 2) return null;
         
+        this.mon.enter("initPlan");
+
         //Try to figure out where I am.  I can't make plan without this.
         Route seedRoute = findInterimStart();
         if (seedRoute == null)
@@ -1291,7 +1291,7 @@ public class Ziggurat
             }
         }
 
-        this.mon.log("Choosing a semi-random command: %d", cmd);
+        this.mon.log("Choosing a semi-random command: " + env.stringify(cmd));
         return cmd;
 
     }//chooseCommand_SemiRandom
