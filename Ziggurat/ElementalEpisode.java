@@ -101,17 +101,13 @@ public class ElementalEpisode extends Episode
 	}
 
     /** set the value of cmd */
-    public void setCommand(int cmd)
-    {
-        this.cmd = cmd;
-    }
+    public void setCommand(int cmd) { this.cmd = cmd; }
 
     /** get the value of the cmd */
-    public int getCommand()
-    {
-        return this.cmd;
-    }
+    public int getCommand() { return this.cmd; }
 
+    /** get the sensors */
+    public WMESet getSensors() { return this.sensors; }
     
     /*======================================================================
      * Methods

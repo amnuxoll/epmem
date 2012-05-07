@@ -123,10 +123,13 @@ public class Sequence extends DecisionElement
         boolean first = true;
         for(Action a : actions)
         {
-            if (!first)
+            if (first)
             {
-                result += ",";
                 first = false;
+            }
+            else
+            {
+                result += ", ";
             }
                     
             result += a.toString();

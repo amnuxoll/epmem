@@ -11,7 +11,8 @@ import Ziggurat.*;
 /**
  * ZiggBasicTest
  * 
- * This JUnit test checks if Plan is working correctly
+ * This JUnit test checks that Ziggurat can create level-0 episodes, actions and
+ * sequences.
  */
 public class ZiggBasicTest
 {
