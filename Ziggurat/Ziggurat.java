@@ -247,6 +247,8 @@ public class Ziggurat
         Episode epLeft   = episodeList.elementAt(episodeList.size() - 2);
         Episode epRight  = episodeList.elementAt(episodeList.size() - 1);
         Action newAction = new Action(epLeft, epRight);
+        this.mon.log("Candidate Action: ");
+        this.mon.tab();
         this.mon.log(newAction);
         
 
@@ -335,13 +337,13 @@ public class Ziggurat
 
         // add most recently seen action to current sequence
         Sequence currSequence = sequenceList.elementAt(sequenceList.size() - 1);
-        currSequence.add(updateExistingAction);
         this.mon.log("Adding action #%d: ", currSequence.length() - 1);
         this.mon.tab();
         this.mon.log(updateExistingAction);
         this.mon.log(" to current sequence:");
         this.mon.tab();
         this.mon.log(currSequence);
+        currSequence.add(updateExistingAction);
 
         // if the action we just added is indeterminate then end the current
         // sequence and start a new one
@@ -693,8 +695,10 @@ public class Ziggurat
 
             //log the current shortest candidate
             this.mon.log(""); //to reset after the dots (see above)
-            this.mon.log("examining next shortest unexamined candidate %d at %ld of size %d:",
-                         new Integer(i), cand.toString(), new Integer(cand.numElementalEpisodes()));
+            this.mon.log("examining next shortest candidate #%d of size %d:",
+                         i, cand.numElementalEpisodes());
+            this.mon.tab();
+            this.mon.log(cand);
        
             //SUCCESS! If the last sequence in this route contains the goal
             //state, we're done.  Copy the details of this route to the newRoute
