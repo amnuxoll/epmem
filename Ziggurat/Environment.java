@@ -55,4 +55,29 @@ public abstract class Environment
     /** convert a given plan to a string */
     public String stringify(Plan plan) { return plan.toString(); }
     
+    /** convert a given decision element to a string */
+    public String stringify(DecisionElement de)
+    {
+        if (de instanceof Episode)
+        {
+            return stringify((Episode)de);
+        }
+        else if (de instanceof Action)
+        {
+            return stringify((Action)de);
+        }
+        else if (de instanceof Sequence)
+        {
+            return stringify((Sequence)de);
+        }
+        else if (de instanceof Replacement)
+        {
+            return stringify((Replacement)de);
+        }
+        else
+        {
+            return de.toString();
+        }
+    }//stringify DecisionElement
+    
 }//class Environment

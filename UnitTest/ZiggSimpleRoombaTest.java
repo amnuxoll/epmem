@@ -25,7 +25,7 @@ public class ZiggSimpleRoombaTest
         public FixedSeedRandom()
         {
             super();
-            this.setSeed(5);
+            this.setSeed(8);
         }
     }//class FixedSeedRandom
 
@@ -47,9 +47,70 @@ public class ZiggSimpleRoombaTest
          *               2
          */
         private int facing = 6;
-    
+
+        /**
+         * a handy debugging method for printing the current state and command
+         * in human readable format.
+         */
+        private void printState(int cmd)
+        {
+            System.out.print("Facing ");
+            switch(this.facing)
+            {
+                case 0:  
+                    System.out.print("EAST");
+                    break;
+                case 1:  
+                    System.out.print("SOUTHEAST");
+                    break;
+                case 2:  
+                    System.out.print("SOUTH");
+                    break;
+                case 3:  
+                    System.out.print("SOUTHWEST");
+                    break;
+                case 4:  
+                    System.out.print("WEST");
+                    break;
+                case 5:  
+                    System.out.print("NORTHWEST");
+                    break;
+                case 6:  
+                    System.out.print("NORTH");
+                    break;
+                case 7:  
+                    System.out.print("NORTHEAST");
+                    break;
+                default:  
+                    System.out.print("?????");
+                    break;
+            }//switch
+
+            switch(cmd)
+            {
+                case LEFT:
+                    System.out.println(" turning LEFT");
+                    break;
+                case RIGHT:
+                    System.out.println(" turning RIGHT");
+                    break;
+                case FORWARD:
+                    System.out.println(" turning FORWARD");
+                    break;
+                default:
+                    System.out.println(" turning ????");
+                    break;
+            }//switch                    
+            
+        }//printState
+
+
+        
         public WMESet takeStep(int cmd)
         {
+            // //%%%DEBUG
+            // printState(cmd);
+            
             //default sensor values
             String left = "0";
             String right = "0";

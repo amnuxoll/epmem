@@ -209,15 +209,6 @@ public class Replacement extends DecisionElement
     public void reward () 
     {
         super.reward();
-
-        //Record this event for posterity
-        Monitor mon = Ziggurat.getMonitor();
-        if (mon != null)
-        {
-            mon.log("Replacement succeeded:  ");
-            mon.tab();
-            mon.log(this);
-        }        
     }//reward
 
     /**
@@ -227,15 +218,6 @@ public class Replacement extends DecisionElement
     public void penalize () 
     {
         super.penalize();
-        
-        //Record this event for posterity
-        Monitor mon = Ziggurat.getMonitor();
-        if (mon != null)
-        {
-            mon.log("Replacement failed:  ");
-            mon.tab();
-            mon.log(this);
-        }
     }//penalize
     
 }//class Replacement
