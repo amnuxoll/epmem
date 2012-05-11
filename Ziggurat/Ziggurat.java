@@ -69,7 +69,7 @@ public class Ziggurat
     protected int lastUpdateLevel = 0;
     /** this vector contains all {@link DecisionElement}s that have recently been
      * used to make a decision.  When the outcome of decision(s) is known these
-     * active elements' utlities are adjusted based upon that outcome.
+     * active elements' utilities are adjusted based upon that outcome.
      */
     protected Vector<DecisionElement> activeDecEls = new Vector<DecisionElement>();
     /** count how many goals we've reached so far */
@@ -161,7 +161,7 @@ public class Ziggurat
             this.mon.reward(rewardWME.getDouble());
        
             //If a a plan is in place, reward the agent and any outstanding replacements
-            if (this.currPlan != null)
+            if ((this.currPlan != null) && (this.currPlan.advance(0) == null))
             {
                 rewardDecEls();
                 rewardAgent();
@@ -413,11 +413,11 @@ public class Ziggurat
     */
     void rewardAgent()
     {
-        this.mon.log("Overall confidence increased from %g", this.selfConfidence);
+        this.mon.logPart("Overall confidence increased from " + this.selfConfidence);
    
         this.selfConfidence += (1.0 - this.selfConfidence) / 2.0;
    
-        this.mon.log("to %g", this.selfConfidence);
+        this.mon.log(" to " + this.selfConfidence);
     }//rewardAgent   
 
     /**
@@ -427,11 +427,11 @@ public class Ziggurat
      */
     void penalizeAgent()
     {
-        this.mon.log("Overall confidence decreased from %g", this.selfConfidence);
+        this.mon.logPart("Overall confidence decreased from " + this.selfConfidence);
    
         this.selfConfidence /= 2.0;
    
-        this.mon.log("to %g", this.selfConfidence);
+        this.mon.log(" to " + this.selfConfidence);
     }//penalizeAgent   
 
     /**
@@ -446,7 +446,9 @@ public class Ziggurat
     {
         for(DecisionElement de : this.activeDecEls)
         {
+            this.mon.logPart("Increasing utilty of " + env.stringify(de) + " from " + de.getUtility());
             de.reward();
+            this.mon.log(" to " + de.getUtility());
         }
 
         //Reset the active replacements list
@@ -466,7 +468,9 @@ public class Ziggurat
     {
         for(DecisionElement de : this.activeDecEls)
         {
+            this.mon.logPart("Decreasing utilty of " + env.stringify(de) + " from " + de.getUtility());
             de.penalize();
+            this.mon.log(" to " + de.getUtility());
         }
 
         //Reset the active replacements list
@@ -1106,6 +1110,8 @@ public class Ziggurat
                 //Retrieve the candidate action
                 int index = (start + i) % actList.size();
                 Action candAct = actList.elementAt(index);
+                this.mon.logPart("Considering this action for the replacement: ");
+                this.mon.log(candAct);
 
                 //See if the candidate is compatible with these to-be-replaced
                 //actions.  This comparision is done differently at level 0 than
@@ -1118,7 +1124,8 @@ public class Ziggurat
                     ElementalEpisode act1LHS = (ElementalEpisode)act1.getLHS();
                     if (! candLHS.equalSensors(act1LHS))
                     {
-                        continue;   // bad match, try a different candidate
+                        this.mon.log("LHS sensors don't match, try a different candidate");
+                        continue;
                     }
 
                     //the RHS sensors of the candidate must match the RHS
@@ -1127,7 +1134,8 @@ public class Ziggurat
                     ElementalEpisode act2RHS = (ElementalEpisode)act1.getRHS();
                     if (! candRHS.equalSensors(act2RHS))
                     {
-                        continue;   // bad match, try a different candidate
+                        this.mon.log("RHS sensors don't match, try a different candidate");
+                        continue;
                     }
                 }//if
                 else                // level 1 or higher
@@ -1139,6 +1147,7 @@ public class Ziggurat
                     Action act1LHSSubAct = act1LHS.getSequence().firstAction();
                     if (! candLHSSubAct.equals(act1LHSSubAct))
                     {
+                        this.mon.log("LHS actions don't match, try a different candidate");
                         continue;   // bad match, try a different candidate
                     }
 
@@ -1149,6 +1158,7 @@ public class Ziggurat
                     Action act2RHSSubAct = act2RHS.getSequence().lastAction();
                     if (candRHSSubAct != act2RHSSubAct)
                     {
+                        this.mon.log("RHS actions don't match, try a different candidate");
                         continue;   // bad match, try a different candidate
                     }
 
@@ -1159,11 +1169,13 @@ public class Ziggurat
                 Replacement result = new Replacement(act1, act2, candAct);
                 if (replacementExists(result))
                 {
-                    continue;  //duplicate replacement
+                    this.mon.log("replacement already exists (duplicate)");
+                    continue;
                 }
 
                 //All checks passed. Success!  Add the replacement it creates to
                 //the list of known replacements and return it to the caller
+                this.mon.log("Success!  Creating a new replacement.");
                 while (this.repls.size() <= level) this.repls.add(new Vector<Replacement>());
                 Vector<Replacement> replList = this.repls.elementAt(level);
                 replList.add(result);
@@ -1175,7 +1187,8 @@ public class Ziggurat
 
         // No new replacement can be made.  This happens when replacmeents are
         // only possible at some levels and at those levels all valid candidates
-        // already exist with low confidence.
+        // already exist.
+        this.mon.log("No new replacement could be constructed from existing actions.");
         return null;
     }//makeNewReplacement
 
@@ -1243,6 +1256,10 @@ public class Ziggurat
 
         //Apply the replacement (repl) to the current plan
         this.currPlan.applyReplacement(selectedRepl);
+        if (! this.activeDecEls.contains(selectedRepl))
+        {
+            this.activeDecEls.add(selectedRepl);
+        }
 
         this.mon.logPart("Applied replacement: ");
         this.mon.log(selectedRepl);
