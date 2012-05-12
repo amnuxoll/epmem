@@ -38,8 +38,12 @@ public class MasterControlProgram
 		// Initialize our agent
 		Ziggurat zigg = new Ziggurat(env);
 
+        //%%%DEBUG!
+        zigg.setRandSeed(0);
+
 		WMESet currentSensors = env.generateCurrentWMESet();
-		while(true /*%%% update later*/) 
+//%%%		while(true /*%%% update later*/)
+        for(int i = 0; i < 200; i++)
         {
 			// Capture new sensor data resulting from the command
 			// Ziggurat sent to the environment based on the previous

@@ -17,19 +17,6 @@ import Ziggurat.*;
 public class ZiggSimpleRoombaTest
 {
     /**
-     * This class is used to replace the normal random number generator so we can
-     * create a fixed random number seed and thus get repeatable results.
-     */
-    public class FixedSeedRandom extends Random
-    {
-        public FixedSeedRandom()
-        {
-            super();
-            this.setSeed(8);
-        }
-    }//class FixedSeedRandom
-
-    /**
      * This class is a simplified Roomba Environment that simulates the
      * two-square maze with 45-degree turns and no extra sensors.
      */
@@ -301,7 +288,7 @@ public class ZiggSimpleRoombaTest
         //Create a Zigg
         Environment env = new SimplifiedRoombaEnvironment();
         Ziggurat zigg = new Ziggurat(env);
-        zigg.setRandGen(new FixedSeedRandom());
+        zigg.setRandSeed(8);
         zigg.setMonitor(new MonitorNull(env));
         
         //Run enough ticks to make a sizeable memory

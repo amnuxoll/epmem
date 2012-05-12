@@ -117,9 +117,6 @@ public class Ziggurat
     /** accessor for the monitor.  */
     public static void setMonitor(Monitor newMon) { Ziggurat.mon = newMon; }
 
-    /** This is used by the unit tests to constrain the behavior of Ziggurat */
-    public void setRandGen(Random gen) { this.randGen = gen; }
-
     /** retrieve all episodes */
     public Vector<Vector<Episode>> getEpmems() { return this.epmems; }
 
@@ -128,6 +125,9 @@ public class Ziggurat
 
     /** retrieve all sequences */
     public Vector<Vector<Sequence>> getSequences() { return this.seqs; }
+
+    /** set the random number generator's seed */
+    public void setRandSeed(int x) { this.randGen.setSeed(x); }
 
     /*======================================================================
      * Public Methods
@@ -150,6 +150,7 @@ public class Ziggurat
         
         // Create new Episode and update the hierarchy with it
         ElementalEpisode ep = new ElementalEpisode(sensors);
+        ep.setCommand(-1);
         this.epmems.elementAt(0).add(ep);
         update(0);
 
@@ -340,7 +341,7 @@ public class Ziggurat
 
         // add most recently seen action to current sequence
         Sequence currSequence = sequenceList.elementAt(sequenceList.size() - 1);
-        this.mon.log("Adding action #%d: ", currSequence.length() - 1);
+        this.mon.log("Adding action #%d: ", currSequence.length());
         this.mon.tab();
         this.mon.log(updateExistingAction);
         this.mon.log(" to current sequence:");
@@ -846,7 +847,7 @@ public class Ziggurat
         //***If we reach this point, we've found a match.
         Sequence bestMatch = ((SequenceEpisode)currLevelEpMem.elementAt(bestMatchIndex + 1)).getSequence();
         this.mon.log("Search Result of length %d at index %d in level %d:  ",
-                     bestMatchLen, bestMatchIndex + 1, level);
+                     bestMatchLen, bestMatchIndex, level);
         this.mon.tab();
         this.mon.log(bestMatch);
         this.mon.log(" which comes after: ");

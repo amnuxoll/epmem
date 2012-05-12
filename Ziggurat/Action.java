@@ -48,6 +48,7 @@ public class Action extends DecisionElement
     public Episode[] getEpisodes() { return new Episode[] {lhs,rhs}; }
     public Vector<Action> getCousins() { return cousins; }
     public void incrementFreq() { this.freq++; }
+    public int getFreq() { return this.freq; }
     public void setCousins(Vector<Action> newList) { this.cousins = newList; }
     
     
