@@ -212,7 +212,6 @@ public class Plan
         //Retrieve the route at this level
         Route route = this.routes.elementAt(level);
         mon.log("Updating Level %d Route:", level);
-        mon.tab();
         mon.log(route);
 
         // Advance the route and return if that was successful
