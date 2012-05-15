@@ -1115,6 +1115,9 @@ public class Ziggurat
             Route  route   = this.currPlan.getRoute(level);
             Sequence currSeq = route.getCurrSequence();
 
+            //We may already have completed the plan at this level or higher
+            if (currSeq == null) break;
+
             //There must be at least two actions left or don't bother
             int actIdx = route.getCurrActIndex();
             if (actIdx + 1 >= currSeq.length())

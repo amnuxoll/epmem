@@ -130,7 +130,13 @@ public class Sequence extends DecisionElement
             else
             {
                 result += ", ";
-            }
+                //Add additional spaces depending upon level so that the line is
+                //more readable
+                for(int i = 0; i < this.getLevel(); i++)
+                {
+                    result += " ";
+                }
+            }//else
                     
             result += a.toString();
         }

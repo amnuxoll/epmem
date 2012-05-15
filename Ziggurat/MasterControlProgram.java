@@ -17,6 +17,9 @@ public class MasterControlProgram
      */
 	public static void main(String args[]) 
     {
+        //how many rewards to complete before stopping?
+        int targetRewards = 100;
+    
 		// Initialize an environment
 		Environment env = null;
 		if(args.length == 0) 
@@ -39,16 +42,20 @@ public class MasterControlProgram
 		Ziggurat zigg = new Ziggurat(env);
 
         //%%%DEBUG!
-        zigg.setRandSeed(0);
+        zigg.setRandSeed(30);
 
 		WMESet currentSensors = env.generateCurrentWMESet();
-//%%%		while(true /*%%% update later*/)
-        for(int i = 0; i < 200; i++)
+        int numRewards = 0;
+        while(numRewards < targetRewards)
         {
 			// Capture new sensor data resulting from the command
 			// Ziggurat sent to the environment based on the previous
 			// sensor data.
 			currentSensors = env.takeStep(zigg.tick(currentSensors));
+
+            //Stop after N goals
+            WME w = currentSensors.getAttr(WME.REWARD_STRING);
+            if (w.getDouble() > 0.0) numRewards++;
 		}
 	}//main
 	

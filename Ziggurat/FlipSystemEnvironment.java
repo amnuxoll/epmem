@@ -239,7 +239,13 @@ public class FlipSystemEnvironment extends Environment {
                 else
                 {
                     result += ", ";
-                }
+                    //Add additional spaces depending upon level so that the line is
+                    //more readable
+                    for(int i = 0; i < seq.getLevel(); i++)
+                    {
+                        result += " ";
+                    }
+                }//else
                 
                 result += stringify(a);
             }
