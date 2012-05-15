@@ -65,7 +65,7 @@ public class Ziggurat
      */
     protected static Monitor mon = new MonitorNull();
     /** this is the highest level in the hierarchy that contains data.  This is
-     * used by the findInterimStart methods */
+     * used by the orientation methods */
     protected int lastUpdateLevel = 0;
     /** this vector contains all {@link DecisionElement}s that have recently been
      * used to make a decision.  When the outcome of decision(s) is known these
@@ -185,7 +185,7 @@ public class Ziggurat
 
 
         //Log the resulting episode
-        this.mon.log("Completed episode #" + (epmems.size()-1) + ":");
+        this.mon.logPart("Using command " + env.stringify(cmd) + " to complete episode #" + (epmems.size()-1) + ":  ");
         this.mon.log(ep);
 
         //Return the result
@@ -195,7 +195,7 @@ public class Ziggurat
     }//tick
 
     /*======================================================================
-     * Private Methods
+     * Non-Public Methods
      *----------------------------------------------------------------------
      */
     /**
@@ -209,7 +209,7 @@ public class Ziggurat
      *
      * @return a success code (0) or error code (negative)
      */
-    private int update(int level)
+    protected int update(int level)
     {
         this.mon.enter("update(level " + level + ")");
 
@@ -336,7 +336,7 @@ public class Ziggurat
         updateExistingAction.incrementFreq();
         
         //Log that an update was completed at this level.  This is used by
-        //findInterimStart()
+        //findOrientation()
         this.lastUpdateLevel = level;
 
         // add most recently seen action to current sequence
@@ -349,9 +349,9 @@ public class Ziggurat
         this.mon.log(currSequence);
         currSequence.add(updateExistingAction);
 
-        // if the action we just added is indeterminate then end the current
-        // sequence and start a new one
-        if (updateExistingAction.isIndeterminate())
+        // if the action we just added is indeterminate or has yielded a reward
+        // then end the current sequence and start a new one
+        if ( updateExistingAction.isIndeterminate() || updateExistingAction.containsReward() )
         {
             
             // if the sequence we just completed already exists replace it with
@@ -412,7 +412,7 @@ public class Ziggurat
     * from 1.0 is half of what it was.  Math:
     *                conf = conf + (1.0 - conf) / 2
     */
-    void rewardAgent()
+    protected void rewardAgent()
     {
         this.mon.logPart("Overall confidence increased from " + this.selfConfidence);
    
@@ -426,7 +426,7 @@ public class Ziggurat
      *
      * This method halves the agent's overall confidence.
      */
-    void penalizeAgent()
+    protected void penalizeAgent()
     {
         this.mon.logPart("Overall confidence decreased from " + this.selfConfidence);
    
@@ -443,7 +443,7 @@ public class Ziggurat
      * @see DecisionElement.reward
      *
      */
-    void rewardDecEls()
+    protected void rewardDecEls()
     {
         for(DecisionElement de : this.activeDecEls)
         {
@@ -465,7 +465,7 @@ public class Ziggurat
      * @see DecisionElement.penalize
      *
      */
-    void penalizeDecEls()
+    protected void penalizeDecEls()
     {
         for(DecisionElement de : this.activeDecEls)
         {
@@ -487,7 +487,7 @@ public class Ziggurat
      *
      * @return a pointer to the plan or null if no plan was found
      */
-    Plan initPlan()
+    protected Plan initPlan()
     {
         //If there are no level 1 episodes yet then there's not enough data to
         //create a plan
@@ -496,11 +496,11 @@ public class Ziggurat
         this.mon.enter("initPlan");
 
         //Try to figure out where I am.  I can't make plan without this.
-        Route seedRoute = findInterimStart();
+        Route seedRoute = findOrientation();
         if (seedRoute == null)
         {
-            //Try a partial match
-            seedRoute = findInterimStartPartialMatch();
+            //Try orienting via the level 0 episodes
+            seedRoute = findElementalOrientation();
             if (seedRoute == null)
             {
                 this.mon.exit("initPlan");
@@ -526,8 +526,7 @@ public class Ziggurat
 
         //report
         this.mon.log("Success: found route to goal at level: %d:", level);
-        this.mon.tab();
-        this.mon.log(currRoute);
+        this.mon.log(env.stringify(currRoute));
         this.mon.exit("initPlan");
 
         return resultPlan;
@@ -544,7 +543,7 @@ public class Ziggurat
      *
      * @return index of shortest route (or -1 if given an empty vector)
      */
-    private int findShortestRoute(Vector<Route> searchMe, int startPos)
+    protected int findShortestRoute(Vector<Route> searchMe, int startPos)
     {
         if (searchMe.size() == 0) return -1;
         
@@ -571,7 +570,7 @@ public class Ziggurat
     }//findShortestRoute
 
     /** this version of findShortestRoute doesn't require a start position */
-    private int findShortestRoute(Vector<Route> searchMe)
+    protected int findShortestRoute(Vector<Route> searchMe)
     {
         return findShortestRoute(searchMe, 0);
     }
@@ -586,7 +585,7 @@ public class Ziggurat
      * @return the Episode that contains the given sequence (or null if not
      *         found)
      */
-    private Episode findContainingEpisode(Sequence seq, Vector<Episode> vec)
+    protected Episode findContainingEpisode(Sequence seq, Vector<Episode> vec)
     {
         for(Episode ep : vec)
         {
@@ -602,7 +601,7 @@ public class Ziggurat
     /** This version assumes you wish to search all episodes at the level above
      *  the given sequence.
      */
-    private Episode findContainingEpisode(Sequence seq)
+    protected Episode findContainingEpisode(Sequence seq)
     {
         int level = seq.getLevel();
         Vector<Episode> parentEps = this.epmems.elementAt(level + 1);
@@ -714,7 +713,6 @@ public class Ziggurat
             if (lastSeq.containsReward())
             {
                 this.mon.log("Selected this route to goal:");
-                this.mon.tab();
                 this.mon.log(cand);
                 this.mon.exit("findRoute");
                 return cand;
@@ -775,30 +773,65 @@ public class Ziggurat
     }//findRoute
 
     /**
-     * findInterimStart
+     * findOrientation
      *
-     * This method locates a past sequence that is a best match for the agent's
-     * current "location". This is an episode that follows the longest series of
-     * episodes that match the ones most recently created by the agent. The
-     * returned sequence is returned as a "seed" route that findRoute can use to
-     * build a full path to a reward.
+     * This method locates a past sequence at level 1 or higher that is a best
+     * match for the agent's current "location". This is an episode that follows
+     * the longest series of episodes that match the ones most recently created
+     * by the agent. The returned sequence is returned as a "seed" route that
+     * findRoute can use to build a full path to a reward.
+     *
+     * <p> It's best to explain this using an example: Consider the case where
+     * the agent has experiened the following series of episodes at level 1 in
+     * this order:<br>
+     *            <ul>Z,A,B,R,A,C,A,D,A,B,R,A</ul>
+     * where episode 'D' contains a goal.  The agent is trying to create a path
+     * from its current position in the state space to the goal.  In order to
+     * get there, it must first know where it is.  (Analogy: How can you drive
+     * to your house if you don't know where you are?!?)  In order to orient
+     * itself, the agent compares it's most recently experienced episodes with
+     * past episodes to find the longest match.  In this case, it can find a
+     * time in its past when it experienced the same sub-series of four
+     * episodes (A,B,R,A) at index 1 in the series (right after the 'Z') that it
+     * has just finished experiencing right now.  By using this as a "seed" the
+     * agent guesses that it can reach the goal from its current position by
+     * repeating episodes C,A,D.
+     *
+     * <p> FAQ: What about the 'leftover' episodes one level below?  Consider
+     * the example used in the previous paragraph and assume that those episodes
+     * are at level 1.  In this case, each of those episodes is comprised of a
+     * sequence of one or more level 0 episodes.  So, even though the most
+     * recent episode is 'A' at level 1, it's possible that there are level 0
+     * episodes that have occurred since this 'A' but have not been 'recorded'
+     * into a new level 1 episode yet.
+     *
+     * <p>ANS: The answer is that this is a legitimate concern but, at the
+     * moment, Ziggurat's design guarantees this will never happen.  Zigg only
+     * calls findOrientation when it needs to create a plan. Except for the
+     * first plan, it only needs to create a plan when a previous plan has
+     * failed or has been completed successfully.  As a result, it will only try
+     * to create a plan when a predicted outcome of an action did not occur or
+     * when it has just reached a goal state.  These are, by definition, the two
+     * events that cause the current sequence to complete at <u>all levels</u>
+     * of the hierarchy.  As a result, we are guaranteed that there are no
+     * "loose ends" to worry about when trying to find a new start position.
      *
      * @see #initPlan
-     *
-     * NOTE:  This method does not search level 0 episodes.
-     *        @see #findInterimStartPartialMatch()
+     * 
+     * <p>NOTE:  This method does not search level 0 episodes.
+     *           See {@link #findElementalOrientation}
      *
      * @return the "seed" route containing the sequence that was found or null
      *         if the most recently completed sequence is unique at every level.
      */
-    Route findInterimStart()
+    protected Route findOrientation()
     {
         Vector<Episode> currLevelEpMem = null;  //list of epmems currently being searched
         int bestMatchIndex = 0;       // position of best match so far
         int bestMatchLen = 0;         // length of best match so far
         int level = -1;               // the current level being searched
 
-        this.mon.enter("findInterimStart");
+        this.mon.enter("findOrientation");
    
         //Iterate over all levels that are not the very top or bottom
         for(level = this.lastUpdateLevel; level >= 1; level--)
@@ -839,14 +872,14 @@ public class Ziggurat
         //Check for no match found
         if (bestMatchLen == 0)
         {
-            this.mon.log("findInterimStart failed: the current sequence is unique.");
-            this.mon.exit("findInterimStart");
+            this.mon.log("findOrientation failed: the current sequence is unique.");
+            this.mon.exit("findOrientation");
             return null;
         }
 
         //***If we reach this point, we've found a match.
         Sequence bestMatch = ((SequenceEpisode)currLevelEpMem.elementAt(bestMatchIndex + 1)).getSequence();
-        this.mon.log("Search Result of length %d at index %d in level %d:  ",
+        this.mon.log("Search Result of length %d at index %d in the level %d episodes:  ",
                      bestMatchLen, bestMatchIndex, level);
         this.mon.tab();
         this.mon.log(bestMatch);
@@ -859,20 +892,23 @@ public class Ziggurat
 
 
         //done!
-        this.mon.exit("findInterimStart");
+        this.mon.exit("findOrientation");
         return Route.newRouteFromSequence(bestMatch);
    
-    }//findInterimStart
+    }//findOrientation
 
     /**
-     * findInterimStartPartialMatch
+     * findElementalOrientation
      *
-     * Like findInterimStart(), this method searches episodes for the best match
+     * Like findOrientation(), this method searches episodes for the best match
      * to the present.  However, it only searches level 0 and since the planning
      * routines need a sequences to build plans, it takes its best match and
      * returns the level 0 sequence that contains it and an offset into that
      * sequence that corresponds to the end of the match.  The route is built
      * from the sequence but begins where the match left off
+     *
+     * <p>Note: This method is much more expensive than {@link #findOrientation}
+     * and should only be called when that method fails.
      *
      * @arg offset is the index of the action in the returned sequence that a new
      * plan should start with
@@ -880,7 +916,7 @@ public class Ziggurat
      * @return the "start" sequence that was found or NULL if there was no partial
      *         match
      */
-    Route findInterimStartPartialMatch()
+    protected Route findElementalOrientation()
     {
         Vector<Episode> level0Eps = this.epmems.elementAt(0);
         Vector<Episode> level1Eps = this.epmems.elementAt(1);
@@ -889,9 +925,9 @@ public class Ziggurat
         int bestMatchIndex = -1;    // index of level 1 episode that is best match
         int bestMatchOffset = -1;   // index of first matching action in best match
         
-        //There must be at least two level 1 episodes to do a partial match
+        //There must be at least two level 1 episodes to do a match
         if (level1Eps.size() < 2) return null;
-        this.mon.enter("findInterimStartPartialMatch");
+        this.mon.enter("findElementalOrientation");
 
         /*======================================================================
          * Find the best match by comparing the level 0 episode sequence to
@@ -937,8 +973,8 @@ public class Ziggurat
         //Check for no match found
         if (bestMatchLen == 0)
         {
-            this.mon.log("findInterimStartPartialMatch failed: the current sequence is unique.");
-            this.mon.exit("findInterimStartPartialMatch");
+            this.mon.log("findElementalOrientation failed: the current sequence is unique.");
+            this.mon.exit("findElementalOrientation");
             return null;
         }
 
@@ -951,10 +987,10 @@ public class Ziggurat
 
 
         //done!
-        this.mon.exit("findInterimStartPartialmatch");
+        this.mon.exit("findElementalOrientation");
         return Route.newRouteFromSequence(bestMatch, bestMatchOffset);
    
-    }//findInterimStartPartialMatch
+    }//findElementalOrientation
 
     /**
      * findBestReplacement
@@ -1031,7 +1067,7 @@ public class Ziggurat
      *
      * @return true if the equivalent is present and false otherwise
      */
-    private boolean replacementExists(Replacement findMe)
+    protected boolean replacementExists(Replacement findMe)
     {
         //see if there are any existing replacements that are the same level as
         //this one
@@ -1068,7 +1104,7 @@ public class Ziggurat
      * @return a new Replacement struct (or NULL if something goes wrong)
      *
      */
-    Replacement makeNewReplacement()
+    protected Replacement makeNewReplacement()
     {
         this.mon.enter("makeNewReplacement");
         
@@ -1271,101 +1307,6 @@ public class Ziggurat
     }//considerReplacement
 
 
-    
-    /**
-     * chooseCommand_SemiRandom
-     *
-     * This function selects a random command that would create a new action
-     * based upon the agent's most recent sensing.  If no such new action can be
-     * made, then it just chooses a random command without qualification.
-     *
-     * CAVEAT:  This routine assumes that the lowest numbered command is 0.
-     *
-     */
-    int chooseCommand_SemiRandom()
-    {
-        //Make an array of boolean values (one per command) and init them all to
-        //true. This array will eventually indicates whether the given command
-        //would create a unique episode (true) or not (false).
-        int numCmds = this.env.getNumCommands();
-        boolean valid[] = new boolean[numCmds];
-        for(int i = 0; i < numCmds; i++)
-        {
-            valid[i] = true;        // innocent until proven guilty
-        }
-
-        //Retrieve the cousins list of actions that have the agent's current
-        //sensing on the LHS
-        Episode nowEp = this.epmems.firstElement().lastElement();
-        Vector<Action> cousins = findCousinList(nowEp);
-
-        //Mark the commands associated with the cousins as invalid
-        if (cousins != null)
-        {
-            for(Action act : cousins)
-            {
-                ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
-                valid[currEp.getCommand()] = false; // guilty!
-            }
-        }
-        
-        //Start from a random starting position in the valid array and return
-        //the first random entry found.  If no unique command is found, the
-        //original random value is used
-        int cmd = randGen.nextInt(numCmds);
-        for(int i = 0; i < numCmds; i++)
-        {
-            int next = (cmd + i) % numCmds;
-            if (valid[next])
-            {
-                cmd = next;
-                break;
-            }
-        }
-
-        this.mon.log("Choosing a semi-random command: " + env.stringify(cmd));
-        return cmd;
-
-    }//chooseCommand_SemiRandom
-
-    /**
-     * chooseCommand_WithPlan
-     *
-     * This function increments to the next action in the current plan and
-     * extracts the associated cmd to return to the caller.
-     *
-     * CAVEAT: this.currPlan should contain a valid plan that does not need
-     *         recalc.
-     */
-    int chooseCommand_WithPlan()
-    {
-        this.mon.log("Choosing command from plan:");
-        this.mon.tab();
-        this.mon.log(this.currPlan);
-   
-        //Before executing the next command in the plan, see if there is a
-        //replacement rule that the agent is confident enough to apply to the
-        //current plan.  If so, apply it.
-        considerReplacement();
-
-        //Get the current level 0 action from the plan
-        Route level0Route = this.currPlan.getRoute(0);
-        Action currAction = level0Route.getCurrAction();
-
-        //extract the command prescribed by the current action
-        ElementalEpisode lhs = (ElementalEpisode)currAction.getLHS();        
-        int cmd = lhs.getCommand();
-
-        //advance the "current action" pointer to the next action as a result of
-        //taking this action
-        this.currPlan.advance(0);
-
-        //Return the selected command to the environment
-        return cmd;
-
-    }//chooseCommand_WithPlan
-    
-
     /**
      * chooseCommand
      *
@@ -1376,7 +1317,7 @@ public class Ziggurat
      *
      * @return int the command that was chosen
      */
-    int chooseCommand()
+    protected int chooseCommand()
     {
         this.mon.enter("chooseCommand");
 
@@ -1469,6 +1410,101 @@ public class Ziggurat
 
     }//chooseCommand
     
+    
+    /**
+     * chooseCommand_SemiRandom
+     *
+     * This function selects a random command that would create a new action
+     * based upon the agent's most recent sensing.  If no such new action can be
+     * made, then it just chooses a random command without qualification.
+     *
+     * CAVEAT:  This routine assumes that the lowest numbered command is 0.
+     *
+     */
+    protected int chooseCommand_SemiRandom()
+    {
+        //Make an array of boolean values (one per command) and init them all to
+        //true. This array will eventually indicates whether the given command
+        //would create a unique episode (true) or not (false).
+        int numCmds = this.env.getNumCommands();
+        boolean valid[] = new boolean[numCmds];
+        for(int i = 0; i < numCmds; i++)
+        {
+            valid[i] = true;        // innocent until proven guilty
+        }
+
+        //Retrieve the cousins list of actions that have the agent's current
+        //sensing on the LHS
+        Episode nowEp = this.epmems.firstElement().lastElement();
+        Vector<Action> cousins = findCousinList(nowEp);
+
+        //Mark the commands associated with the cousins as invalid
+        if (cousins != null)
+        {
+            for(Action act : cousins)
+            {
+                ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
+                valid[currEp.getCommand()] = false; // guilty!
+            }
+        }
+        
+        //Start from a random starting position in the valid array and return
+        //the first random entry found.  If no unique command is found, the
+        //original random value is used
+        int cmd = randGen.nextInt(numCmds);
+        for(int i = 0; i < numCmds; i++)
+        {
+            int next = (cmd + i) % numCmds;
+            if (valid[next])
+            {
+                cmd = next;
+                break;
+            }
+        }
+
+        this.mon.log("Choosing a semi-random command: " + env.stringify(cmd));
+        return cmd;
+
+    }//chooseCommand_SemiRandom
+
+    /**
+     * chooseCommand_WithPlan
+     *
+     * This function increments to the next action in the current plan and
+     * extracts the associated cmd to return to the caller.
+     *
+     * CAVEAT: this.currPlan should contain a valid plan that does not need
+     *         recalc.
+     */
+    protected int chooseCommand_WithPlan()
+    {
+        this.mon.log("Choosing command from plan:");
+        this.mon.tab();
+        this.mon.log(this.currPlan);
+   
+        //Before executing the next command in the plan, see if there is a
+        //replacement rule that the agent is confident enough to apply to the
+        //current plan.  If so, apply it.
+        considerReplacement();
+
+        //Get the current level 0 action from the plan
+        Route level0Route = this.currPlan.getRoute(0);
+        Action currAction = level0Route.getCurrAction();
+
+        //extract the command prescribed by the current action
+        ElementalEpisode lhs = (ElementalEpisode)currAction.getLHS();        
+        int cmd = lhs.getCommand();
+
+        //advance the "current action" pointer to the next action as a result of
+        //taking this action
+        this.currPlan.advance(0);
+
+        //Return the selected command to the environment
+        return cmd;
+
+    }//chooseCommand_WithPlan
+    
+
 }//class Ziggurat
 
 

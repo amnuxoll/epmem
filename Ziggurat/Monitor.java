@@ -383,6 +383,29 @@ public abstract class Monitor
     /**
      * log
      *
+     * prints a Route to the log
+     *
+     * @param route  the Route to print
+     */
+    public void log(Route route)
+    {
+        String output = "";
+        
+        if (env != null)
+        {
+            output = env.stringify(route);
+        }
+        else
+        {
+            output = route.toString();
+        }
+
+        log(output);
+    }//log
+    
+    /**
+     * log
+     *
      * prints a Plan to the log
      *
      * @param plan  the Plan to print
