@@ -347,6 +347,7 @@ public class Route extends Vector<Sequence>
     public boolean canApply(Replacement repl)
     {
         Sequence currSeq = this.getCurrSequence();
+        if (currSeq == null) return false;
         int applyPos = repl.applyPos(currSeq);
         return (applyPos >= this.currActIndex);
     }//canApply
