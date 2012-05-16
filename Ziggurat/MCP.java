@@ -1,14 +1,15 @@
 package Ziggurat;
 
 /**
- * <!-- class MasterControlProgram -->
+ * <!-- class MCP -->
  *
  * This is the start point for training Ziggurat.  It create an Environment and
- * an instance of Ziggurat and connects them together.
+ * an instance of Ziggurat and connects them together.  (MCP stands for "Master
+ * Control Program".)  It has a short name because I'll be typing it in a lot.
  *
  *
  */
-public class MasterControlProgram 
+public class MCP 
 {
     /** which environment to use */
     private static String envName = "flipsystem";
@@ -149,4 +150,4 @@ public class MasterControlProgram
 
     }//processArg
     
-}// [class] MasterControlProgram
+}// [class] MCP

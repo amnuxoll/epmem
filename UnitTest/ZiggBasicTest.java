@@ -59,7 +59,7 @@ public class ZiggBasicTest
         Environment env = new DummyEnv();
         Ziggurat zigg = new Ziggurat(env);
         zigg.setRandGen(new NonRandom());
-        zigg.setMonitor(new MonitorNull(env));
+        zigg.setMonitor(new MonitorNull(env));  //To debug, omit this
 
         //Run one tick
         String[] sensorArr = { "state", "0" };

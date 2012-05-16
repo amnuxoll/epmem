@@ -99,6 +99,7 @@ public class Ziggurat
         Vector<Sequence> startSeq = new Vector<Sequence>();
         startSeq.add(new Sequence());
         this.seqs.add(startSeq);
+        this.repls.add(new Vector<Replacement>());
 
         //record input parameters
         this.env = env;
@@ -128,6 +129,9 @@ public class Ziggurat
 
     /** set the random number generator's seed */
     public void setRandSeed(int x) { this.randGen.setSeed(x); }
+
+    /** set the random number generator itself */
+    public void setRandGen(Random newGen) { this.randGen = newGen; }
 
     /*======================================================================
      * Public Methods
@@ -709,8 +713,8 @@ public class Ziggurat
             //SUCCESS! If the last action in this route contains the goal
             //state, we're done.  Copy the details of this route to the newRoute
             //struct we were given and exit the loop.
-            Action lastAct = cand.lastAction();
-            if (lastAct.containsReward())
+            Sequence lastSeq = cand.getLastSeq();
+            if (lastSeq.containsReward())
             {
                 this.mon.log("Selected this route to goal:");
                 this.mon.log(cand);
@@ -897,7 +901,7 @@ public class Ziggurat
 
         //done!
         this.mon.exit("findOrientation");
-        return Route.newRouteFromSequence(bestMatch);
+        return new Route(bestMatch);
    
     }//findOrientation
 
@@ -992,7 +996,7 @@ public class Ziggurat
 
         //done!
         this.mon.exit("findElementalOrientation");
-        return Route.newRouteFromSequence(bestMatch, bestMatchOffset);
+        return new Route(bestMatch, bestMatchOffset);
    
     }//findElementalOrientation
 
@@ -1025,15 +1029,12 @@ public class Ziggurat
         {
             this.mon.log("searching for replacement at level " + level);
 
-            //Extract the next two actions from the plan at this level
-            Sequence nextTwo = this.currPlan.getNextNActions(level, 2);
-            if (nextTwo.length() != 2) continue;
-
             //Find the best matching replacement rules at this level
+            Route route = this.currPlan.getRoute(level);
             Vector<Replacement> levelRepls = this.repls.elementAt(level);
             for(Replacement cand : levelRepls)
             {
-                if ((cand.canApply(nextTwo)) && (cand.getUtility() > bestConf))
+                if ((cand.canApply(route)) && (cand.getUtility() > bestConf))
                 {
                     result = cand;
                     bestConf = cand.getUtility();
@@ -1112,18 +1113,19 @@ public class Ziggurat
         //Search all levels starting at the bottom
         for(int level = 0; level < this.currPlan.getNumLevels(); level++)
         {
-            //Extract the next two actions from the plan at this level
-            Sequence nextTwo = this.currPlan.getNextNActions(level, 2);
-            if (nextTwo.length() != 2)
+            //Verify that the route at this level has sufficient actions remaining
+            Route  route   = this.currPlan.getRoute(level);
+            if (route.length() - route.getCurrActIndex() < 2)
             {
                 this.mon.log("remainder of route at level " + level + " is too short for replacement");
                 this.mon.exit("makeNewReplacement");
                 return null;
             }
-            Action act1 = nextTwo.getActionAtIndex(0);
-            Action act2 = nextTwo.getActionAtIndex(1);
+            //Extract the next two actions from the plan at this level
+            Action act1 = route.getActionAtIndex(route.getCurrActIndex());
+            Action act2 = route.getActionAtIndex(route.getCurrActIndex() + 1);
 
-            this.mon.log("Constructing a new replacment for these two actions:");
+            this.mon.log("Attempting to construct a new replacement for these two actions:");
             this.mon.tab();
             this.mon.log(act1);
             this.mon.tab();
@@ -1344,16 +1346,6 @@ public class Ziggurat
             else                // The plan is going swimmingly! 
             {
                 this.mon.log("Plan successful so far.");
-
-                //If a level 0 sequence has just completed then the agent's
-                //confidence is increased due to the partial success
-                Route lvl0Route = this.currPlan.getRoute(0);
-                if ((lvl0Route.getCurrSeqIndex() > 0)
-                    && (lvl0Route.getCurrActIndex() == 0))
-                {
-                    rewardAgent();
-                }
-
             }//else
        
         }//if

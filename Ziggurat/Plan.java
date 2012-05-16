@@ -95,6 +95,18 @@ public class Plan
     /** @return the value of {@link #needsRecalc} */
     public boolean needsRecalc() { return this.needsRecalc; }
 
+    /** calculates the number of active replacements on this plan*/
+    public int numRepls()
+    {
+        int count = 0;
+        for(Route r : this.routes)
+        {
+            count += r.numRepls();
+        }
+
+        return count;
+    }//numRepls
+
     /** @return the route at a given level */
     public Route getRoute(int level)
     {
