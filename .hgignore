@@ -8,3 +8,6 @@ syntax: glob
 *.class
 \#*\#
 .metadata
+info.txt
+results.*
+*.gnumeric

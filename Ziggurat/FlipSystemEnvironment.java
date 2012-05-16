@@ -128,7 +128,6 @@ public class FlipSystemEnvironment extends Environment {
 	 */
 	public WMESet takeStep(int commandIndex)
     {
-        //%%%DEBUG
         printState(commandIndex);
         
 		// Execute appropriate command
