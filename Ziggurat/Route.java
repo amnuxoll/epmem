@@ -155,7 +155,7 @@ public class Route extends Vector<Sequence>
     public int numRepls()   { return this.repls.size(); }
     
     
-    /** copy me! */
+    /** return a deep copy of this Route */
     public Route clone()
     {
         //Clone the sequences
@@ -184,7 +184,7 @@ public class Route extends Vector<Sequence>
 
     /** create an environment-inspecific String representation of this route
      * which is a comma-separated list of sequences enclosed in curly braces. */
-	public String toString () 
+	public String toString() 
     {
 
         //If the route contains more than one sequence, we'll put an asterisk
@@ -237,7 +237,7 @@ public class Route extends Vector<Sequence>
      * @return the new current action or null if we've reached the end of the
      * route 
      */
-	public Action advance () 
+	public Action advance() 
     {
         //The only mandatory step
 		(this.currActIndex)++;
@@ -305,18 +305,33 @@ public class Route extends Vector<Sequence>
 	}//getCurrAction
 
     /**
-     * @return a reference to the next action after the current action in this
-     * route (or null if there is none)
+     * @return a reference to a <i>clone</i> of the next action after the
+     * current action in this route (or null if there is none)
      *         
      */
 	public Action getSecondAction() 
     {
-        if (this.currActIndex == NONE) return null;
+        //First make sure there is a current action
+        if (this.getCurrAction() == null) return null;
+
+        //The easy case:  sufficient actions remain in the current sequence
         Sequence currSequence = this.getCurrSequence();
-        if (currSequence == null) return null;
-        if(this.currActIndex >= currSequence.length()) return null;
-               
-		return currSequence.getActionAtIndex(this.currActIndex);
+        if(this.currActIndex + 1 < currSequence.length())
+        {
+            return currSequence.getActionAtIndex(this.currActIndex + 1).clone();
+        }
+
+        //The hard case: we need to get an action from the next sequence.  This
+        //is not trivial.  There may not be a next sequence or we may need to
+        //use the RHS of the current (last) sequence.  Also a replacement may
+        //need to be applied.  All of these problems have already been addressed
+        //by the advance() method so I've elected to use it via a clone of this
+        //Route.  This is a bit more expensive and it also means that the action
+        //we must return will be a *clone* of actual second action.  But,
+        //ultimately, I think this is the best option.
+        Route clone = this.clone();
+        clone.advance();
+		return clone.getCurrAction();
 	}//getSecondAction
 
     /**
@@ -349,28 +364,9 @@ public class Route extends Vector<Sequence>
 	}//getCurrAction
 
     /**
-     * canApply
-     *
-     * checks to see if a given replacement can be applied to the current
-     * sequence in this route at a position that is not beyond the current
-     * action in the sequence.
-     *
-     * @param repl  the replacement to consider
-     *
-     * @return true if it can be applied, false otherwise
-     */
-    public boolean canApply(Replacement repl)
-    {
-        Sequence currSeq = this.getCurrSequence();
-        if (currSeq == null) return false;
-        int applyPos = repl.applyPos(currSeq);
-        return (applyPos >= this.currActIndex);
-    }//canApply
-
-    /**
      * applyReplacement
      *
-     * applies a given replacement to a route
+     * applies a given replacement to this route
      */
 	public void applyReplacement(Replacement repl) 
     {
