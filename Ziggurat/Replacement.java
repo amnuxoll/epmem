@@ -176,7 +176,7 @@ public class Replacement extends DecisionElement
     /**
      * apply
      *
-     * applies this replacement to a copy of the given sequence.  The
+     * applies this replacement to a <u>copy</u> of the given sequence.  The
      * replacement is applied successively to all valid places where it matches
      * the sequence.  The given sequence is not modified.
      *

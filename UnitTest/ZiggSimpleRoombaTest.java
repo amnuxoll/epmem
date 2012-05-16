@@ -243,18 +243,29 @@ public class ZiggSimpleRoombaTest
         public String stringify(Route route)
         {
             String result = "{";
-            for(int i=0; i < route.size(); i++)
+            boolean first = true;
+            int count = 0;
+            for(Action a : route.getActions())
             {
-                //Get the i-th sequence
-                Sequence seq = route.elementAt(i);
-                if ((i == route.getCurrSeqIndex()) && (route.getReplSeq() != null))
+                //Precede all but the first action with a comma separator
+                if (count > 0)
                 {
-                    seq = route.getReplSeq();
-                }
-            
-                result += "[" + stringify(seq) + "],";
-            }
-            result = result.substring(0, result.length() - 1);
+                    result += ", ";
+                    //Add additional spaces depending upon level so that the line is
+                    //more readable
+                    for(int i = 0; i < route.getLevel(); i++)
+                    {
+                        result += " ";
+                    }
+                }//else
+                    
+                result += stringify(a);
+
+                //If this is the current action, put an asterisk behind it
+                if (count == route.getCurrActIndex()) result += "*";
+
+                count++;
+            }//for
             result += "}";
 
             return result;

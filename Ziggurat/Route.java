@@ -52,6 +52,14 @@ public class Route extends Sequence
     /** a list of all the replacements that are currently active for this route */
     protected Vector<Replacement> repls = new Vector<Replacement>();
 
+    /** a vector of all the Sequences that have been added to this Route.  This
+     * vector is used to help with Route construction.  It's important to note
+     * that, due to possible replacements, iterating through the Actions in
+     * these Sequences in order will *not* necessarily yield the same actions as
+     * you would get from iterating through the route.
+     */
+    protected Vector<Sequence> seqs = new Vector<Sequence>();
+
     /*======================================================================
      * Constructors
      *----------------------------------------------------------------------
@@ -69,13 +77,8 @@ public class Route extends Sequence
 	public Route(Sequence initSeq)
     {
         super();
-        
         if (initSeq == null) return;
-
-        for(Action act : initSeq.actions)
-        {
-            this.add(act);
-        }
+        this.add(initSeq);
 
 	}//ctor
 
@@ -86,9 +89,7 @@ public class Route extends Sequence
 	public Route(Sequence initSeq, int offset)
     {
         this(initSeq);
-
         this.currActIndex = offset;
-        
 	}//ctor
 
     
@@ -110,10 +111,7 @@ public class Route extends Sequence
 
         for(Sequence seq : initSeq)
         {
-            for(Action act : seq.actions)
-            {
-                this.add(act);
-            }
+            this.add(seq);
         }
 	}//ctor
 
@@ -130,10 +128,7 @@ public class Route extends Sequence
 
         SequenceEpisode seqEp = (SequenceEpisode)parentAct.getLHS();
         Sequence seq = seqEp.getSequence();
-        for(Action act : seq.actions)
-        {
-            this.add(act);
-        }
+        this.add(seq);
     }//newRouteFromParentAction
 
     /*======================================================================
@@ -146,12 +141,26 @@ public class Route extends Sequence
     public Vector<Replacement> getRepls() { return this.repls; }
     /** @return the number of active replacements on this route*/
     public int numRepls()   { return this.repls.size(); }
+    /** @return the last sequence that was added to this route */
+    public Sequence getLastSeq()
+    {
+        if (this.seqs.size() == 0) return null;
+        return this.seqs.elementAt(this.seqs.size() - 1);
+    }
+    /** does this route contain a given sequence? */
+    public boolean contains(Sequence seq) { return this.seqs.contains(seq); }
 
     /** @return a copy of this Route */
     public Route clone()
     {
-        Sequence seq = super.clone();
-        return  new Route(seq, this.currActIndex);
+        Sequence currActions = super.clone();
+        Route result = new Route(currActions, this.currActIndex);
+        for(Sequence seq : this.seqs)
+        {
+            result.seqs.add(seq);
+        }
+
+        return result;
     }//clone
 
     /** create an environment-inspecific String representation of this route
@@ -187,6 +196,39 @@ public class Route extends Sequence
         return result;
 	}//toString
 
+    /**
+     * I'm overriding this method to throw an error.  Actions should not be
+     * added directly to a Route.  They should only be added via a containing
+     * sequences.
+     */
+    @Override
+    public void add(Action act) 
+    {
+        System.err.println("ABORT!  Tried to add an action directly to a Route.");
+        Thread.dumpStack();
+        System.exit(-2);
+    }//add (Action)
+
+    
+    /** appends all the actions in a given sequence to the end of this route */
+    public void add(Sequence seq) 
+    {
+        for(Action act : seq.actions)
+        {
+            this.actions.add(act);
+        }
+            
+        this.seqs.add(seq);
+
+        //Set the level if this is the first sequence
+        if (this.seqs.size() == 1)
+        {
+            this.level = seq.getLevel();
+        }
+
+    }//add (Sequence)
+
+        
     /**
      * advance
      *
@@ -246,6 +288,7 @@ public class Route extends Sequence
         if (repl.applyPos(this) < this.currActIndex)
         {
             System.err.println("ABORT!  Tried to modify actions of a Route that have already been executed.");
+            Thread.dumpStack();
             System.exit(-1);
         }
         

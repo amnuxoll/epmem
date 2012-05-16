@@ -27,7 +27,7 @@ NUM_ARGS=2
 
 #arg1 is how many trials
 #arg2 is the name of the trial
-#arg3 is any add'l args to pass to the MasterControlProgram
+#arg3 is any add'l args to pass to the MCP
 
 #variables
 NUM_TRIALS=$1
@@ -52,18 +52,20 @@ touch ../$NAME/info.txt
 echo "Number of trials: $NUM_TRIALS" >> ../$NAME/info.txt
 echo "Description of dataset $NAME:" >> ../$NAME/info.txt
 
-#change this line to vi or emacs or whatever you prefer
-##emacs ../$NAME/info.txt
+#Ask the user for more info
+echo "Please enter a description of this data set (press Ctrl-D when finished):"
+cat >> ../$NAME/info.txt
 
 #the main loop
 for (( j = 0 ; j < $NUM_TRIALS ; j++ )); do
     #run the program with the right args
-    echo java Ziggurat.MasterControlProgram seed=$j $3 $4 $5 $6 $7 $8 $9
-    java Ziggurat.MasterControlProgram seed=$j  $3 $4 $5 $6 $7 $8 $9 > temp
+    echo java Ziggurat.MCP seed=$j $3 $4 $5 $6 $7 $8 $9
+    java Ziggurat.MCP seed=$j  $3 $4 $5 $6 $7 $8 $9 > temp
 
     #parse the output text into a single column of numbers (# steps to goal)
-#%%%    grep "found after" temp | sed -e 's/s at timestamp.*//g' | sed -e 's/Goal.*found//g' | sed -e 's/[a-z,.]//g' | sed -e 's/ //g'  >> ../$NAME/results.txt
-        grep "predict" temp | sed -e 's/predict reward //g' >> ../$NAME/results.txt
+    grep "found after" temp | sed -e 's/s at timestamp.*//g' | sed -e 's/Goal.*found//g' | sed -e 's/[a-z,.]//g' | sed -e 's/ //g'  >> ../$NAME/results.txt
+##If env is FlipPredict use this instead:        grep "predict" temp | sed -e 's/predict reward //g' >> ../$NAME/results.txt
+    
     echo 'end' >> ../$NAME/results.txt  ##delimeter
 done
 rm temp

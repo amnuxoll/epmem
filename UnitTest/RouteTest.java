@@ -14,7 +14,7 @@ import Ziggurat.*;
  */
 public class RouteTest
 {
-    public static Route route1 = Route.newRouteFromSequence(SequenceTest.sEE1);
+    public static Route route1 = new Route(SequenceTest.sEE1);
     public static Route route2 = constructRoute2();
     public static Route route3 = constructRoute3();
 
@@ -116,7 +116,7 @@ public class RouteTest
         //The modified route should now iterate through these commands
         Action[] acts =
             {ActionTest.aEE3, ActionTest.aEE3, ActionTest.aEE1,
-             ActionTest.aEE2, ActionTest.aEE2, ActionTest.aEE1, ActionTest.aEE3,
+             ActionTest.aEE1, ActionTest.aEE3,
              ActionTest.aEE3, ActionTest.aEE3, ActionTest.aEE1};
         for(Action expectedAction : acts)
         {
@@ -136,7 +136,7 @@ public class RouteTest
         //Note that the loop does an extra iteration to verify the "null" return value
         for(int i = 0; i <= r.numElementalEpisodes(); i++)
         {
-            assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
+            assertTrue(r.getCurrActIndex() == i);
             r.advance();
         }
     }
@@ -150,7 +150,7 @@ public class RouteTest
         //Note that the loop does an extra iteration to verify the "null" return value
         for(int i = 0; i <= r.numElementalEpisodes(); i++)
         {
-            assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
+            assertTrue(r.getCurrActIndex() == i);
             r.advance();
         }
     }
@@ -160,14 +160,6 @@ public class RouteTest
     {
         Route r = route3.clone();
         assertTrue(r.numElementalEpisodes() == (route3Actions.length*4 + 4) );
-        for(int i = 0; i < r.numElementalEpisodes(); i+=4)
-        {
-            // Special Case:  double count on the last one to account for RHS
-            if (r.numElementalEpisodes() - i == 4) i += 4; 
-            
-            assertTrue(r.numElementalEpisodes() == r.remainingElementalEpisodes() + i);
-            r.advance();
-        }
     }
 
 	// BEGIN Test cases --------------------------------------
