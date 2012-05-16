@@ -1024,26 +1024,21 @@ public class Ziggurat
         for(int level = this.currPlan.getNumLevels() - 1; level >= 0; level--)
         {
             this.mon.log("searching for replacement at level " + level);
-            
-            //Extract the current sequence from the route at this level
-            Route  route   = this.currPlan.getRoute(level);
-            Sequence currSeq = route.getCurrSequence();
 
-            //If there are no replacements available at this level, skip this
-            //iteration
-            if (this.repls.size() <= level) continue;
+            //Extract the next two actions from the plan at this level
+            Sequence nextTwo = this.currPlan.getNextNActions(level, 2);
+            if (nextTwo.length() != 2) continue;
 
-            //Iterate over the replacement rules for this level to find the best
-            //match
+            //Find the best matching replacement rules at this level
             Vector<Replacement> levelRepls = this.repls.elementAt(level);
             for(Replacement cand : levelRepls)
             {
-                if ((route.canApply(cand)) && (cand.getUtility() > bestConf))
+                if ((cand.canApply(nextTwo)) && (cand.getUtility() > bestConf))
                 {
                     result = cand;
                     bestConf = cand.getUtility();
                 }
-            }                
+            }
         }//for (each level)
 
         //Log the outcome
@@ -1117,25 +1112,16 @@ public class Ziggurat
         //Search all levels starting at the bottom
         for(int level = 0; level < this.currPlan.getNumLevels(); level++)
         {
-            //Extract the current sequence from the route at this level
-            Route  route   = this.currPlan.getRoute(level);
-            Sequence currSeq = route.getCurrSequence();
-
-            //We may already have completed the plan at this level or higher
-            if (currSeq == null) break;
-
-            //There must be at least two actions left or don't bother
-            int actIdx = route.getCurrActIndex();
-            if (actIdx + 1 > currSeq.length())
+            //Extract the next two actions from the plan at this level
+            Sequence nextTwo = this.currPlan.getNextNActions(level, 2);
+            if (nextTwo.length() != 2)
             {
-                this.mon.log("remainder of sequence too short for replacement");
+                this.mon.log("remainder of route at level " + level + " is too short for replacement");
                 this.mon.exit("makeNewReplacement");
                 return null;
             }
-
-            //Extract the next two actions from the current sequence
-            Action act1 = currSeq.getActionAtIndex(actIdx);
-            Action act2 = currSeq.getActionAtIndex(actIdx + 1);
+            Action act1 = nextTwo.getActionAtIndex(0);
+            Action act2 = nextTwo.getActionAtIndex(1);
 
             this.mon.log("Constructing a new replacment for these two actions:");
             this.mon.tab();

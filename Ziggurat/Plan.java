@@ -155,6 +155,20 @@ public class Plan
      * Methods
      *----------------------------------------------------------------------
      */
+    /** @return a copy of this Plan */
+    public Plan clone()
+    {
+        Plan result = new Plan();
+        for(Route r : this.routes)
+        {
+            result.routes.add(r.clone());
+        }
+
+        result.needsRecalc = this.needsRecalc;
+
+        return result;
+    }
+    
     /**
      * @return true if the LHS of the current action in the plan matches the
 	 * given episode
@@ -262,6 +276,62 @@ public class Plan
         return newRoute.getCurrAction();
 	}//advance
 
+    /**
+     * getNextNActions
+     *
+     * returns the next N actions in this plan at a given level taking into
+     * account current replacements and handling boundaries between sequences.
+     * This is done by calling {@link #advance} N times on a clone of this
+     * plan.  This method is primarily used by Ziggurat to select and create
+     * {@link Replacement} objects
+     *
+     * <p>CAVEAT:  the actions returned may be references to actual actions or
+     * may be a clone of those actions depending upon circumstances
+     *
+     * @param level  the level at which to retrieve the next N actions
+     * @param num    this is N
+     *
+     * @return a {@link Sequence} containing the next N actions (or the
+     * remaining actions if there are less than N)
+     */
+    public Sequence getNextNActions(int level, int num)
+    {
+        Sequence result = new Sequence(); // our return value
+        
+
+        //The easy case:  the next N actions are all in the current sequence of
+        //the current route
+        Route route = this.routes.elementAt(level);
+        Sequence currSeq = route.getCurrSequence();
+        if (currSeq == null) return result; // no more actions!
+        int currActIndex = route.getCurrActIndex();
+        if (currSeq.length() - currActIndex >= num)
+        {
+            for(int i = 0; i < num; i++)
+            {
+                result.add(currSeq.getActionAtIndex(currActIndex + i));
+            }
+            return result;
+        }
+
+        //The hard case: we need to make a clone
+        Plan clone = this.clone();
+        Action currAct = route.getCurrAction();
+        for(int i = 0; i < num; i++)
+        {
+            //if we reach the end, stop
+            if (currAct == null) break;
+
+            result.add(currAct);
+            
+            //retrieve the subsequent action
+            currAct = clone.advance(level);
+        }//for
+
+        return result;
+
+    }//getNextNActions
+    
     /**
      * applies the given replacement to the appropriate level of this plan 
      */
