@@ -172,162 +172,162 @@ public class FlipSystemEnvironment extends Environment {
     }
                 
 
-        public String stringify(Episode ep)
+    public String stringify(Episode ep)
+    {
+        if (ep instanceof SequenceEpisode)
         {
-            if (ep instanceof SequenceEpisode)
-            {
-                SequenceEpisode seqEp = (SequenceEpisode)ep;
-                return "[" + stringify(seqEp.getSequence()) + "]";
-            }
+            SequenceEpisode seqEp = (SequenceEpisode)ep;
+            return "[" + stringify(seqEp.getSequence()) + "]";
+        }
 
-            ElementalEpisode elEp = (ElementalEpisode)ep;
-            String sensorString = "0";
-            if (elEp.getSensors().getAttr(WME.REWARD_STRING).getDouble() > 0.0)
-            {
-                sensorString = "1";
-            }
-
-            return sensorString + stringify(elEp.getCommand());
-        }//stringify episode
-
-        public String stringify(Action act)
+        ElementalEpisode elEp = (ElementalEpisode)ep;
+        String sensorString = "0";
+        if (elEp.getSensors().getAttr(WME.REWARD_STRING).getDouble() > 0.0)
         {
-            String result = stringify(act.getLHS()) + "-";
-            //if the action is indeterminate, the connecting arrow contains
-            //an indication of the percent
-            if (act.isIndeterminate())
+            sensorString = "1";
+        }
+
+        return sensorString + stringify(elEp.getCommand());
+    }//stringify episode
+
+    public String stringify(Action act)
+    {
+        String result = stringify(act.getLHS()) + "-";
+        //if the action is indeterminate, the connecting arrow contains
+        //an indication of the percent
+        if (act.isIndeterminate())
+        {
+            int totalFreq = 0;
+            for (Action cousin : act.getCousins())
             {
-                int totalFreq = 0;
-                for (Action cousin : act.getCousins())
-                {
-                    totalFreq += cousin.getFreq();
-                }
+                totalFreq += cousin.getFreq();
+            }
                 
-                int pct = act.getFreq() * 100 / totalFreq;
-                pct = Math.min(99, pct);
-                pct = Math.max(00, pct);
-                result += pct;
+            int pct = act.getFreq() * 100 / totalFreq;
+            pct = Math.min(99, pct);
+            pct = Math.max(00, pct);
+            result += pct;
+        }
+        else
+        {
+            result += "--";
+        }
+        result += "->";
+
+        //Add the RHS to the result string
+        Episode ep = act.getRHS();
+        result += stringify(ep);
+        if (ep instanceof ElementalEpisode)
+        {
+            result = result.substring(0, result.length() - 1);
+        }
+
+        return result;
+    }//stringify Action
+
+    public String stringify(Sequence seq)
+    {
+        String result = "";
+        boolean first = true;
+        Vector<Action> actions = seq.getActions();
+        for(Action a : actions)
+        {
+            if (first)
+            {
+                first = false;
             }
             else
             {
-                result += "--";
-            }
-            result += "->";
-
-            //Add the RHS to the result string
-            Episode ep = act.getRHS();
-            result += stringify(ep);
-            if (ep instanceof ElementalEpisode)
-            {
-                result = result.substring(0, result.length() - 1);
-            }
-
-            return result;
-        }//stringify Action
-
-        public String stringify(Sequence seq)
-        {
-            String result = "";
-            boolean first = true;
-            Vector<Action> actions = seq.getActions();
-            for(Action a : actions)
-            {
-                if (first)
+                result += ", ";
+                //Add additional spaces depending upon level so that the line is
+                //more readable
+                for(int i = 0; i < seq.getLevel(); i++)
                 {
-                    first = false;
+                    result += " ";
                 }
-                else
-                {
-                    result += ", ";
-                    //Add additional spaces depending upon level so that the line is
-                    //more readable
-                    for(int i = 0; i < seq.getLevel(); i++)
-                    {
-                        result += " ";
-                    }
-                }//else
+            }//else
                 
-                result += stringify(a);
-            }
+            result += stringify(a);
+        }
             
-            return result;
-        }//stringify sequence
+        return result;
+    }//stringify sequence
     
-        public String stringify(Replacement repl)
+    public String stringify(Replacement repl)
+    {
+        //This is the LHS of the replacement rule
+        String result = "{ ";
+        Vector<Action> lhsVec = repl.getLHS();
+        for(int i = 0; i < lhsVec.size(); i++)
         {
-            //This is the LHS of the replacement rule
-            String result = "{ ";
-            Vector<Action> lhsVec = repl.getLHS();
-            for(int i = 0; i < lhsVec.size(); i++)
-            {
-                Action act = lhsVec.elementAt(i);
+            Action act = lhsVec.elementAt(i);
                 
-                //precede all but first sequence with a comma separator
-                if (i > 0) result += ", ";  
+            //precede all but first sequence with a comma separator
+            if (i > 0) result += ", ";  
                 
-                result += stringify(act);
-            }
-            result += " }";
-            
-            //Arrow
-            result += "==>";
-            
-            //RHS of the replacement rule
-            result += stringify(repl.getRHS());
-            
-            return result;
+            result += stringify(act);
         }
+        result += " }";
+            
+        //Arrow
+        result += "==>";
+            
+        //RHS of the replacement rule
+        result += stringify(repl.getRHS());
+            
+        return result;
+    }
         
-        /** convert a given replacement to a string */
-        public String stringify(Route route)
+    /** convert a given replacement to a string */
+    public String stringify(Route route)
+    {
+        String result = "{";
+        for(int i=0; i < route.size(); i++)
         {
-            String result = "{";
-            for(int i=0; i < route.size(); i++)
+            //Get the i-th sequence
+            Sequence seq = route.elementAt(i);
+            if ((i == route.getCurrSeqIndex()) && (route.getReplSeq() != null))
             {
-                //Get the i-th sequence
-                Sequence seq = route.elementAt(i);
-                if ((i == route.getCurrSeqIndex()) && (route.getReplSeq() != null))
-                {
-                    seq = route.getReplSeq();
-                }
-
-                String seqStr = stringify(seq);
-                if (i == route.getCurrSeqIndex())
-                {
-                    //Mark the current action in the current sequence with an asterisk using
-                    //some fancy and expensive string manipulation
-                    String[] parts = seqStr.split(",", route.currActIndex + 2);
-                    parts[route.currActIndex] += "*";
-                    seqStr = "";
-                    for(String s : parts)
-                    {
-                        seqStr += s + ",";
-                    }
-                }
-
-                result += "[" + seqStr + "],";
+                seq = route.getReplSeq();
             }
-            result = result.substring(0, result.length() - 1);
-            result += "}";
 
-            return result;
-        }//stringify route
-
-        public String stringify(Plan plan)
-        {
-            String result = "{\n";
-            int len = plan.getNumLevels();
-            for(int i = 0; i < len; i ++)
+            String seqStr = stringify(seq);
+            if (i == route.getCurrSeqIndex())
             {
-                Route r = plan.getRoute(i);
-                result += "  Level " + i + ": ";
-                result += stringify(r);
-                result += "\n";
-            }//for
-            result += "}";
+                //Mark the current action in the current sequence with an asterisk using
+                //some fancy and expensive string manipulation
+                String[] parts = seqStr.split(",", route.currActIndex + 2);
+                parts[route.currActIndex] += "*";
+                seqStr = "";
+                for(String s : parts)
+                {
+                    seqStr += s + ",";
+                }
+            }
 
-            return result;
+            result += "[" + seqStr + "],";
         }
+        result = result.substring(0, result.length() - 1);
+        result += "}";
+
+        return result;
+    }//stringify route
+
+    public String stringify(Plan plan)
+    {
+        String result = "{\n";
+        int len = plan.getNumLevels();
+        for(int i = 0; i < len; i ++)
+        {
+            Route r = plan.getRoute(i);
+            result += "  Level " + i + ": ";
+            result += stringify(r);
+            result += "\n";
+        }//for
+        result += "}";
+
+        return result;
+    }
 
     
 }// [class] FlipSystemEnvironment
