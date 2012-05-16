@@ -17,7 +17,14 @@ public class MasterControlProgram
     private static int targetRewards = 100;
     /** the random number seed to use.  The default, -1, indicates not to use a
      * fixed seed */
-    private static int seed = -1;          
+    private static int seed = -1;
+    /** this boolean is set to indicate that Zigg should use a null monitor.
+     * This is usually used to maximize the speed of data gathering.
+     */
+    private static boolean nullMonitor = false;
+    
+     
+    
 
     /**
      * main
@@ -28,6 +35,7 @@ public class MasterControlProgram
      *   env=<name>   - the name of the environment to use
      *   trials=<num> - the number of rewards the agent should complete
      *   seed=<num>   - a fixed random number seed for this run
+     *   mon=null     - use a MonitorNull object
      *
      */
 	public static void main(String args[]) 
@@ -59,8 +67,11 @@ public class MasterControlProgram
             zigg.setRandSeed(seed);
         }
 
-        //%%%CONTROL WITH FLAG LATER
-        zigg.setMonitor(new MonitorNull());
+        //If instructed to do so, turn off all monitor output
+        if (nullMonitor)
+        {
+            zigg.setMonitor(new MonitorNull());
+        }
 
 		WMESet currentSensors = env.generateCurrentWMESet();
         int numRewards = 0;
@@ -127,6 +138,13 @@ public class MasterControlProgram
                 if (num >= 0) seed = num;
             }
             catch(NumberFormatException nfe) {}
+        }
+        else if (name.equals("mon"))
+        {
+            if (value.equals("null"))
+            {
+                nullMonitor = true;
+            }
         }
 
     }//processArg

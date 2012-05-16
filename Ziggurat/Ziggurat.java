@@ -834,7 +834,11 @@ public class Ziggurat
         this.mon.enter("findOrientation");
    
         //Iterate over all levels that are not the very top or bottom
-        for(level = this.lastUpdateLevel; level >= 1; level--)
+        
+        //%%%DEBUG:  temporarily fixing at level 1
+        for(level = 1; level >= 1; level--)
+        //%%%for(level = this.lastUpdateLevel; level >= 1; level--)
+        
         {
             this.mon.log("searching Level %d", level);
    
@@ -1019,6 +1023,8 @@ public class Ziggurat
         // iterate through each level of the plan
         for(int level = this.currPlan.getNumLevels() - 1; level >= 0; level--)
         {
+            this.mon.log("searching for replacement at level " + level);
+            
             //Extract the current sequence from the route at this level
             Route  route   = this.currPlan.getRoute(level);
             Sequence currSeq = route.getCurrSequence();
@@ -1120,7 +1126,7 @@ public class Ziggurat
 
             //There must be at least two actions left or don't bother
             int actIdx = route.getCurrActIndex();
-            if (actIdx + 1 >= currSeq.length())
+            if (actIdx + 1 > currSeq.length())
             {
                 this.mon.log("remainder of sequence too short for replacement");
                 this.mon.exit("makeNewReplacement");

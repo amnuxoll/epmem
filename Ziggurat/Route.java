@@ -305,6 +305,21 @@ public class Route extends Vector<Sequence>
 	}//getCurrAction
 
     /**
+     * @return a reference to the next action after the current action in this
+     * route (or null if there is none)
+     *         
+     */
+	public Action getSecondAction() 
+    {
+        if (this.currActIndex == NONE) return null;
+        Sequence currSequence = this.getCurrSequence();
+        if (currSequence == null) return null;
+        if(this.currActIndex >= currSequence.length()) return null;
+               
+		return currSequence.getActionAtIndex(this.currActIndex);
+	}//getSecondAction
+
+    /**
      * @return a reference to the current sequence or null if there is none
      */
 	public Sequence getCurrSequence() 
