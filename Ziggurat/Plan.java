@@ -80,7 +80,7 @@ public class Plan
             SequenceEpisode parentEp = (SequenceEpisode)parentAct.getLHS();
 
             //parentEp is the sequence that comprises the route one level below
-            Route newRoute = Route.newRouteFromSequence(parentEp.getSequence());
+            Route newRoute = new Route(parentEp.getSequence());
             this.setRoute(i, newRoute);
         }//for
 
@@ -95,18 +95,6 @@ public class Plan
     /** @return the value of {@link #needsRecalc} */
     public boolean needsRecalc() { return this.needsRecalc; }
 
-    /** calculates the number of active replacements on this plan*/
-    public int numRepls()
-    {
-        int count = 0;
-        for(Route r : this.routes)
-        {
-            count += r.numRepls();
-        }
-
-        return count;
-    }//numRepls
-    
     /** @return the route at a given level */
     public Route getRoute(int level)
     {
@@ -260,7 +248,7 @@ public class Plan
         
         //Create a new route at this level based upon the newly updated parent
         //route
-        Route newRoute = Route.newRouteFromParentAction(parentAct);
+        Route newRoute = new Route(parentAct);
 
         //reapply replacements from the old route to the new route
         for(Replacement repl : route.getRepls())
@@ -276,62 +264,6 @@ public class Plan
         return newRoute.getCurrAction();
 	}//advance
 
-    /**
-     * getNextNActions
-     *
-     * returns the next N actions in this plan at a given level taking into
-     * account current replacements and handling boundaries between sequences.
-     * This is done by calling {@link #advance} N times on a clone of this
-     * plan.  This method is primarily used by Ziggurat to select and create
-     * {@link Replacement} objects
-     *
-     * <p>CAVEAT:  the actions returned may be references to actual actions or
-     * may be a clone of those actions depending upon circumstances
-     *
-     * @param level  the level at which to retrieve the next N actions
-     * @param num    this is N
-     *
-     * @return a {@link Sequence} containing the next N actions (or the
-     * remaining actions if there are less than N)
-     */
-    public Sequence getNextNActions(int level, int num)
-    {
-        Sequence result = new Sequence(); // our return value
-        
-
-        //The easy case:  the next N actions are all in the current sequence of
-        //the current route
-        Route route = this.routes.elementAt(level);
-        Sequence currSeq = route.getCurrSequence();
-        if (currSeq == null) return result; // no more actions!
-        int currActIndex = route.getCurrActIndex();
-        if (currSeq.length() - currActIndex >= num)
-        {
-            for(int i = 0; i < num; i++)
-            {
-                result.add(currSeq.getActionAtIndex(currActIndex + i));
-            }
-            return result;
-        }
-
-        //The hard case: we need to make a clone
-        Plan clone = this.clone();
-        Action currAct = route.getCurrAction();
-        for(int i = 0; i < num; i++)
-        {
-            //if we reach the end, stop
-            if (currAct == null) break;
-
-            result.add(currAct);
-            
-            //retrieve the subsequent action
-            currAct = clone.advance(level);
-        }//for
-
-        return result;
-
-    }//getNextNActions
-    
     /**
      * applies the given replacement to the appropriate level of this plan 
      */

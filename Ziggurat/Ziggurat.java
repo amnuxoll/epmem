@@ -706,11 +706,11 @@ public class Ziggurat
                          i, cand.numElementalEpisodes());
             this.mon.log(cand);
        
-            //SUCCESS! If the last sequence in this route contains the goal
+            //SUCCESS! If the last action in this route contains the goal
             //state, we're done.  Copy the details of this route to the newRoute
             //struct we were given and exit the loop.
-            Sequence lastSeq = cand.lastElement();
-            if (lastSeq.containsReward())
+            Action lastAct = cand.lastAction();
+            if (lastAct.containsReward())
             {
                 this.mon.log("Selected this route to goal:");
                 this.mon.log(cand);
