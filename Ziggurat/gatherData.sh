@@ -49,6 +49,7 @@ javac *.java
 #Make the output file and description file.
 mkdir ../$NAME
 touch ../$NAME/info.txt
+echo "Command used: $0 $1 $2 $3 $4 $5 $6 $7 $8 $9" >> ../$NAME/info.txt
 echo "Number of trials: $NUM_TRIALS" >> ../$NAME/info.txt
 echo "Description of dataset $NAME:" >> ../$NAME/info.txt
 
@@ -63,10 +64,16 @@ for (( j = 0 ; j < $NUM_TRIALS ; j++ )); do
     java Ziggurat.MCP seed=$j  $3 $4 $5 $6 $7 $8 $9 > temp
 
     #parse the output text into a single column of numbers (# steps to goal)
-    grep "found after" temp | sed -e 's/s at timestamp.*//g' | sed -e 's/Goal.*found//g' | sed -e 's/[a-z,.]//g' | sed -e 's/ //g'  >> ../$NAME/results.txt
-##If env is FlipPredict use this instead:        grep "predict" temp | sed -e 's/predict reward //g' >> ../$NAME/results.txt
+##%%%    grep "found after" temp | sed -e 's/s at timestamp.*//g' | sed -e 's/Goal.*found//g' | sed -e 's/[a-z,.]//g' | sed -e 's/ //g'  >> ../$NAME/results.txt
+##If env is FlipPredict use this instead:
+    grep "predict" temp | sed -e 's/predict error //g' >> ../$NAME/results.txt
     
     echo 'end' >> ../$NAME/results.txt  ##delimeter
 done
 rm temp
+
+cd ../$NAME
+../Ziggurat/columnify.py
+cd ../Ziggurat
+
 

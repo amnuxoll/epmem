@@ -1,5 +1,7 @@
 package Ziggurat;
 
+import java.util.Arrays;
+
 /**
  * <!-- class MCP -->
  *
@@ -23,24 +25,36 @@ public class MCP
      * This is usually used to maximize the speed of data gathering.
      */
     private static boolean nullMonitor = false;
-    
-     
-    
+
+    /** A list of the names of valid environments.  Please keep this up to date! */
+    private static String[] validEnvStrs = { "flipsystem", "flippredict" };
 
     /**
      * main
      *
      * Loads the environment specified by the command line and runs it.
      *
-     * Valid Arguments (all are optional):
-     *   env=<name>   - the name of the environment to use
-     *   trials=<num> - the number of rewards the agent should complete
-     *   seed=<num>   - a fixed random number seed for this run
-     *   mon=null     - use a MonitorNull object
+     * See the USAGE message below for a list of valid arguments.  All arguments
+     *   are optional but at least one argument (even if bogus) must be
+     *   specified to prevent the usage message from printing.
      *
      */
 	public static void main(String args[]) 
     {
+        //If there are no arguments, then print a usage message and exit
+        if (args.length == 0)
+        {
+            System.out.println("USAGE:");
+            
+            System.out.println("\tenv=<name>   - the name of the environment to use");
+            System.out.println("\t               current known envs: " + Arrays.asList(validEnvStrs));
+            System.out.println("\ttrials=<num> - the number of rewards the agent should complete");
+            System.out.println("\tseed=<num>   - a fixed random number seed for this run");
+            System.out.println("\tmon=null     - use a MonitorNull object");
+
+            return;
+        }
+        
         //Process command line args
         for(String s : args)
         {
@@ -53,9 +67,7 @@ public class MCP
         if(env == null) 
         {
 				System.err.println("You requested an invalid environment: " + envName);
-                System.err.println("Known environments are:");
-				System.err.println("\tflipsystem");
-				System.err.println("\tflippredict");
+                System.err.println("Known environments are: " + Arrays.asList(validEnvStrs));
 				System.exit(0);
         }// if
 		

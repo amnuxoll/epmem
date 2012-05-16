@@ -283,17 +283,8 @@ public class Route extends Sequence
      */
 	public void applyReplacement(Replacement repl) 
     {
-        //Sanity Check:  the replacement should not modify the route before the
-        //current action
-        if (repl.applyPos(this) < this.currActIndex)
-        {
-            System.err.println("ABORT!  Tried to modify actions of a Route that have already been executed.");
-            Thread.dumpStack();
-            System.exit(-1);
-        }
-        
         //Apply the Replacement
-        Sequence replSeq = repl.apply(this);
+        Sequence replSeq = repl.apply(this, this.currActIndex);
         this.actions = replSeq.actions;
 
         //Log that this Replacement has ben applied

@@ -86,7 +86,6 @@ public class FlipPredictEnvironment extends Environment
 	 */
 	public WMESet takeStep(int expOutcome)
     {
-        //%%%DEBUG
         printState(expOutcome);
 
         //Calculate the reward the agent will actually get at this step
@@ -113,12 +112,12 @@ public class FlipPredictEnvironment extends Environment
         if (expOutcome == actualOutcome)
         {
             this.WME_reward = new WME("reward", "1.0", WME.Type.DOUBLE);
-            System.out.println("predict reward 1");
+            System.out.println("predict error 0");
         }
         else
         {
             this.WME_reward = new WME("reward", "0.0", WME.Type.DOUBLE);
-            System.out.println("predict reward 0");
+            System.out.println("predict error 1");
         }
 
              

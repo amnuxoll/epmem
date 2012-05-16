@@ -165,7 +165,7 @@ public class Ziggurat
         {
             this.mon.reward(rewardWME.getDouble());
        
-            //If a a plan is in place, reward the agent and any outstanding replacements
+            //If a plan is in place, reward the agent and any outstanding replacements
             if ((this.currPlan != null) && (this.currPlan.advance(0) == null))
             {
                 rewardDecEls();
@@ -451,7 +451,7 @@ public class Ziggurat
     {
         for(DecisionElement de : this.activeDecEls)
         {
-            this.mon.logPart("Increasing utilty of " + env.stringify(de) + " from " + de.getUtility());
+            this.mon.logPart("Increasing utility of " + env.stringify(de) + " from " + de.getUtility());
             de.reward();
             this.mon.log(" to " + de.getUtility());
         }
@@ -841,8 +841,7 @@ public class Ziggurat
         
         //%%%DEBUG:  temporarily fixing at level 1
         for(level = 1; level >= 1; level--)
-        //%%%for(level = this.lastUpdateLevel; level >= 1; level--)
-        
+//%%%        for(level = this.lastUpdateLevel; level >= 1; level--)
         {
             this.mon.log("searching Level %d", level);
    
@@ -1031,10 +1030,11 @@ public class Ziggurat
 
             //Find the best matching replacement rules at this level
             Route route = this.currPlan.getRoute(level);
+            if (this.repls.size() <= level) break; // no repls at this level
             Vector<Replacement> levelRepls = this.repls.elementAt(level);
             for(Replacement cand : levelRepls)
             {
-                if ((cand.canApply(route)) && (cand.getUtility() > bestConf))
+                if ((cand.canApply(route, route.getCurrActIndex())) && (cand.getUtility() > bestConf))
                 {
                     result = cand;
                     bestConf = cand.getUtility();
@@ -1479,7 +1479,7 @@ public class Ziggurat
         Action currAction = level0Route.getCurrAction();
 
         //extract the command prescribed by the current action
-        ElementalEpisode lhs = (ElementalEpisode)currAction.getLHS();        
+        ElementalEpisode lhs = (ElementalEpisode)currAction.getLHS();
         int cmd = lhs.getCommand();
 
         //advance the "current action" pointer to the next action as a result of

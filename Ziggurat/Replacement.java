@@ -140,17 +140,21 @@ public class Replacement extends DecisionElement
     /**
      * applyPos
      *
-     * determines where this replacement can occur in a given sequence
+     * determines where this replacement can occur in a given sequence at or
+     * beyond a given index
+     *
+     * @param seq is the given sequence
+     * @param start is the lowest index in which it should be applied
      *
      * @return the first index where the replacement can occur, or -1 if it can
      * not be applied
      */
-    public int applyPos(Sequence seq)
+    public int applyPos(Sequence seq, int start)
     {
         //If the sequence is the wrong level then we don't bother checking
         if (seq.getLevel() != this.getLevel()) return -1;
 
-        for(int i = 0; i < seq.length() - 1; i++)
+        for(int i = start; i < seq.length() - 1; i++)
         {
             if (vecMatch(this.original, 0, seq.getActions(), i, original.size()))
             {
@@ -161,16 +165,35 @@ public class Replacement extends DecisionElement
         return -1;
     }//applyPos
 
+    /** this version of applyPos assumes that you want to start the search at
+    the beginning of the sequence */
+    public int applyPos(Sequence seq)
+    {
+        return applyPos(seq, 0);
+    }
+    
     /**
      * canApply
      *
-     * checks to see if this replacement can be applied to a given sequence.  
+     * checks to see if this replacement can be applied to a given sequence at
+     * the given position or subsequently.
+     *
+     * @param seq is the given sequence
+     * @param start is the lowest index in which it should be applied
      *
      * @return true if it can be applied, false otherwise
      */
+    public boolean canApply(Sequence seq, int start)
+    {
+        return applyPos(seq, start) != -1;
+    }//canApply
+
+    /** this version is used to ask if the replacement can be applied anywhere
+      * in a sequence
+      */
     public boolean canApply(Sequence seq)
     {
-        return applyPos(seq) != -1;
+        return applyPos(seq, 0) != -1;
     }//canApply
 
     /**
@@ -180,28 +203,39 @@ public class Replacement extends DecisionElement
      * replacement is applied successively to all valid places where it matches
      * the sequence.  The given sequence is not modified.
      *
+     * @param orig is the sequence to apply the replacements to
+     * @param start is the lowest index at which the repl should be applied
+     *
      * @return the resulting sequence
      */
-    public Sequence apply(Sequence orig)
+    public Sequence apply(Sequence orig, int start)
     {
         //Start with a copy of the original
         Sequence result = orig.clone();
         Vector<Action> vec = result.getActions();
 
         //Keep applying the replacement as long as you can
-        int index = applyPos(result);
+        int index = applyPos(result, start);
         while(index != -1)
         {
             vec.removeElementAt(index);
             vec.removeElementAt(index);
             vec.insertElementAt(this.replacement, index);
 
-            index = applyPos(result);
+            index = applyPos(result, start);
         }//while
 
         return result;
     }//apply
 
+    /** this version applies the replacement anywhere where it can be applied to
+     * the sequence
+     */
+    public Sequence apply(Sequence orig)
+    {
+        return apply(orig, 0);
+    }
+        
     /**
      * extending this method to report the outcome to Ziggurat's monitor if it's
      * available
