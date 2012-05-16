@@ -46,6 +46,7 @@ public class MasterControlProgram
 				System.err.println("You requested an invalid environment: " + envName);
                 System.err.println("Known environments are:");
 				System.err.println("\tflipsystem");
+				System.err.println("\tflippredict");
 				System.exit(0);
         }// if
 		
@@ -57,6 +58,9 @@ public class MasterControlProgram
         {
             zigg.setRandSeed(seed);
         }
+
+        //%%%CONTROL WITH FLAG LATER
+        zigg.setMonitor(new MonitorNull());
 
 		WMESet currentSensors = env.generateCurrentWMESet();
         int numRewards = 0;
@@ -82,6 +86,7 @@ public class MasterControlProgram
 	private static Environment initEnvironment(String name) 
     {
 		if(name.equals("flipsystem")) return new FlipSystemEnvironment();
+		else if(name.equals("flippredict")) return new FlipPredictEnvironment();
 		else return null;
 	}// initEnvironment
 
@@ -101,11 +106,11 @@ public class MasterControlProgram
         String value = arg.substring(equalPos+1);
 
         //Handle the command
-        if (name.matches("env*"))
+        if (name.equals("env"))
         {
             envName = value;
         }
-        else if (name.matches("tri*"))
+        else if (name.equals("trials"))
         {
             try
             {
@@ -114,7 +119,7 @@ public class MasterControlProgram
             }
             catch(NumberFormatException nfe) {}
         }
-        else if (name.matches("seed*"))
+        else if (name.equals("seed"))
         {
             try
             {

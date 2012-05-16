@@ -45,6 +45,7 @@ public class MonitorNull extends Monitor
     public void log(Action act) {}
     public void log(Sequence seq) {}
     public void log(Replacement repl) {}
+    public void log(Route route) {}
     public void log(Plan plan) {}
     public void log(Vector vec) {}
     

@@ -32,10 +32,9 @@ NUM_ARGS=2
 #variables
 NUM_TRIALS=$1
 NAME=$2
-ARGS=$3 $4 $5 $6 $7 $8 $9
 
-if [ $# -ne $NUM_ARGS ]; then
-        echo 'USAGE: gatherData <numTrials> <nameOfDataSet>'
+if [ $# -lt $NUM_ARGS ]; then
+        echo 'USAGE: gatherData <numTrials> <nameOfDataSet> <java params>'
         echo '!!must be in the epmem/Ziggurat folder!!'
         exit
 fi
@@ -54,16 +53,17 @@ echo "Number of trials: $NUM_TRIALS" >> ../$NAME/info.txt
 echo "Description of dataset $NAME:" >> ../$NAME/info.txt
 
 #change this line to vi or emacs or whatever you prefer
-emacs ../$NAME/info.txt
+##emacs ../$NAME/info.txt
 
 #the main loop
 for (( j = 0 ; j < $NUM_TRIALS ; j++ )); do
     #run the program with the right args
-    echo java Ziggurat.MasterControlProgram seed=$j
-    java Ziggurat.MasterControlProgram seed=$j $ARGS > temp
+    echo java Ziggurat.MasterControlProgram seed=$j $3 $4 $5 $6 $7 $8 $9
+    java Ziggurat.MasterControlProgram seed=$j  $3 $4 $5 $6 $7 $8 $9 > temp
 
     #parse the output text into a single column of numbers (# steps to goal)
-    grep "found after" temp | sed -e 's/s at timestamp.*//g' | sed -e 's/Goal.*found//g' | sed -e 's/[a-z,.]//g' | sed -e 's/ //g'  >> ../$NAME/results.txt
+#%%%    grep "found after" temp | sed -e 's/s at timestamp.*//g' | sed -e 's/Goal.*found//g' | sed -e 's/[a-z,.]//g' | sed -e 's/ //g'  >> ../$NAME/results.txt
+        grep "predict" temp | sed -e 's/predict reward //g' >> ../$NAME/results.txt
     echo 'end' >> ../$NAME/results.txt  ##delimeter
 done
 rm temp
