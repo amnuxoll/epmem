@@ -96,7 +96,7 @@ public class WMESet
 	 */
 	public String toString()
 	{
-		String rtnVal = "{";
+		String rtnVal = "<";
 		List<String> keys = new ArrayList<String>(this.sensors.keySet());
 		Collections.sort(keys);
 		// Iterate through and generate string return value
@@ -105,7 +105,7 @@ public class WMESet
 		{
 			rtnVal += this.sensors.get(iter.next()) + (iter.hasNext() ? "," : "");
 		}
-		rtnVal += "}";
+		rtnVal += ">";
 		return rtnVal;
 	}//toString
 	

@@ -17,6 +17,12 @@ import java.util.*;
 public class Plan
 {
     /*======================================================================
+     * Constants
+     *----------------------------------------------------------------------
+     */
+    /** used for {@link #toString} */
+    public static NullEnvironment nullEnv = new NullEnvironment();
+    /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
      */
@@ -127,22 +133,19 @@ public class Plan
         
         this.routes.set(level, r);
     }
+    
     /** return the highest level route in the plan */
     public Route getTopRoute(int level) { return this.routes.elementAt(level); }
     
-    /** create an environment-inspecific String representation of this plan
-     * which is just a list of routes separates by newlines */
-	public String toString () 
+    /** 
+     * Typically you want to use the printing facility in the specific
+     * { @link Environment} class instead.
+     *
+     * @return a String representation of this route
+     */
+	public String toString() 
     {
-        String result = "";
-        for(int i = this.routes.size() - 1; i >= 0; i--)
-        {
-            result += i + ": ";
-            Route r = this.getRoute(i);
-            result += r.toString();
-            if (i > 0) result += "\n";
-        }
-		return result;
+        return nullEnv.stringify(this);
 	}//toString
 
     /** @return how many levels are in this plan */

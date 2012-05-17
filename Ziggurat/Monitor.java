@@ -453,9 +453,13 @@ public abstract class Monitor
             {
                 log(obj.toString());
             }
-            else if (obj instanceof Episode)
+            else if (obj instanceof ElementalEpisode)
             {
-                log(this.env.stringify((Episode)obj));
+                log(this.env.stringify((ElementalEpisode)obj));
+            }
+            else if (obj instanceof SequenceEpisode)
+            {
+                log(this.env.stringify((SequenceEpisode)obj));
             }
             else if (obj instanceof Action)
             {

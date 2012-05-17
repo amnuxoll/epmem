@@ -14,6 +14,13 @@ import java.util.*;
 public class Sequence extends DecisionElement
 {
     /*======================================================================
+     * Constants
+     *----------------------------------------------------------------------
+     */
+    /** used for {@link #toString} */
+    public static NullEnvironment nullEnv = new NullEnvironment();
+
+    /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
      */
@@ -111,39 +118,15 @@ public class Sequence extends DecisionElement
         return seq;
     }//clone
 
-    /** @return a string representation of this sequence 
-     * Typically you want to use the printing facility in the current
+    /** 
+     * Typically you want to use the printing facility in the specific
      * Environment# class instead.
+     *
+     * @return a string representation of this sequence
      */
     public String toString() 
     {
-        // a sequence is just a of actions separated by commas and surrounded by
-        // square brackets
-        String result = "[";
-        boolean first = true;
-        for(Action a : actions)
-        {
-            if (first)
-            {
-                first = false;
-            }
-            else
-            {
-                result += ", ";
-                //Add additional spaces depending upon level so that the line is
-                //more readable
-                for(int i = 0; i < this.getLevel(); i++)
-                {
-                    result += " ";
-                }
-            }//else
-                    
-            result += a.toString();
-        }
-        result += "]";
-
-        return result;
-        
+        return nullEnv.stringify(this);
     }//toString
 
     /** appends a given action to the end of the sequence */
