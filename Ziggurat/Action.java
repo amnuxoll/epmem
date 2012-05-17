@@ -12,6 +12,13 @@ import java.util.*;
 public class Action extends DecisionElement
 {
     /*======================================================================
+     * Constants
+     *----------------------------------------------------------------------
+     */
+    /** used for {@link #toString} */
+    public static NullEnvironment nullEnv = new NullEnvironment();
+    
+    /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
      */
@@ -96,45 +103,14 @@ public class Action extends DecisionElement
 	}//equals
 
     /** 
-     * Typically you want to use the printing facility in the current
+     * Typically you want to use the printing facility in the specific
      * { @link Environment} class instead.
      *
      * @return a String representation of this action.
      */
 	public String toString() 
     {
-       //Start with lhs
-       String retVal = this.lhs.toString() + "-";
-
-       //if the action is indeterminate, the connecting arrow contains
-       //an indication of the percent
-       if (this.isIndeterminate())
-       {
-           int pct = this.freq * 100 / this.cousins.size();
-           pct = Math.min(99, pct);
-           pct = Math.max(00, pct);
-           retVal += pct;
-       }
-       else
-       {
-           retVal += "--";
-       }
-
-       //finish the arrow
-       retVal += "->";
-
-       //if this action contains elemental actions, we only want to print the
-       //sensors
-       if (this.rhs instanceof ElementalEpisode)
-       {
-           retVal += ((ElementalEpisode)this.rhs).sensorsToString();
-       }
-       else
-       {
-           retVal += this.rhs.toString();
-       }
-
-       return retVal;
+        return nullEnv.stringify(this);
 	}//toString
 
     /**

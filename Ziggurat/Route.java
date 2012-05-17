@@ -39,6 +39,8 @@ public class Route extends Sequence
      */
     /** this value is used to indicate that there is no current sequence or action */
     public static final int NONE = -1;
+    /** used for {@link #toString} */
+    public static NullEnvironment nullEnv = new NullEnvironment();
     
     /*======================================================================
      * Instance Variables
@@ -163,37 +165,15 @@ public class Route extends Sequence
         return result;
     }//clone
 
-    /** create an environment-inspecific String representation of this route
-     * which is a comma-separated list of sequences enclosed in curly braces. */
+    /** 
+     * Typically you want to use the printing facility in the specific
+     * { @link Environment} class instead.
+     *
+     * @return a String representation of this route
+     */
 	public String toString() 
     {
-        String result = "{";
-        boolean first = true;
-        int count = 0;
-        for(Action a : actions)
-        {
-            //Precede all but the first action with a comma separator
-            if (count > 0)
-            {
-                result += ", ";
-                //Add additional spaces depending upon level so that the line is
-                //more readable
-                for(int i = 0; i < this.getLevel(); i++)
-                {
-                    result += " ";
-                }
-            }//else
-                    
-            result += a.toString();
-
-            //If this is the current action, put an asterisk behind it
-            if (count == currActIndex) result += "*";
-
-            count++;
-        }//for
-        result += "}";
-
-        return result;
+        return nullEnv.stringify(this);
 	}//toString
 
     /**

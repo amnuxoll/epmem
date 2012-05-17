@@ -19,17 +19,17 @@ import java.util.Vector;
  * change states you get a reward.
  *
  */
-public class FlipSystemEnvironment extends Environment {
-
+public class FlipSystemEnvironment extends Environment
+{
 	// Define possible states
 	private enum State { STATE_1, STATE_2 };
 	private State currentState;
 	
 	// Define command related variables
-	private final int CMD_LEFT 		= 0;
-	private final int CMD_RIGHT 	= 1;
-	private final int CMD_UP 		= 2;
-	private final int NUM_COMMANDS 	= 3;
+	private static final int CMD_LEFT 		= 0;
+	private static final int CMD_RIGHT 	= 1;
+	private static final int CMD_UP 		= 2;
+	private static final int NUM_COMMANDS 	= 3;
 	
 	// Define sense related variables
 	private WME WME_reward;
@@ -162,24 +162,27 @@ public class FlipSystemEnvironment extends Environment {
 	/** return the number of available commands in this environment */
     public int getNumCommands() { return NUM_COMMANDS; }
 
+    @Override
+    /** use the first letter of each command name */
     public String stringify(int cmd)
     {
         if (cmd == CMD_LEFT) return "L";
-        if (cmd == CMD_RIGHT) return "R";
-        if (cmd == CMD_UP) return "U";
+        else if (cmd == CMD_RIGHT) return "R";
+        else if (cmd == CMD_UP) return "U";
         return "?";
     }
                 
 
-    public String stringify(Episode ep)
+    @Override
+    /**
+     * ElementalEpisodes are reduced to two characters:
+     * <ul>
+     *   <li>[0,1] = reward received
+     *   <li>[U,L,R] = up, left or right
+     *</ul>
+     */
+    public String stringify(ElementalEpisode elEp)
     {
-        if (ep instanceof SequenceEpisode)
-        {
-            SequenceEpisode seqEp = (SequenceEpisode)ep;
-            return "[" + stringify(seqEp.getSequence()) + "]";
-        }
-
-        ElementalEpisode elEp = (ElementalEpisode)ep;
         String sensorString = "0";
         if (elEp.getSensors().getAttr(WME.REWARD_STRING).getDouble() > 0.0)
         {
@@ -189,142 +192,4 @@ public class FlipSystemEnvironment extends Environment {
         return sensorString + stringify(elEp.getCommand());
     }//stringify episode
 
-    public String stringify(Action act)
-    {
-        String result = stringify(act.getLHS()) + "-";
-        //if the action is indeterminate, the connecting arrow contains
-        //an indication of the percent
-        if (act.isIndeterminate())
-        {
-            int totalFreq = 0;
-            for (Action cousin : act.getCousins())
-            {
-                totalFreq += cousin.getFreq();
-            }
-                
-            int pct = act.getFreq() * 100 / totalFreq;
-            pct = Math.min(99, pct);
-            pct = Math.max(00, pct);
-            result += pct;
-        }
-        else
-        {
-            result += "--";
-        }
-        result += "->";
-
-        //Add the RHS to the result string
-        Episode ep = act.getRHS();
-        result += stringify(ep);
-        if (ep instanceof ElementalEpisode)
-        {
-            result = result.substring(0, result.length() - 1);
-        }
-
-        return result;
-    }//stringify Action
-
-    public String stringify(Sequence seq)
-    {
-        String result = "";
-        boolean first = true;
-        Vector<Action> actions = seq.getActions();
-        for(Action a : actions)
-        {
-            if (first)
-            {
-                first = false;
-            }
-            else
-            {
-                result += ", ";
-                //Add additional spaces depending upon level so that the line is
-                //more readable
-                for(int i = 0; i < seq.getLevel(); i++)
-                {
-                    result += " ";
-                }
-            }//else
-                
-            result += stringify(a);
-        }
-            
-        return result;
-    }//stringify sequence
-    
-    public String stringify(Replacement repl)
-    {
-        //This is the LHS of the replacement rule
-        String result = "{ ";
-        Vector<Action> lhsVec = repl.getLHS();
-        for(int i = 0; i < lhsVec.size(); i++)
-        {
-            Action act = lhsVec.elementAt(i);
-                
-            //precede all but first sequence with a comma separator
-            if (i > 0) result += ", ";  
-                
-            result += stringify(act);
-        }
-        result += " }";
-            
-        //Arrow
-        result += "==>";
-            
-        //RHS of the replacement rule
-        result += stringify(repl.getRHS());
-            
-        return result;
-    }
-        
-    /** convert a given replacement to a string */
-    public String stringify(Route route)
-    {
-        String result = "{";
-        boolean first = true;
-        int count = 0;
-        for(Action a : route.getActions())
-        {
-            //Precede all but the first action with a comma separator
-            if (count > 0)
-            {
-                result += ", ";
-                //Add additional spaces depending upon level so that the line is
-                //more readable
-                for(int i = 0; i < route.getLevel(); i++)
-                {
-                    result += " ";
-                }
-            }//else
-                    
-            result += stringify(a);
-
-            //If this is the current action, put an asterisk behind it
-            if (count == route.getCurrActIndex()) result += "*";
-
-            count++;
-        }//for
-        result += "}";
-
-        return result;
-    }//stringify route
-
-
-    public String stringify(Plan plan)
-    {
-        String result = "{\n";
-        int len = plan.getNumLevels();
-        for(int i = 0; i < len; i ++)
-        {
-            Route r = plan.getRoute(i);
-            result += "  Level " + i + ": ";
-            result += stringify(r);
-            result += "\n";
-        }//for
-        result += "}";
-
-        return result;
-    }
-
-    
 }// [class] FlipSystemEnvironment

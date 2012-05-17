@@ -9,6 +9,13 @@ package Ziggurat;
 public class SequenceEpisode extends Episode 
 {
     /*======================================================================
+     * Constants
+     *----------------------------------------------------------------------
+     */
+    /** used for {@link #toString} */
+    public static NullEnvironment nullEnv = new NullEnvironment();
+    
+    /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
      */
@@ -58,14 +65,14 @@ public class SequenceEpisode extends Episode
     }
 
     /** 
-     * Typically you want to use the printing facility in the current
+     * Typically you want to use the printing facility in the specific
      * { @link Environment} class instead.
      *
      * @return a String representation of this SequenceEpisode
      */
     public String toString() 
     {
-        return this.sequence.toString();
+        return nullEnv.stringify(this);
     }
 
     /** this creates a deep copy */

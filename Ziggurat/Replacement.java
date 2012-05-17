@@ -12,6 +12,13 @@ import java.util.*;
 public class Replacement extends DecisionElement
 {
     /*======================================================================
+     * Constants
+     *----------------------------------------------------------------------
+     */
+    /** used for {@link #toString} */
+    public static NullEnvironment nullEnv = new NullEnvironment();
+
+    /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
      */
@@ -79,34 +86,14 @@ public class Replacement extends DecisionElement
     }//equals
 
     /** 
-     * Typically you want to use the printing facility in the current
+     * Typically you want to use the printing facility in the specific
      * { @link Environment} class instead.
      *
-     * @return a String representation of this action.
+     * @return a String representation of this replacement
      */
 	public String toString() 
     {
-        //This is the LHS of the replacement rule
-        String result = "{ ";   
-        for(int i = 0; i < this.original.size(); i++)
-        {
-            Action act = this.original.elementAt(i);
-            
-            //precede all but first sequence with a comma separator
-            if (i > 0) result += ", ";  
-
-            result += act.toString();
-        }
-        result += " }";
-
-        //Arrow
-        result += "===>";
-
-        //RHS of the replacement rule
-        result += this.replacement;
-
-        return result;
-       
+        return nullEnv.stringify(this);
     }//toString
     
     /**

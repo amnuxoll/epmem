@@ -25,6 +25,8 @@ public class ElementalEpisode extends Episode
     /** This empty Episode comes in handy from time to time */
     public static Episode EMPTY = 
         new ElementalEpisode(-1, new WMESet(WMESet.makeSensors(emptySet)), -1, 0.0);
+    /** used for {@link #toString} */
+    public static NullEnvironment nullEnv = new NullEnvironment();
     
     /*======================================================================
      * Instance Variables
@@ -141,14 +143,14 @@ public class ElementalEpisode extends Episode
 	}
 
 	/**
-     * Typically you want to use the printing facility in the current
+     * Typically you want to use the printing facility in the specific
      * Environment# class instead.
      *
      * @return a string containing all the WMEs in the episode + command.
      */
 	public String toString() 
     {
-        return sensors.toString() + cmd;
+        return nullEnv.stringify(this);
 	}
 
     /**
