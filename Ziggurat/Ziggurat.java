@@ -942,8 +942,13 @@ public class Ziggurat
          * when a match is found it is "oriented" in the level 1 episodes.
          * ----------------------------------------------------------------------
          */
-        int numLvl0Eps = level0Eps.size() - 1;
-        int lvl0Index = level0Eps.size() - 2;
+        int lastLevel0EpIndex = level0Eps.size() - 1;
+
+        //level0Index will be used to track the index of the current level 0
+        //index.  This index needs to be initialized to refer to to the last
+        //level 0 episode in the last SequenceEpisode at level 1.
+        Sequence lastLevel0Seq = this.seqs.elementAt(0).lastElement();
+        int level0Index = level0Eps.size() - lastLevel0Seq.length() - 2; 
         for(int i = level1Eps.size() - 1; i >= 0; i--)
         {
             SequenceEpisode currLvl1Ep = (SequenceEpisode)level1Eps.elementAt(i);
@@ -951,18 +956,25 @@ public class Ziggurat
             for(int j = seqActs.size() - 1; j >= 0; j--)
             {
                 Episode currEp = seqActs.elementAt(j).getLHS();
-                //sanity check
-                assert(level0Eps.elementAt(lvl0Index) == currEp);
+                
+                //sanity check: the current episode at lvl 0 should match the
+                //one extracted via level 1
+                if(! level0Eps.elementAt(level0Index).equals(currEp))
+                {
+                    System.err.println("ERROR!  findElementalOrientation got out of synch.");
+
+                    System.exit(-3);
+                }
 
                 //Each matching episode extends the length of the overall match
                 int matchLen = 0;
-                while(level0Eps.elementAt(lvl0Index - matchLen).equals(
-                          level0Eps.elementAt(numLvl0Eps - matchLen)))
+                while(level0Eps.elementAt(level0Index - matchLen).equals(
+                          level0Eps.elementAt(lastLevel0EpIndex - matchLen)))
                 {
                     matchLen++;
 
                     //don't fall off the edge
-                    if (lvl0Index - matchLen < 0) break;
+                    if (level0Index - matchLen < 0) break;
                 }
 
                 //See if we've found a new best match
@@ -973,7 +985,7 @@ public class Ziggurat
                     bestMatchOffset = j;
                 }
 
-                lvl0Index--;
+                level0Index--;
             }//for
         }//for
 
@@ -1006,10 +1018,7 @@ public class Ziggurat
      * sequence in this.currPlan. If there are multiple such replacements, the
      * one with the highest confidence is returned.
      * 
-     * NOTE: This method does not find replacements across adjacent sequences in
-     *       this.currPlan.  This might be something to consider in the future.
-     *
-     * NOTE: This is a pretty expensive which may matter someday.
+     * <p>NOTE: This is a pretty method expensive which may matter someday.
      *
      * @return best replacement found or null no applicable replacements were
      *         found.
@@ -1021,7 +1030,8 @@ public class Ziggurat
         Replacement result = null; // this will hold the return value
         double bestConf = -1.0;    // confidence in the best match so far
 
-        assert(this.currPlan != null);
+        //sanity check
+        if (this.currPlan == null) return null;
 
         // iterate through each level of the plan
         for(int level = this.currPlan.getNumLevels() - 1; level >= 0; level--)
@@ -1323,7 +1333,7 @@ public class Ziggurat
            
         //If the agent should always select a random command if it will learn a
         //new action from that command
-        Recommend randRec = recommendCommand_SemiRandom();
+        Recommend randRec = recommendCommand_ViaUniqueness();
         if (randRec.degree > this.selfConfidence)
         {
             //If there was a plan in place, ditch it
@@ -1417,76 +1427,119 @@ public class Ziggurat
         }
     }//class Recommend
         
+    /**
+     * calcUniqueness
+     *
+     * is a helper method for {@link #recommendCommand_ViaUniqueness}.  It
+     * calculates how unique a sequence that a given command would create if it
+     * were selected.  This is specified by a number that indicates how many of
+     * previous episodes would have be added for the given command to be
+     * unique.  For example, if the current episodic memory was:<br>
+     *    <code>0U,3A,2B,3A,7B,2B,3?</code>
+     * the agent is trying to select a command that will go where the question
+     * mark is.  If the agent selects 'B' as the command it will create a unique
+     * episode '3B'.  However, if it selects 'A' as the command, '3A' is hardly
+     * unique.  In fact, you must include the previous two episodes (2B and 7B)
+     * before it will be a unique sequence.
+     *
+     * @param cmd command under consideration
+     * @param cap if the minimum return value reach this cap then return this
+     *            cap value instead
+     *
+     * @return the number of previous episodes that would have to be included to
+     * make the resulting episode part of a unique sequence
+     */
+    protected int calcUniqueness(int cmd, int cap)
+    {
+        int uniqueLen = 0;      // return value
+        Vector<Episode> level0Eps = this.epmems.elementAt(0);
+
+        //Iterate backwards over all positions in the current episode array
+        for(int start = level0Eps.size()-2; start >= 0; start--)
+        {
+            //If the episode at this position doesn't have the right sensors or
+            //command then it's a bust
+            ElementalEpisode compEp = (ElementalEpisode)level0Eps.elementAt(start);
+            if (compEp.getCommand() != cmd) continue;
+            ElementalEpisode rootEp = (ElementalEpisode)level0Eps.elementAt(level0Eps.size() - 1);
+            if (! compEp.equalSensors(rootEp)) continue;
+            int matchLen = 1; // one match so far
+
+            //Loop until we find a point where it doesn't match anymore
+            int offset = 1;
+            while(start - offset >= 0)
+            {
+                compEp = (ElementalEpisode)level0Eps.elementAt(start - offset);
+                rootEp = (ElementalEpisode)level0Eps.elementAt(level0Eps.size() - 1 - offset);
+                if (! compEp.equals(rootEp)) break;
+
+                matchLen++;
+                offset++;
+            }
+            
+            //If this is the longest match we've seen so far, note that
+            if (matchLen > uniqueLen)
+            {
+                uniqueLen = matchLen;
+
+                //Honor the cap given by the caller
+                if (uniqueLen >= cap) break;
+            }
+        }//for
+
+        return uniqueLen;
+        
+    }//calcUniqueness
+    
     
     /**
-     * recommendCommand_SemiRandom
+     * recommendCommand_ViaUniqueness
      *
-     * This function selects a random command that would create a new action
-     * based upon the agent's most recent sensing.  If no such new action can be
-     * made, then it just chooses a random command without qualification.
+     * This function selects the command that will create the most unique
+     * subsequence of episodes.  Ties are broken randomly.
      *
      * CAVEAT:  This routine assumes that the lowest numbered command is 0.
      *
      */
-    protected Recommend recommendCommand_SemiRandom()
+    protected Recommend recommendCommand_ViaUniqueness()
     {
         int numCmds = this.env.getNumCommands(); // number of commands to select among
-        int cmd = randGen.nextInt(numCmds); //default to select
-        double degree = 0.0;       // degree to which this command is recommended
 
-        //Make an array of boolean values (one per command) and init them all to
-        //true. This array will eventually indicates whether the given command
-        //would create a unique episode (true) or not (false).
-        boolean valid[] = new boolean[numCmds];
+        //Start the search from a random command
+        int startCmd = randGen.nextInt(numCmds);
+
+        //iterate through all commands and select the one that will yield the
+        //most unique series of episodes
+        int bestUnique = this.epmems.elementAt(0).size() + 1;
+        int bestCmd = startCmd;
         for(int i = 0; i < numCmds; i++)
         {
-            valid[i] = true;        // innocent until proven guilty
-        }
+            int candCmd = (startCmd + i) % numCmds;
+            int uniqueLen = calcUniqueness(candCmd, bestUnique);
 
-        //Search the vector of all the actions on level 0 for actions that have
-        //the same sensors I have now and mark the corresponding command as
-        //invalid
-        ElementalEpisode nowEp = (ElementalEpisode)this.epmems.firstElement().lastElement();
-        Vector<Action> level0Actions = this.actions.elementAt(0);
-        int invalidCount = 0;   // number of invalidated commands so far
-        for(Action act : level0Actions)
-        {
-            ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
-            if (currEp.equalSensors(nowEp))
+            //Is this the best so far?
+            if (uniqueLen < bestUnique)
             {
-                if (valid[currEp.getCommand()])
-                {
-                    valid[currEp.getCommand()] = false; // guilty!
+                bestUnique = uniqueLen;
+                bestCmd = candCmd;
 
-                    //Stop searching the actions if I've run out of potentially
-                    //valid commands
-                    invalidCount++;
-                    if (invalidCount == numCmds) break;
-                }
+                //We can't do better than zero
+                if (bestUnique == 0) break;
             }
-        }
-        
-        //Start from a random starting position in the valid array and return
-        //the first random entry found.  If no unique command is found, the
-        //original random value is used
-        for(int i = 0; i < numCmds; i++)
-        {
-            //Don't bother searching if all commands are invalid
-            if (invalidCount == numCmds) break;
+        }//for
 
-            int next = (cmd + i) % numCmds;
-            if (valid[next])
-            {
-                cmd = next;
-                degree = 1.0;
-                break;
-            }
-        }
+        //Wholly unique commands yield a maximum degree recommendation.  Other
+        //commands do not.  In the future we may want to be less binary than
+        //this.  I could see degree using (roughly) this formula:
+        //   1.0 - x^U, where x is a number in the range (0..1) and U is bestUnique
+        double degree = 0.0;
+        if (bestUnique == 0) degree = 1.0;
+        this.mon.log("Recommending a semi-random command: "
+                     + env.stringify(bestCmd)
+                     + "(" + (degree * 100) + "%)");
+        return new Recommend(bestCmd, degree);
 
-        this.mon.log("Recommending a semi-random command: " + env.stringify(cmd) + "(" + (degree * 100) + "%)");
-        return new Recommend(cmd, degree);
-
-    }//recommendCommand_SemiRandom
+    }//recommendCommand_ViaUniqueness
 
     /**
      * recommendCommand_WithPlan
