@@ -1165,7 +1165,7 @@ public class Ziggurat
                     //the RHS sensors of the candidate must match the RHS
                     //sensors of act2.
                     ElementalEpisode candRHS = (ElementalEpisode)candAct.getRHS();
-                    ElementalEpisode act2RHS = (ElementalEpisode)act1.getRHS();
+                    ElementalEpisode act2RHS = (ElementalEpisode)act2.getRHS();
                     if (! candRHS.equalSensors(act2RHS))
                     {
                         this.mon.log("RHS sensors don't match, try a different candidate");
