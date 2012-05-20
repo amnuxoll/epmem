@@ -1326,9 +1326,14 @@ public class Ziggurat
         Recommend randRec = recommendCommand_SemiRandom();
         if (randRec.degree > this.selfConfidence)
         {
-            //The current plan (if any) is now invalid, so ditch it
-            this.mon.log("Opting to go with random command for new action.  Plan abandoned.");
-            this.currPlan = null;
+            //If there was a plan in place, ditch it
+            if (this.currPlan != null)
+            {
+                this.currPlan = null;
+                activeDecEls.clear();
+                this.mon.log("Opting to go with random command for new action.  Plan abandoned.");
+            }
+
             
             this.mon.exit("chooseCommand");
             return randRec.command;
