@@ -1305,7 +1305,7 @@ public class Ziggurat
 
 
     /**
-     * chooseCommand
+    * chooseCommand
      *
      * This function decides what command to issue next.  Typically this
      * selection will be the next step in a plan.  However, the agent may decide
@@ -1321,7 +1321,21 @@ public class Ziggurat
         //Increment command counter for data gathering
         (this.stepsSoFar)++;
            
-        //If there is a plan in effect, first see if it's been effective so far.
+        //If the agent should always select a random command if it will learn a
+        //new action from that command
+        Recommend randRec = recommendCommand_SemiRandom();
+        if (randRec.degree > this.selfConfidence)
+        {
+            //The current plan (if any) is now invalid, so ditch it
+            this.mon.log("Opting to go with random command for new action.  Plan abandoned.");
+            this.currPlan = null;
+            
+            this.mon.exit("chooseCommand");
+            return randRec.command;
+        }
+
+        //If there is currently a plan in effect, first see if it's been
+        //effective so far.
         if (this.currPlan != null)
         {
             this.mon.log("Checking to see if the plan is still valid");
@@ -1362,7 +1376,7 @@ public class Ziggurat
             {
                 this.mon.log("No plan can be found.  Taking a random action.");
                 this.mon.exit("chooseCommand");
-                return chooseCommand_SemiRandom();
+                return randRec.command;
             }//if
 
             //Log the new plan
@@ -1371,35 +1385,36 @@ public class Ziggurat
             this.mon.log(this.currPlan);
         }//if
 
-        //%%%AMN:  I have ported this to Java in case we need it.  I sure hope
-        // we don't.
-        // //%%%TEMPORARY KLUDGE:  For Dustin and Ben.  
-        // {
-        //     //  adding a % chance of random action depending upon how long it's been
-        //     //  since we've reached the goal
-        //     int randDelay = 100;
-        //     if (stepsSoFar > randDelay)
-        //     {
-        //         int rNum = this.randGen(1000);
-        //         if (stepsSoFar - randDelay > rNum)
-        //         {
-        //             return chooseCommand_SemiRandom();
-        //             stepsSoFar = 0;
-        //         }
-        //     }
-        // }
-    
-
-        //If we've reached this point then there is a working plan so the agent
-        //should select the next step with that plan.
+        //If we reach this point, the agent has decided to stick to its current
+        //plan and therefore should select the next step with that plan.
         this.mon.exit("chooseCommand");
-        return chooseCommand_WithPlan();
+        return recommendCommand_WithPlan().command;
 
     }//chooseCommand
-    
+
+    /**
+     * class Recommend
+     *
+     * contains a recommended command and a degree of recommendation: a double
+     * with a value in the range [0..1].  This is used by the methods below to
+     * recommend a command to the chooseCommand method.  It's essentially a
+     * clean way for these methods to have two return values.
+     */
+    protected class Recommend
+    {
+        public int command = -1;
+        public double degree = 0.0;
+
+        public Recommend(int initCmd, double initDegree)
+        {
+            this.command = initCmd;
+            this.degree = initDegree;
+        }
+    }//class Recommend
+        
     
     /**
-     * chooseCommand_SemiRandom
+     * recommendCommand_SemiRandom
      *
      * This function selects a random command that would create a new action
      * based upon the agent's most recent sensing.  If no such new action can be
@@ -1408,67 +1423,78 @@ public class Ziggurat
      * CAVEAT:  This routine assumes that the lowest numbered command is 0.
      *
      */
-    protected int chooseCommand_SemiRandom()
+    protected Recommend recommendCommand_SemiRandom()
     {
+        int numCmds = this.env.getNumCommands(); // number of commands to select among
+        int cmd = randGen.nextInt(numCmds); //default to select
+        double degree = 0.0;       // degree to which this command is recommended
+
         //Make an array of boolean values (one per command) and init them all to
         //true. This array will eventually indicates whether the given command
         //would create a unique episode (true) or not (false).
-        int numCmds = this.env.getNumCommands();
         boolean valid[] = new boolean[numCmds];
         for(int i = 0; i < numCmds; i++)
         {
             valid[i] = true;        // innocent until proven guilty
         }
 
-        //Retrieve the cousins list of actions that have the agent's current
-        //sensing on the LHS
-        Episode nowEp = this.epmems.firstElement().lastElement();
-        Vector<Action> cousins = findCousinList(nowEp);
-
-        //Mark the commands associated with the cousins as invalid
-        if (cousins != null)
+        //Search the vector of all the actions on level 0 for actions that have
+        //the same sensors I have now and mark the corresponding command as
+        //invalid
+        ElementalEpisode nowEp = (ElementalEpisode)this.epmems.firstElement().lastElement();
+        Vector<Action> level0Actions = this.actions.elementAt(0);
+        int invalidCount = 0;   // number of invalidated commands so far
+        for(Action act : level0Actions)
         {
-            for(Action act : cousins)
+            ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
+            if (currEp.equalSensors(nowEp))
             {
-                ElementalEpisode currEp = (ElementalEpisode)act.getLHS();
-                valid[currEp.getCommand()] = false; // guilty!
+                if (valid[currEp.getCommand()])
+                {
+                    valid[currEp.getCommand()] = false; // guilty!
+
+                    //Stop searching the actions if I've run out of potentially
+                    //valid commands
+                    invalidCount++;
+                    if (invalidCount == numCmds) break;
+                }
             }
         }
         
         //Start from a random starting position in the valid array and return
         //the first random entry found.  If no unique command is found, the
         //original random value is used
-        int cmd = randGen.nextInt(numCmds);
         for(int i = 0; i < numCmds; i++)
         {
+            //Don't bother searching if all commands are invalid
+            if (invalidCount == numCmds) break;
+
             int next = (cmd + i) % numCmds;
             if (valid[next])
             {
                 cmd = next;
+                degree = 1.0;
                 break;
             }
         }
 
-        this.mon.log("Choosing a semi-random command: " + env.stringify(cmd));
-        return cmd;
+        this.mon.log("Recommending a semi-random command: " + env.stringify(cmd) + "(" + (degree * 100) + "%)");
+        return new Recommend(cmd, degree);
 
-    }//chooseCommand_SemiRandom
+    }//recommendCommand_SemiRandom
 
     /**
-     * chooseCommand_WithPlan
+     * recommendCommand_WithPlan
      *
      * This function increments to the next action in the current plan and
-     * extracts the associated cmd to return to the caller.
+     * extracts the associated cmd to return to the caller.  The degree of
+     * recommendation is currently equal to the agent's current confidence.
      *
      * CAVEAT: this.currPlan should contain a valid plan that does not need
      *         recalc.
      */
-    protected int chooseCommand_WithPlan()
+    protected Recommend recommendCommand_WithPlan()
     {
-        this.mon.log("Choosing command from plan:");
-        this.mon.tab();
-        this.mon.log(this.currPlan);
-   
         //Before executing the next command in the plan, see if there is a
         //replacement rule that the agent is confident enough to apply to the
         //current plan.  If so, apply it.
@@ -1486,10 +1512,15 @@ public class Ziggurat
         //taking this action
         this.currPlan.advance(0);
 
-        //Return the selected command to the environment
-        return cmd;
+        this.mon.log("Recommending command " + env.stringify(cmd)
+                     + "(" + (this.selfConfidence * 100) + "%)"
+                     + " from this plan:");
+        this.mon.log(this.currPlan);
 
-    }//chooseCommand_WithPlan
+        //Return the selected command to the environment
+        return new Recommend(cmd, this.selfConfidence);
+
+    }//recommendCommand_WithPlan
     
 
 }//class Ziggurat
