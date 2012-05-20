@@ -62,16 +62,16 @@ public class FlipSystemEnvironment extends Environment
         switch(cmd)
         {
             case CMD_LEFT:
-                System.out.println(" moving LEFT");
+                System.out.println("moving LEFT");
                 break;
             case CMD_RIGHT:
-                System.out.println(" moving RIGHT");
+                System.out.println("moving RIGHT");
                 break;
             case CMD_UP:
-                System.out.println(" moving UP");
+                System.out.println("moving UP");
                 break;
             default:
-                System.out.println(" moving ????");
+                System.out.println("moving ????");
                 break;
         }//switch
 
