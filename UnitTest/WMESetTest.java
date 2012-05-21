@@ -56,9 +56,10 @@ public class WMESetTest {
 	@Test
 	public void test_toString()
 	{
-		assertTrue(set1.toString().equals("{attr11:val11,attr12:val12,attr13:val13}"));
-		assertTrue(set2.toString().equals("{attr21:val21,attr22:val22,attr23:val23}"));
-		assertTrue(set3.toString().equals("{attr31:val31,attr32:val32,attr33:val33}"));
+        System.out.println(set1.toString());
+		assertTrue(set1.toString().equals("<attr11:val11,attr12:val12,attr13:val13>"));
+		assertTrue(set2.toString().equals("<attr21:val21,attr22:val22,attr23:val23>"));
+		assertTrue(set3.toString().equals("<attr31:val31,attr32:val32,attr33:val33>"));
 	}
 	
 	@Test

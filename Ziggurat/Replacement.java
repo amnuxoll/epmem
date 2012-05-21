@@ -5,8 +5,35 @@ import java.util.*;
 /**
  * <!-- class Replacement -->
  *
- * a replacement defines a way that a {@link Sequence} might shortened by replacing N
- * actions with a single action.
+ * a replacement defines a way that a {@link Sequence} might shortened by
+ * replacing N actions with a single action.
+ *
+ * At level 0, a replacement has this form:
+ * <code>  Ax->B  By->C ==> Az->C </code>
+ * where A,B and C are sensors (WMESets) and x,y and z are commands.
+ * 
+ * <p>To create a replacement action at level 0 create a new level 0 action whose
+ * LHS and RHS sensors are drawn from LHS and RHS of the original two actions
+ * respectively.  The new command ('z' in the example) can be any valid command
+ * but it is better to pick commands such that the new level 0 action is one
+ * that the agent has experienced before.
+ *
+ * At level 1+, a replacement has this form:
+ * <code> [A->B]-->[B->C] [B->C]-->[C->D] ==> [A->Q]-->[Q->D] </code>
+ * where A,B,C,D and Q are all level 1 episodes.
+ *
+ * <p>To create a replacement action at level 1+ create a new level 0 action
+ * whose LHS and RHS episodes are drawn from LHS and RHS of the original two
+ * actions respectively.  The new intervening episode ('Q' in the example) can
+ * be any sequence episode whose internal first and last actions (from one level
+ * below) match those of the preceding and postceding sequence episodes
+ * respectively.  It is better to select episodes that the resulting action
+ * (e.g., '[A->Q]-->[Q->D]' in the above example) is one the agent has
+ * experienced before.  If that's not possible, it's preferable to select a
+ * sequence episode ('Q' in this example) that the agent has seen before.
+ * However, it is theoretically possible to select any valid Q.
+ *
+ * @see Ziggurat#makeNewReplacement 
  */
 
 public class Replacement extends DecisionElement

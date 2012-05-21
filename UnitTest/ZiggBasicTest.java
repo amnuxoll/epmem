@@ -73,7 +73,7 @@ public class ZiggBasicTest
 
         //Verify the episode is correct
         ElementalEpisode elEp = (ElementalEpisode)epmems.elementAt(0).elementAt(0);
-        assertTrue(elEp.toString().equals("{state:0}1"));
+        assertTrue(elEp.toString().equals("<state:0>1"));
 
         //Verify that there are no actions
         Vector<Vector<Action>> actions = zigg.getActions();
@@ -108,7 +108,7 @@ public class ZiggBasicTest
 
         //Verify the action
         Action act = actions.elementAt(0).elementAt(0);
-        assertTrue(act.toString().equals("{state:0}1---->{state:0}"));
+        assertTrue(act.toString().equals("<state:0>1----><state:0>"));
 
         //Verify that only one (incomplete) sequence exists
         Vector<Vector<Sequence>> seqs = zigg.getSequences();
