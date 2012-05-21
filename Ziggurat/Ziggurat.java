@@ -203,6 +203,56 @@ public class Ziggurat
      *----------------------------------------------------------------------
      */
     /**
+     * findClosestExistingAction
+     *
+     * given an action, this method a vector of actions to find the
+     * one that is the most similar to this one.  If an exact match can not be
+     * found, this method returns the first action it finds with the same LHS (a
+     * "cousin").
+     *
+     * @param target is the target action to find a match for.  IMPORTANT:  This
+     * action's level must be properly set.
+     * @param actionList   is the vector to search
+     *
+     * @return a matching action if exists, otherwise a cousin if it exists,
+     * otherwise null
+     */
+    protected Action findClosestExistingAction(Action target, Vector<Action> actionList)
+    {
+        for(Action curr : actionList)
+        {
+            //If we find a match, return it
+            if (curr.equals(target))
+            {
+                return curr;
+            }
+
+            //If just the left-hand-sides match, then we have a cousin
+            if (curr.getLHS().equals(target.getLHS()))
+            {
+                //Iterate over all the cousins to see if there is an exact match
+                Vector<Action> cousinsList = curr.getCousins();
+                for(Action currCousin : cousinsList)
+                {
+                    //If both match, then we can reuse the matching action 
+                    if (currCousin.equals(target))
+                    {
+                        return currCousin;
+                    }
+                }//for
+
+                //No exact match was found so return the cousin instead
+                return curr;
+            }
+
+        }// for
+
+        //No luck
+        return null;
+    
+    }//findClosestExistingAction
+    
+    /**
      * update                    <!-- RECURSIVE -->
      *
      * this method is used to update the entire Ziggurat hierarchy once a new
@@ -266,57 +316,28 @@ public class Ziggurat
         //frequency will be updated
         boolean matchComplete = false;      // are we done searching yet?
         boolean addNewAction = true;        // whether the cand action is unique
-        Action updateExistingAction = null;  //reference to pre-existing,
-                                             //matching action
-        for(Action curr : actionList)
+
+        //Find the best matching action
+        Action updateExistingAction = findClosestExistingAction(newAction, actionList);
+
+        //If it's an exact match, we can reuse the matching action
+        if ( (updateExistingAction != null) && (updateExistingAction.equals(newAction)) )
         {
-            //If both match, then we can reuse the matching action 
-            if (curr.equals(newAction))
-            {
-                matchComplete = true;
-                addNewAction = false;
-                updateExistingAction = curr;
-                break;
-            }
+            addNewAction = false;
+        }
+        //If it's a cousin, we want to add this new action but also include it
+        //in the cousins list
+        else if (updateExistingAction != null)
+        {
+            this.mon.logPart("found a cousin: ");
+            this.mon.log(updateExistingAction);
 
-            //If just the left-hand-sides match, then we have a cousin
-            if (curr.getLHS().equals(newAction.getLHS()))
-            {
-                this.mon.logPart("found a cousin: ");
-                this.mon.log(curr);
-                
-                //Iterate over all the cousins to see if there is an exact match
-                Vector<Action> cousinsList = curr.getCousins();
-                for(Action currCousin : cousinsList)
-                {
-                    //If both match, then we can reuse the matching action 
-                    if (currCousin.equals(newAction))
-                    {
-                        this.mon.log("Found a cousin that is an exact match, reusing it.");
-                    
-                        matchComplete = true;
-                        addNewAction = false;
-                        updateExistingAction = currCousin;
-                        break;
-                    }
-                }//for
+            Vector<Action> cousinsList = updateExistingAction.getCousins();
+            cousinsList.add(newAction);
+            newAction.setCousins(cousinsList);
+            addNewAction = true;
+        }
 
-                //If no exact match was found, we want to add this new action
-                //but also include it in the cousins list
-                if (updateExistingAction == null)
-                {
-                    this.mon.log("" + cousinsList.size() + " unique cousin(s) found");
-                    
-                    cousinsList.add(newAction);
-                    newAction.setCousins(cousinsList);
-                    matchComplete = true;
-                    addNewAction = true;
-                }
-
-                break;
-            }//if
-        }// for
-            
         //Add the new action
         if(addNewAction)
         {
@@ -948,7 +969,7 @@ public class Ziggurat
         //index.  This index needs to be initialized to refer to to the last
         //level 0 episode in the last SequenceEpisode at level 1.
         Sequence lastLevel0Seq = this.seqs.elementAt(0).lastElement();
-        int level0Index = level0Eps.size() - lastLevel0Seq.length() - 2; 
+        int level0Index = level0Eps.size() - lastLevel0Seq.length() - 2;
         for(int i = level1Eps.size() - 1; i >= 0; i--)
         {
             SequenceEpisode currLvl1Ep = (SequenceEpisode)level1Eps.elementAt(i);
@@ -961,8 +982,7 @@ public class Ziggurat
                 //one extracted via level 1
                 if(! level0Eps.elementAt(level0Index).equals(currEp))
                 {
-                    System.err.println("ERROR!  findElementalOrientation got out of synch.");
-
+                    System.err.println("ERROR!  findElementalOrientation got out of sync.");
                     System.exit(-3);
                 }
 
@@ -1113,6 +1133,8 @@ public class Ziggurat
      *
      * CAVEAT:  Caller is responsible for guaranteeing that the current plan is valid
      *
+     * %%%TODO:  break this method up into smaller chunks
+     *
      * @return a new Replacement struct (or NULL if something goes wrong)
      *
      */
@@ -1140,7 +1162,7 @@ public class Ziggurat
             this.mon.log(act1);
             this.mon.tab();
             this.mon.log(act2);
-       
+
             //Pick a random starting position in actions list for this level. We
             //start the search in a random position so that the agent won't
             //always default to the lowest numbered command.
@@ -1225,14 +1247,64 @@ public class Ziggurat
                 replList.add(result);
                 return result;
 
-            }//for
+            }//for (all actions at this level)
            
+            //If we reach this point, it's still possible to make a replacement but
+            //the new replacement action will have to be one the agent has never
+            //experienced before
+            this.mon.log("No existing actions can be used to make a replacement at level " + level +".");
+        
+            //At level 0 this is a matter of selecting a command
+            if (level == 0)
+            {
+                //The replacement action's LHS sensors must match the LHS of act1.
+                //It's RHS sensors must match the RHS of act2.
+                Action candAct = new Action(act1.getLHS().clone(), act2.getRHS().clone());
+
+                //Starting with a random command, iterate through all commands until
+                //you find one that creates a unique action
+                int numCmds = this.env.getNumCommands();
+                int startCmd = randGen.nextInt(numCmds);
+                for(int i = 0; i < numCmds; i++)
+                {
+                    //Insert the candidate command into the candidate action
+                    int candCmd = (startCmd + i) % numCmds;
+                    ElementalEpisode lhsEp = (ElementalEpisode)candAct.getLHS();
+                    lhsEp.setCommand(candCmd);
+
+                    this.mon.logPart("Considering this action for the replacement: ");
+                    this.mon.log(candAct);
+
+                    //If I've seen this one before try something else
+                    Action bestMatch = findClosestExistingAction(candAct, actList);
+                    if ( (bestMatch != null) && bestMatch.equals(candAct) )
+                    {
+                        this.mon.log("action already exists (duplicate)");
+                        continue;
+                    }
+
+                    //All checks passed. Success!  Add the replacement it creates to
+                    //the list of known replacements and return it to the caller
+                    Replacement result = new Replacement(act1, act2, candAct);
+                    this.mon.log("Success!  Creating a new replacement.");
+                    while (this.repls.size() <= level) this.repls.add(new Vector<Replacement>());
+                    Vector<Replacement> replList = this.repls.elementAt(level);
+                    replList.add(result);
+                    return result;
+                
+                }//for
+            }
+            else //level 1+
+            {
+                //%%%To be implemented...
+            }
+        
         }//for
 
-        // No new replacement can be made.  This happens when replacmeents are
+        // No new replacement can be made.  This happens when replacements are
         // only possible at some levels and at those levels all valid candidates
         // already exist.
-        this.mon.log("No new replacement could be constructed from existing actions.");
+        this.mon.log("No new replacement could be constructed from a fabricated action.");
         return null;
     }//makeNewReplacement
 
@@ -1582,6 +1654,3 @@ public class Ziggurat
     
 
 }//class Ziggurat
-
-
- 
