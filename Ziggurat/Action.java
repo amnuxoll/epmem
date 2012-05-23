@@ -42,7 +42,7 @@ public class Action extends DecisionElement
         this.level = lhs.getLevel();  //inherit level from constituent episodes
 		this.lhs = lhs;
         this.rhs = rhs;
-        this.freq = 0;
+        this.freq = 1;          // a new action has happened exactly once
         cousins = new Vector<Action>();
         cousins.add(this);
         utility = 0.0;
