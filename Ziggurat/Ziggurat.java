@@ -1399,6 +1399,7 @@ public class Ziggurat
     protected int chooseCommand()
     {
         this.mon.enter("chooseCommand");
+        this.mon.log("Current sensing: " + env.stringify(this.epmems.elementAt(0).lastElement()));
 
         //Increment command counter for data gathering
         (this.stepsSoFar)++;
