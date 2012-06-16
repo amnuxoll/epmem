@@ -311,26 +311,20 @@ public class ZiggSimpleRoombaTest
         }
 
 
-        // //Verify that only two level-0 sequences exist (one will be empty)
-        // Vector<Vector<Sequence>> seqs = zigg.getSequences();
-        // assertTrue(seqs.size() == 2);
-        // assertTrue(seqs.elementAt(0).size() == 2);
+        //Verify that there are level-1 sequences
+        Vector<Vector<Sequence>> seqs = zigg.getSequences();
+        assertTrue(seqs.size() >= 2);
 
-        // //Verify the sequences are the right size
-        // Sequence seq1 = seqs.elementAt(0).elementAt(0);
-        // Sequence seq2 = seqs.elementAt(0).elementAt(1);
-        // assertTrue(seq1.length() == 7);
-        // assertTrue(seq2.length() == 0);
-
-        Vector<Vector<Episode>> epmems = zigg.getEpmems();
-        // assertTrue(epmems.size() == 2);
-        // assertTrue(epmems.elementAt(1).size() == 1);
-        // SequenceEpisode seqEp = (SequenceEpisode)epmems.elementAt(1).elementAt(0);
-        // assertTrue(seqEp.getSequence() == seq1);
+        // Verify the number of level-0 sequences lines up with the
+        // number of level-1 episodes
+        Vector<Sequence> lvl0Seqs = seqs.elementAt(0);
+        Vector<Vector<Episode>> eps = zigg.getEpmems();
+        Vector<Episode> lvl1Eps = eps.elementAt(1);
+        assertTrue(lvl0Seqs.size() - 1 == lvl1Eps.size());
         
-	}//test_OneSequence
+	}//test_Zigg
 
-	// // BEGIN Test cases --------------------------------------
+	// END Test cases --------------------------------------
 
     /**
      * An easy way to run this test individually from the command line without
