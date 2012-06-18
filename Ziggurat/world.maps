@@ -1,0 +1,186 @@
+#############################################################
+maps.txt
+
+This is a file that maps can be designed in. There is a 
+specific format that must be followed.
+
+This line must be written above the map in order for the 
+parser to locate the correct map and the dimensions are 
+needed to allocate memory for the world to be read into:
+
+mapNum mapWidth mapHeight [numGoals vElement ve_X ve_Y]
+
+This is the line that tells the unitTest that a map is about
+to follow. 
+
+mapNum 		is the id number for a particular map
+mapWidth 	is the width of the map
+mapHeight	is the height of the map
+			These last two are used to allocate the memory
+			to contain the map.
+
+A further option that is available is to set up the map to 
+change after a certain number of goals are found.
+This is not necessary and if not desired, only the first
+three values are required.
+
+numGoals    is the number of goals after which the mod will occur
+newMap      is the number of the new map to switch to
+
+An example line using all options: 1 9 7 10 2
+If no change is desired, we could use: 1 9 7
+
+The options for elements in the virtual world are as follows:
+
+Map Elements:
+W	-	Wall
+' '	-	Hallway
+G	-	Goal
+
+Roomba Elements:
+^	-	Facing North
+\7	-	Facing North-East
+>	-	Facing East
+J	-	Facing South_East
+v	-	Facing South
+L	-	Facing South-West
+<	-	Facing West
+F	-	Facing North-West
+
+The one condition that needs to be fulfilled in terms of the
+actual map design is that currently the unit test does not
+support having hallways thicker than a single space.
+
+The default map is 1 and can be used as a template.
+#############################################################
+
+# McCallmum's World (different goal)
+1 9 7 
+WWWWWWWWW
+W>      W
+W WW WW W
+W WW WW W
+W WW WW W
+W      GW
+WWWWWWWWW
+
+# Simple Mazes for quick shot testing
+2 4 3
+WWWW
+W^GW
+WWWW
+
+3 5 4
+WWWWW
+W   W
+WvWGW
+WWWWW
+
+4 10 5
+WWWWWWWWWW
+WF       W
+W WWWWWW W
+W       GW
+WWWWWWWWWW
+
+# Small Dead-Ends
+5 7 7
+WWWWWWW
+W>  W W
+W W   W
+W WGW W
+WWWWWWW
+
+# Medium Dead-Ends
+6 8 7
+WWWWWWWW
+W>     W
+WW W WWW
+W  W   W
+W WW WWW
+W  W  GW
+WWWWWWWW
+
+# Dead-End Doom
+7 20 10
+WWWWWWWWWWWWWWWWWWWW
+W>        WWWWWW   W
+WW WWWWWW        W W
+W  W   WW WWWWWWWW W
+W WW WWW        WW W
+W    WW  WWWWWW WW W
+WWWWWWW WWW  WW  W W
+WW          WWW WW W
+W  WWW WWWWWWG  W  W
+WWWWWWWWWWWWWWWWWWWW
+
+#McCallum original with switch to map #1 after 25 steps
+8 9 7 25 1
+WWWWWWWWW
+W>      W
+W WW WW W
+W WWGWW W
+W WW WW W
+W       W
+WWWWWWWWW
+
+#Pockets Map 1 (switches to pocket map #2 after 25 steps)
+9 7 7 25 10
+WWWWWWW
+W  v  W
+W WWW W
+W WWG W
+W WWW W
+W     W
+WWWWWWW
+
+#Pockets Map 2
+10 7 7
+WWWWWWW
+W  v  W
+W WWW W
+W GWW W
+W WWW W
+W     W
+WWWWWWW
+
+#McCallum original
+11 9 7
+WWWWWWWWW
+W>      W
+W WW WW W
+W WWGWW W
+W WW WW W
+W       W
+WWWWWWWWW
+
+#Map rotates 180 degrees after 25 turns
+12 9 7 25 13
+WWWWWWWWW
+W>      W
+W WW WW W
+W WW WW W
+W WW WW W
+W      GW
+WWWWWWWWW
+
+#upside down figure-8
+13 9 7
+WWWWWWWWW
+WG      W
+W WW WW W
+W WW WW W
+W WW WW W
+W      <W
+WWWWWWWWW
+
+#upside down figure-8 switches to donut
+14 9 7 25 4
+WWWWWWWWW
+W       W
+W WW WW W
+W WWGWW W
+W WW WW W
+W      <W
+WWWWWWWWW
+
