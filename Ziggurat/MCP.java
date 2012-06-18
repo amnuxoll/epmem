@@ -9,6 +9,9 @@ import java.util.Arrays;
  * an instance of Ziggurat and connects them together.  (MCP stands for "Master
  * Control Program".)  It has a short name because I'll be typing it in a lot.
  *
+ * Follow these steps to install a new environment:
+ * 1. Update validEnvStrs to include a new id string for your environment
+ * 2. Update initEnvironment to include a new else-clause for your environment
  *
  */
 public class MCP 
@@ -27,7 +30,7 @@ public class MCP
     private static boolean nullMonitor = false;
 
     /** A list of the names of valid environments.  Please keep this up to date! */
-    private static String[] validEnvStrs = { "flipsystem", "flippredict" };
+    private static String[] validEnvStrs = { "flipsystem", "flippredict", "roomba" };
 
     /**
      * main
@@ -111,6 +114,7 @@ public class MCP
     {
 		if(name.equals("flipsystem")) return new FlipSystemEnvironment();
 		else if(name.equals("flippredict")) return new FlipPredictEnvironment();
+		else if(name.equals("roomba")) return new RoombaEnvironment();
 		else return null;
 	}// initEnvironment
 
