@@ -146,10 +146,15 @@ public abstract class Monitor
      */
     public static String padLeft(String s, int n)
     {
-        String pad = String.format("%1$-#" + (n+1) + "s", "\n");
+    	//%%%Fix ME!  For now set pad to empty string
+        //String pad = String.format("%1$-#" + (n+1) + "s", "\n");
+        String pad = "";
         s = s.replace("\n", pad);
         n = n + s.length();
-        return String.format("%1$#" + n + "s", s);
+        
+        //%%%FIX ME:  this doesn't work either
+        //%%%return String.format("%1$#" + n + "s", s);
+        return s;
     }
 
     /**
