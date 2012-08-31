@@ -228,4 +228,13 @@ public abstract class Environment
         }
     }//stringify DecisionElement
     
+    /**
+     * Factory method to create a new agent for this environment...
+     * this should only be called once....
+     * 
+     * @return an agent for this environment
+     */
+    public Ziggurat createAgentForEnvironment() {
+    	return new Ziggurat(this);
+    }
 }//class Environment

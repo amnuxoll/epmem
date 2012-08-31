@@ -30,7 +30,7 @@ public class MCP
     private static boolean nullMonitor = false;
 
     /** A list of the names of valid environments.  Please keep this up to date! */
-    private static String[] validEnvStrs = { "flipsystem", "flippredict", "roomba" };
+    private static String[] validEnvStrs = { "flipsystem", "flippredict", "roomba", "soar" };
 
     /**
      * main
@@ -75,7 +75,7 @@ public class MCP
         }// if
 		
 		// Initialize our agent
-		Ziggurat zigg = new Ziggurat(env);
+		Ziggurat zigg = env.createAgentForEnvironment();
 
         //Set the random number seed if specified
         if (seed != -1)
@@ -96,7 +96,8 @@ public class MCP
 			// Capture new sensor data resulting from the command
 			// Ziggurat sent to the environment based on the previous
 			// sensor data.
-			currentSensors = env.takeStep(zigg.tick(currentSensors));
+        	int action = zigg.tick(currentSensors);
+			currentSensors = env.takeStep(action);
 
             //Stop after N goals
             WME w = currentSensors.getAttr(WME.REWARD_STRING);
@@ -115,6 +116,7 @@ public class MCP
 		if(name.equals("flipsystem")) return new FlipSystemEnvironment();
 		else if(name.equals("flippredict")) return new FlipPredictEnvironment();
 		else if(name.equals("roomba")) return new RoombaEnvironment();
+		else if(name.equals("soar")) return new SoarListenerEnvironment();
 		else return null;
 	}// initEnvironment
 
