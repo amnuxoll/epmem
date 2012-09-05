@@ -30,7 +30,7 @@ public class MCP
     private static boolean nullMonitor = false;
 
     /** A list of the names of valid environments.  Please keep this up to date! */
-    private static String[] validEnvStrs = { "flipsystem", "flippredict", "roomba", "soar" };
+    private static String[] validEnvStrs = { "flipsystem", "flippredict", "roomba" };
 
     /**
      * main
@@ -116,7 +116,6 @@ public class MCP
 		if(name.equals("flipsystem")) return new FlipSystemEnvironment();
 		else if(name.equals("flippredict")) return new FlipPredictEnvironment();
 		else if(name.equals("roomba")) return new RoombaEnvironment();
-		else if(name.equals("soar")) return new SoarListenerEnvironment();
 		else return null;
 	}// initEnvironment
 
