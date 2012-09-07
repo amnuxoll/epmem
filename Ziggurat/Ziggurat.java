@@ -859,10 +859,7 @@ public class Ziggurat
         this.mon.enter("findOrientation");
    
         //Iterate over all levels that are not the very top or bottom
-        
-        //%%%DEBUG:  temporarily fixing at level 1
-        for(level = 1; level >= 1; level--)
-//%%%        for(level = this.lastUpdateLevel; level >= 1; level--)
+        for(level = this.lastUpdateLevel; level >= 1; level--)
         {
             this.mon.log("searching Level %d", level);
    
@@ -1031,6 +1028,92 @@ public class Ziggurat
    
     }//findElementalOrientation
 
+    /**
+     * class Location
+     *
+     * an instance of this class is used to represent a unique position at a
+     * single level of Ziggurat'e hierarchy.  
+     */
+    public class Location
+    {
+        public int level;  // level of the hierarchy where this location is
+        public String id;  // a unique identifier for the sequence
+        public int step;   // which step in the sequence the agent is at
+
+        /** a ctor to create a location from a given sequence */
+        public Location(Sequence seq, int index)
+        {
+            this.level = seq.getLevel();
+            this.id = seq.toString().replace(' ', '_');
+            this.step = index;
+        }
+    }//class Location
+    
+    /**
+     * getPerceivedOrientation
+     *
+     * this method provides a representation of the agent's perception of its
+     * current orientation (ala {@link #findElementalOrientation} and {@link
+     * #findOrientation} to an external observer.  In particular, I've
+     * implemented this for the Soar environment.  The data are extracted from
+     * the agent's current plan.
+     *
+     * @return a vector of {@link #Location} objects
+     *
+     */
+    public Vector<Location> getPerceivedOrientation()
+    {
+        //return value
+        Vector<Location> result = new Vector<Location>();
+
+        //If there is no valid plan there's no data to return
+        if ((currPlan == null) || currPlan.needsRecalc()) return result;
+
+        //Try to create a Location obj for the Route at each level
+        for(int level = 0; level < currPlan.getNumLevels(); ++level)
+        {
+            //if the current route at this level of the current plan contains
+            //only one sequence and has no replacements then we can use it
+            Route route = currPlan.getRoute(level);
+            if ((route.numRepls() != 0) && (route.numSeqs() != 1))
+            {
+                //Otherwise we have to get a fresh route for this level using
+                //findOrientation or findElementalOrientation (expensive...)
+                if (level > 0)
+                {
+                    route = findOrientation();
+
+                    //If the returned route is too low level we can't handle
+                    //higher level routes so adjust the loop counter
+                    if (route.getLevel() < level)
+                    {
+                        level = route.getLevel();
+                    }
+                    
+                    //If the returned route is too high level we can adjust to
+                    //the lower level equivalent
+                    while (route.getLevel() > level)
+                    {
+                        Action act = route.getCurrAction();
+                        route = new Route(act);
+                    }
+                }
+                else  //level 0
+                {
+                    route = findElementalOrientation();
+                }
+            }//if
+
+            //Add the location to the list
+            Sequence seq = route.getLastSeq();
+            Location loc = new Location(seq, route.getCurrActIndex());
+            result.add(loc);
+        }//for
+
+        return result;
+        
+    }//getPerceivedOrientation
+    
     /**
      * findBestReplacement
      *

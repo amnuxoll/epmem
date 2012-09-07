@@ -131,7 +131,7 @@ public class Route extends Sequence
         SequenceEpisode seqEp = (SequenceEpisode)parentAct.getLHS();
         Sequence seq = seqEp.getSequence();
         this.add(seq);
-    }//newRouteFromParentAction
+    }//ctor (create new route from parent action)
 
     /*======================================================================
      * Public Methods
@@ -141,6 +141,8 @@ public class Route extends Sequence
     /** accessors */
     public int getCurrActIndex() { return this.currActIndex; }
     public Vector<Replacement> getRepls() { return this.repls; }
+    /** @return the number of sequences used to build this route*/
+    public int numSeqs()   { return this.seqs.size(); }
     /** @return the number of active replacements on this route*/
     public int numRepls()   { return this.repls.size(); }
     /** @return the last sequence that was added to this route */

@@ -20,10 +20,16 @@ public class Sequence extends DecisionElement
     /** used for {@link #toString} */
     public static NullEnvironment nullEnv = new NullEnvironment();
 
+    /** used to generate a unique id for each sequence */
+    protected static int nextID = 0;
+
     /*======================================================================
      * Instance Variables
      *----------------------------------------------------------------------
      */
+    /** each sequence is assigned a unique id */
+    private int id = -1;
+    
     /** these are the actions that comprise the sequence (order matters) */
     protected Vector<Action> actions;
 
@@ -35,6 +41,7 @@ public class Sequence extends DecisionElement
     public Sequence()
     {
     	actions = new Vector<Action>();
+        id = nextID++;
     }
 
     /** this ctor inits the new Sequence with the given actions */
@@ -47,6 +54,8 @@ public class Sequence extends DecisionElement
         {
             this.level = acts.elementAt(0).getLevel();
         }
+
+        id = nextID++;
     }
     
     /*======================================================================
