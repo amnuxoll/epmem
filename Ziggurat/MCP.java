@@ -116,7 +116,7 @@ public class MCP
 		if(name.equals("flipsystem")) return new FlipSystemEnvironment();
 		else if(name.equals("flippredict")) return new FlipPredictEnvironment();
 		else if(name.equals("roomba")) return new RoombaEnvironment();
-		else if(name.equals("soar")) return new SoarListenerEnvironment();
+//%%%out for now in main code base:		else if(name.equals("soar")) return new SoarListenerEnvironment();
 		else return null;
 	}// initEnvironment
 
