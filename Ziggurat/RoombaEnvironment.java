@@ -296,6 +296,7 @@ public class RoombaEnvironment extends Environment
         return NUM_COMMANDS;
     }
 
+    @Override
     /** use a two letter abbreviation for each command */
     public String stringify(int cmd)
     {
@@ -332,23 +333,21 @@ public class RoombaEnvironment extends Environment
      *     <li>GRT - found goal, then turned right
      *</ul>
      */
-    public String stringify(ElementalEpisode elEp)
+    public String stringify(WMESet sensors)
     {
-        WMESet sensors = elEp.getSensors();
-
         double goal = sensors.getAttr(WME.REWARD_STRING).getDouble();
         int left = sensors.getAttr("left").getInt();
         int right = sensors.getAttr("right").getInt();
 
-        //If goal is set, hard-code to 9
-        if (goal > 0) return "9";
+        //If goal is set, hard-code to "G"
+        if (goal > 0) return "G";
 
         //construct binary number
         int value = 0;
         if (left > 0) value += 2;
         if (right > 0) value += 1;
 
-        return "" + value + stringify(elEp.getCommand());
+        return "" + value;
         
     }//stringify episode
 

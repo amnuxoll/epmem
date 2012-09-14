@@ -39,6 +39,12 @@ public abstract class Environment
     {
         return (cmd < 0) ?  "?" :  "" + cmd;
     }
+
+    /** convert a set of sensors to a string */
+    public String stringify(WMESet set)
+    {
+        return set.toString();
+    }
     
     /** convert a given Episode to a string */
     public String stringify(Episode ep)
@@ -53,7 +59,7 @@ public abstract class Environment
     /** convert a given ElementalEpisode to a string */
     public String stringify(ElementalEpisode elEp)
     {
-        return elEp.getSensors().toString() + stringify(elEp.getCommand());
+        return stringify(elEp.getSensors()) + stringify(elEp.getCommand());
     }//stringify episode
 
     /** convert a given SequenceEpisode to a string */
@@ -89,10 +95,14 @@ public abstract class Environment
 
         //Add the RHS to the result string
         Episode ep = act.getRHS();
-        result += stringify(ep);
         if (ep instanceof ElementalEpisode)
         {
-            result = result.substring(0, result.length() - 1);
+            //For elemental episodes, just use the sensors on the RHS
+            result += stringify(((ElementalEpisode)ep).getSensors());
+        }
+        else
+        {
+            result += stringify(ep);
         }
 
         return result;

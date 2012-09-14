@@ -175,21 +175,17 @@ public class FlipSystemEnvironment extends Environment
 
     @Override
     /**
-     * ElementalEpisodes are reduced to two characters:
-     * <ul>
-     *   <li>[0,1] = reward received
-     *   <li>[U,L,R] = up, left or right
-     *</ul>
+     * Sensor sets are reduced to one character:  [0,1] = reward received
      */
-    public String stringify(ElementalEpisode elEp)
+    public String stringify(WMESet sensors)
     {
         String sensorString = "0";
-        if (elEp.getSensors().getAttr(WME.REWARD_STRING).getDouble() > 0.0)
+        if (sensors.getAttr(WME.REWARD_STRING).getDouble() > 0.0)
         {
             sensorString = "1";
         }
 
-        return sensorString + stringify(elEp.getCommand());
+        return sensorString;
     }//stringify episode
 
 }// [class] FlipSystemEnvironment
