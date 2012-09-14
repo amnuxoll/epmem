@@ -157,23 +157,24 @@ public class FlipPredictEnvironment extends Environment
 
     @Override
     /**
-     * converts an episode into a unique combination of three characters
+     * converts an episode's sensors into a unique combination of two
+     * characters
+     *
      * 1 or 0   - reward
      * L,R or U - direction
-     * 1 or 0   - predicted outcome
      */
-    public String stringify(ElementalEpisode elEp)
+    public String stringify(WMESet sensors)
     {
-        //Calculte the reward character
+        //Calculate the reward character
         String sensorString = "0";
-        if (elEp.getSensors().getAttr(WME.REWARD_STRING).getDouble() > 0.0)
+        if (sensors.getAttr(WME.REWARD_STRING).getDouble() > 0.0)
         {
             sensorString = "1";
         }
 
         //Calculate the direction character
 
-        int dir = elEp.getSensors().getAttr("dir").getInt();
+        int dir = sensors.getAttr("dir").getInt();
         switch(dir)
         {
             case DIR_UP:
@@ -190,8 +191,7 @@ public class FlipPredictEnvironment extends Environment
                 break;
         }
 
-        //append the command and return
-        return sensorString + stringify(elEp.getCommand());
+        return sensorString;
     }//stringify ElementalEpisode
 
     
