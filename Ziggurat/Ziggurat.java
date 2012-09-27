@@ -1066,43 +1066,36 @@ public class Ziggurat
         //return value
         Vector<Location> result = new Vector<Location>();
 
-        //If there is no valid plan there's no data to return
-        if ((currPlan == null) || currPlan.needsRecalc()) return result;
-
-        //Try to create a Location obj for the Route at each level
-        for(int level = 0; level < currPlan.getNumLevels(); ++level)
+        //Try to create a Location obj for the Route at levels 1 and 0
+        for(int level = 0; level < 1; ++level)
         {
-            //if the current route at this level of the current plan contains
-            //only one sequence and has no replacements then we can use it
-            Route route = currPlan.getRoute(level);
-            if ((route.numRepls() != 0) && (route.numSeqs() != 1))
+            Route route = null;  //to store the route at this level
+            
+            //Get a fresh route for this level using findOrientation or
+            //findElementalOrientation (expensive...)
+            if (level > 0)
             {
-                //Otherwise we have to get a fresh route for this level using
-                //findOrientation or findElementalOrientation (expensive...)
-                if (level > 0)
-                {
-                    route = findOrientation();
+                route = findOrientation();
 
-                    //If the returned route is too low level we can't handle
-                    //higher level routes so adjust the loop counter
-                    if (route.getLevel() < level)
-                    {
-                        level = route.getLevel();
-                    }
-                    
-                    //If the returned route is too high level we can adjust to
-                    //the lower level equivalent
-                    while (route.getLevel() > level)
-                    {
-                        Action act = route.getCurrAction();
-                        route = new Route(act);
-                    }
-                }
-                else  //level 0
+                //If the returned route is too low level we can't handle
+                //higher level routes so adjust the loop counter
+                if (route.getLevel() < level)
                 {
-                    route = findElementalOrientation();
+                    level = route.getLevel();
                 }
-            }//if
+                    
+                //If the returned route is too high level we can adjust to
+                //the lower level equivalent
+                while (route.getLevel() > level)
+                {
+                    Action act = route.getCurrAction();
+                    route = new Route(act);
+                }
+            }
+            else  //level 0
+            {
+                route = findElementalOrientation();
+            }
 
             //Add the location to the list
             Sequence seq = route.getLastSeq();
@@ -1305,7 +1298,7 @@ public class Ziggurat
                     SequenceEpisode act2RHS = (SequenceEpisode)act2.getRHS();
                     Action candRHSSubAct = candRHS.getSequence().lastAction();
                     Action act2RHSSubAct = act2RHS.getSequence().lastAction();
-                    if (candRHSSubAct != act2RHSSubAct)
+                    if (! candRHSSubAct.equals(act2RHSSubAct))
                     {
                         this.mon.log("RHS actions don't match, try a different candidate");
                         continue;   // bad match, try a different candidate
